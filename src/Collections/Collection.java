@@ -327,69 +327,54 @@ public interface Collection<E> extends Iterable<E> {
     }
 
     /**
-     * Retains only the elements in this collection that are contained in the
-     * specified collection (optional operation).  In other words, removes from
-     * this collection all of its elements that are not contained in the
-     * specified collection.
+     * 只保留此集合中包含在指定集合中的元素（可选操作）。换句话说，
+     * 从这个集合中删除指定集合中不包含的所有元素。
      *
      * @param c collection containing elements to be retained in this collection
-     * @return <tt>true</tt> if this collection changed as a result of the call
-     * @throws UnsupportedOperationException if the <tt>retainAll</tt> operation
+     * @return true if this collection changed as a result of the call
+     * @throws UnsupportedOperationException if the retainAll operation
      *         is not supported by this collection
      * @throws ClassCastException if the types of one or more elements
      *         in this collection are incompatible with the specified
-     *         collection
-     *         (<a href="#optional-restrictions">optional</a>)
+     *         collection (optional)
      * @throws NullPointerException if this collection contains one or more
      *         null elements and the specified collection does not permit null
-     *         elements
-     *         (<a href="#optional-restrictions">optional</a>),
-     *         or if the specified collection is null
+     *         elements (optional), or if the specified collection is null
      * @see #remove(Object)
      * @see #contains(Object)
      */
     boolean retainAll(Collection<?> c);
 
     /**
-     * Removes all of the elements from this collection (optional operation).
-     * The collection will be empty after this method returns.
+     * 删除集合中所有元素（可选操作）
+     * 方法返回之后集合为空
      *
-     * @throws UnsupportedOperationException if the <tt>clear</tt> operation
+     * @throws UnsupportedOperationException if the clear operation
      *         is not supported by this collection
      */
     void clear();
 
 
     // Comparison and hashing
+    // 比较和散列
 
     /**
-     * Compares the specified object with this collection for equality. <p>
+     * 比较指定的集合和此集合是否相等
      *
-     * While the <tt>Collection</tt> interface adds no stipulations to the
-     * general contract for the <tt>Object.equals</tt>, programmers who
-     * implement the <tt>Collection</tt> interface "directly" (in other words,
-     * create a class that is a <tt>Collection</tt> but is not a <tt>Set</tt>
-     * or a <tt>List</tt>) must exercise care if they choose to override the
-     * <tt>Object.equals</tt>.  It is not necessary to do so, and the simplest
-     * course of action is to rely on <tt>Object</tt>'s implementation, but
-     * the implementor may wish to implement a "value comparison" in place of
-     * the default "reference comparison."  (The <tt>List</tt> and
-     * <tt>Set</tt> interfaces mandate such value comparisons.)<p>
+     * 当集合接口没有为Object.equals的通用契约添加任何约定时，实现
+     * 集合接口的程序员（换句话说，创建一个除Set和List之外的集合类）
+     * 必须注意是否选择覆盖Object.equals。并不一定非要这样做，最简单
+     * 的做法是依赖Object的实现，但实现者可能希望实现一个“值比较”来
+     * 代替默认的“引用比较”。（List和Set接口要求进行这样的值比较）
      *
-     * The general contract for the <tt>Object.equals</tt> method states that
-     * equals must be symmetric (in other words, <tt>a.equals(b)</tt> if and
-     * only if <tt>b.equals(a)</tt>).  The contracts for <tt>List.equals</tt>
-     * and <tt>Set.equals</tt> state that lists are only equal to other lists,
-     * and sets to other sets.  Thus, a custom <tt>equals</tt> method for a
-     * collection class that implements neither the <tt>List</tt> nor
-     * <tt>Set</tt> interface must return <tt>false</tt> when this collection
-     * is compared to any list or set.  (By the same logic, it is not possible
-     * to write a class that correctly implements both the <tt>Set</tt> and
-     * <tt>List</tt> interfaces.)
+     * Object.equals方法的通用约定时等号必须是对称的（换句话说，
+     * a.equals(b)当且仅当b.equals(a)）。List.equals和Set.equals的规范是
+     * list只等于其他list，set只等于其它set。因此，一个非List和Set集合
+     * 类中定制的equal方法在其与List或Set比较时，必须返回false。（根
+     * 据这样的逻辑，不可能同时实现Set和List接口）。
      *
      * @param o object to be compared for equality with this collection
-     * @return <tt>true</tt> if the specified object is equal to this
-     * collection
+     * @return true if the specified object is equal to this collection
      *
      * @see Object#equals(Object)
      * @see Set#equals(Object)
@@ -398,14 +383,11 @@ public interface Collection<E> extends Iterable<E> {
     boolean equals(Object o);
 
     /**
-     * Returns the hash code value for this collection.  While the
-     * <tt>Collection</tt> interface adds no stipulations to the general
-     * contract for the <tt>Object.hashCode</tt> method, programmers should
-     * take note that any class that overrides the <tt>Object.equals</tt>
-     * method must also override the <tt>Object.hashCode</tt> method in order
-     * to satisfy the general contract for the <tt>Object.hashCode</tt> method.
-     * In particular, <tt>c1.equals(c2)</tt> implies that
-     * <tt>c1.hashCode()==c2.hashCode()</tt>.
+     * 返回此集合的hash值。当集合接口没有为Object.hasCode方法的通用
+     * 规范添加任何规定时，程序员应该注意任何重写了Object.equals方法
+     * 的类也应该重写Object.hashCode方法，才能满足Object.hashCode
+     * 方法的通用规范。特别地，c1.equals(c2)即意味着
+     * c1.hashCode()==c2. hashcode()。
      *
      * @return the hash code value for this collection
      *
