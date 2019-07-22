@@ -2,9 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="65d6684a-7237-4b2a-81b7-14792effb173" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Collections/Collection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/Collection.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -21,7 +19,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Collections/ArrayList.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1512">
+            <state>
               <caret line="66" column="3" selection-start-line="66" selection-start-column="3" selection-end-line="66" selection-end-column="3" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -33,7 +31,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Collections/Iterable.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="96">
+            <state relative-caret-position="208">
               <caret line="8" column="3" selection-start-line="8" selection-start-column="3" selection-end-line="8" selection-end-column="3" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -45,16 +43,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Collections/Collection.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="7824">
-              <caret line="326" column="5" lean-forward="true" selection-start-line="326" selection-start-column="5" selection-end-line="326" selection-end-column="5" />
+            <state relative-caret-position="181">
+              <caret line="329" selection-start-line="329" selection-end-line="332" selection-end-column="28" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#22882#22883#0" expanded="true" />
-                <element signature="e#22938#22939#0" expanded="true" />
-                <element signature="e#23569#23570#0" expanded="true" />
-                <element signature="e#23634#23635#0" expanded="true" />
-                <element signature="e#24363#24364#0" expanded="true" />
-                <element signature="e#24427#24428#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -83,9 +75,9 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
+  <component name="ProjectFrameBounds" extendedState="7">
     <option name="x" value="933" />
-    <option name="width" value="994" />
+    <option name="width" value="996" />
     <option name="height" value="1047" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -94,30 +86,19 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
             <path>
-              <item name="JAVASourceCodeAnalysis" type="b2602c69:ProjectViewProjectNode" />
-              <item name="JAVASourceCodeAnalysis" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="JAVASourceCodeAnalysis" type="b2602c69:ProjectViewProjectNode" />
-              <item name="JAVASourceCodeAnalysis" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="JAVASourceCodeAnalysis" type="b2602c69:ProjectViewProjectNode" />
-              <item name="JAVASourceCodeAnalysis" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="Collections" type="462c0819:PsiDirectoryNode" />
+              <item name="JavaSourceCodeAnalysis" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JavaSourceCodeAnalysis" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -155,17 +136,19 @@
       <workItem from="1563363082316" duration="1961000" />
       <workItem from="1563700519801" duration="2274000" />
       <workItem from="1563708523276" duration="8036000" />
+      <workItem from="1563799727964" duration="195000" />
+      <workItem from="1563799931858" duration="124000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="16423000" />
+    <option name="totallyTimeSpent" value="16742000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <frame x="-7" y="-7" width="1295" height="695" extended-state="7" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.50328225" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.2497979" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="UI Designer" order="3" />
@@ -178,7 +161,7 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Docker" order="7" show_stripe_button="false" />
-      <window_info anchor="bottom" id="Version Control" order="8" />
+      <window_info anchor="bottom" id="Version Control" order="8" weight="0.3283859" />
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Terminal" order="10" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
@@ -197,7 +180,7 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/Collections/ArrayList.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1512">
+        <state>
           <caret line="66" column="3" selection-start-line="66" selection-start-column="3" selection-end-line="66" selection-end-column="3" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -207,7 +190,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/Iterable.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="96">
+        <state relative-caret-position="208">
           <caret line="8" column="3" selection-start-line="8" selection-start-column="3" selection-end-line="8" selection-end-column="3" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -215,18 +198,19 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/JAVASourceCodeAnalysis.iml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="104">
+          <caret line="4" column="29" lean-forward="true" selection-start-line="4" selection-start-column="29" selection-end-line="4" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/Collection.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="7824">
-          <caret line="326" column="5" lean-forward="true" selection-start-line="326" selection-start-column="5" selection-end-line="326" selection-end-column="5" />
+        <state relative-caret-position="181">
+          <caret line="329" selection-start-line="329" selection-end-line="332" selection-end-column="28" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#22882#22883#0" expanded="true" />
-            <element signature="e#22938#22939#0" expanded="true" />
-            <element signature="e#23569#23570#0" expanded="true" />
-            <element signature="e#23634#23635#0" expanded="true" />
-            <element signature="e#24363#24364#0" expanded="true" />
-            <element signature="e#24427#24428#0" expanded="true" />
           </folding>
         </state>
       </provider>
