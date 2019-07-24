@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="65d6684a-7237-4b2a-81b7-14792effb173" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/Collections/List.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Collections/Collection.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/Collection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Collections/List.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/List.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -21,10 +20,18 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Collections/ArrayList.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1716">
-              <caret line="66" column="3" selection-start-line="66" selection-start-column="3" selection-end-line="66" selection-end-column="3" />
+            <state relative-caret-position="-4654">
+              <caret line="262" column="37" lean-forward="true" selection-start-line="262" selection-start-column="37" selection-end-line="262" selection-end-column="37" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#3844#3845#0" expanded="true" />
+                <element signature="e#3912#3913#0" expanded="true" />
+                <element signature="e#7962#7963#0" expanded="true" />
+                <element signature="e#7989#7990#0" expanded="true" />
+                <element signature="e#8171#8172#0" expanded="true" />
+                <element signature="e#8203#8204#0" expanded="true" />
+                <element signature="e#8680#8681#0" expanded="true" />
+                <element signature="e#8718#8719#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -33,7 +40,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Collections/Iterable.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="208">
+            <state relative-caret-position="104">
               <caret line="8" column="3" selection-start-line="8" selection-start-column="3" selection-end-line="8" selection-end-column="3" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -49,12 +56,6 @@
               <caret selection-end-column="20" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#18183#18184#0" expanded="true" />
-                <element signature="e#18239#18240#0" expanded="true" />
-                <element signature="e#18870#18871#0" expanded="true" />
-                <element signature="e#18935#18936#0" expanded="true" />
-                <element signature="e#19664#19665#0" expanded="true" />
-                <element signature="e#19728#19729#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -63,12 +64,13 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Collections/List.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="390">
-              <caret line="27" column="27" selection-start-line="27" selection-start-column="27" selection-end-line="27" selection-end-column="27" />
+            <state relative-caret-position="479">
+              <caret line="566" column="6" lean-forward="true" selection-start-line="566" selection-start-column="6" selection-end-line="566" selection-end-column="6" />
               <folding>
-                <element signature="e#21824#21868#0" expanded="true" />
-                <element signature="e#33104#33105#0" expanded="true" />
-                <element signature="e#33178#33179#0" expanded="true" />
+                <element signature="imports" expanded="true" />
+                <element signature="e#17162#17206#0" expanded="true" />
+                <element signature="e#28442#28443#0" expanded="true" />
+                <element signature="e#28516#28517#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -91,9 +93,9 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/src/Container/ArrayList.java" />
-        <option value="$PROJECT_DIR$/src/Collections/ArrayList.java" />
         <option value="$PROJECT_DIR$/src/Collections/Iterable.java" />
         <option value="$PROJECT_DIR$/src/Collections/Collection.java" />
+        <option value="$PROJECT_DIR$/src/Collections/ArrayList.java" />
         <option value="$PROJECT_DIR$/src/Collections/List.java" />
       </list>
     </option>
@@ -139,7 +141,7 @@
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../LeetCode/Exercise" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="preferences.keymap" />
@@ -173,23 +175,24 @@
       <workItem from="1563799727964" duration="195000" />
       <workItem from="1563799931858" duration="124000" />
       <workItem from="1563800495733" duration="3732000" />
+      <workItem from="1563953411306" duration="3856000" />
+      <workItem from="1563965199463" duration="6350000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="20474000" />
+    <option name="totallyTimeSpent" value="30680000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info id="Image Layers" />
-      <window_info id="Capture Tool" />
       <window_info content_ui="combo" id="Project" order="0" weight="0.35667396" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="UI Designer" order="3" />
       <window_info id="Favorites" order="4" side_tool="true" />
+      <window_info id="Image Layers" order="5" />
+      <window_info id="Capture Tool" order="6" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" />
       <window_info anchor="bottom" id="Run" order="2" />
@@ -202,8 +205,6 @@
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Terminal" order="10" />
       <window_info anchor="bottom" id="Event Log" order="11" side_tool="true" />
-      <window_info anchor="right" id="Theme Preview" />
-      <window_info anchor="right" id="Capture Analysis" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -211,6 +212,8 @@
       <window_info anchor="right" id="Maven" order="4" />
       <window_info anchor="right" id="Database" order="5" />
       <window_info anchor="right" id="Palette&#9;" order="6" />
+      <window_info anchor="right" id="Theme Preview" order="7" />
+      <window_info anchor="right" id="Capture Analysis" order="8" />
     </layout>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -224,19 +227,16 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Collections/ArrayList.java">
+    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/util/LinkedList.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1716">
-          <caret line="66" column="3" selection-start-line="66" selection-start-column="3" selection-end-line="66" selection-end-column="3" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
+        <state relative-caret-position="271">
+          <caret line="81" lean-forward="true" selection-start-line="81" selection-end-line="81" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/Iterable.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="208">
+        <state relative-caret-position="104">
           <caret line="8" column="3" selection-start-line="8" selection-start-column="3" selection-end-line="8" selection-end-column="3" />
           <folding>
             <element signature="imports" expanded="true" />
@@ -250,24 +250,37 @@
           <caret selection-end-column="20" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#18183#18184#0" expanded="true" />
-            <element signature="e#18239#18240#0" expanded="true" />
-            <element signature="e#18870#18871#0" expanded="true" />
-            <element signature="e#18935#18936#0" expanded="true" />
-            <element signature="e#19664#19665#0" expanded="true" />
-            <element signature="e#19728#19729#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Collections/ArrayList.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-4654">
+          <caret line="262" column="37" lean-forward="true" selection-start-line="262" selection-start-column="37" selection-end-line="262" selection-end-column="37" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#3844#3845#0" expanded="true" />
+            <element signature="e#3912#3913#0" expanded="true" />
+            <element signature="e#7962#7963#0" expanded="true" />
+            <element signature="e#7989#7990#0" expanded="true" />
+            <element signature="e#8171#8172#0" expanded="true" />
+            <element signature="e#8203#8204#0" expanded="true" />
+            <element signature="e#8680#8681#0" expanded="true" />
+            <element signature="e#8718#8719#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/List.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="390">
-          <caret line="27" column="27" selection-start-line="27" selection-start-column="27" selection-end-line="27" selection-end-column="27" />
+        <state relative-caret-position="479">
+          <caret line="566" column="6" lean-forward="true" selection-start-line="566" selection-start-column="6" selection-end-line="566" selection-end-column="6" />
           <folding>
-            <element signature="e#21824#21868#0" expanded="true" />
-            <element signature="e#33104#33105#0" expanded="true" />
-            <element signature="e#33178#33179#0" expanded="true" />
+            <element signature="imports" expanded="true" />
+            <element signature="e#17162#17206#0" expanded="true" />
+            <element signature="e#28442#28443#0" expanded="true" />
+            <element signature="e#28516#28517#0" expanded="true" />
           </folding>
         </state>
       </provider>
