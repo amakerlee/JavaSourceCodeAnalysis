@@ -1,5 +1,7 @@
 package Collections;
 
+import java.util.*;
+
 /**
  * This class provides a skeletal implementation of the {@link List}
  * interface to minimize the effort required to implement this interface
