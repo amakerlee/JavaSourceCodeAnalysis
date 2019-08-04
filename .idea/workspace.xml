@@ -20,48 +20,42 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Collections/ArrayList.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="122">
-              <caret line="620" column="7" lean-forward="true" selection-start-line="620" selection-start-column="7" selection-end-line="620" selection-end-column="7" />
+            <state relative-caret-position="316">
+              <caret line="1258" column="8" lean-forward="true" selection-start-line="1258" selection-start-column="8" selection-end-line="1258" selection-end-column="8" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#3844#3845#0" expanded="true" />
-                <element signature="e#3912#3913#0" expanded="true" />
-                <element signature="e#7962#7963#0" expanded="true" />
-                <element signature="e#7989#7990#0" expanded="true" />
-                <element signature="e#8171#8172#0" expanded="true" />
-                <element signature="e#8203#8204#0" expanded="true" />
-                <element signature="e#11314#11315#0" expanded="true" />
-                <element signature="e#11369#11370#0" expanded="true" />
-                <element signature="e#12711#12741#0" expanded="true" />
-                <element signature="e#13127#13157#1" expanded="true" />
-                <element signature="e#13187#13188#0" expanded="true" />
-                <element signature="e#13232#13233#0" expanded="true" />
-                <element signature="e#22277#22278#0" expanded="true" />
-                <element signature="e#22331#22332#0" expanded="true" />
-                <element signature="e#44212#44213#0" expanded="true" />
-                <element signature="e#44277#44278#0" expanded="true" />
-                <element signature="e#48987#49017#1" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Collections/AbstractList.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="130">
-              <caret line="5" column="15" selection-start-line="5" selection-start-column="15" selection-end-line="5" selection-end-column="15" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Collections/AbstractCollection.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-2002">
-              <caret line="1" selection-start-line="1" selection-end-line="1" />
-              <folding>
-                <element signature="imports" expanded="true" />
+                <element signature="e#19431#19432#0" expanded="true" />
+                <element signature="e#19485#19486#0" expanded="true" />
+                <element signature="e#25370#25371#0" expanded="true" />
+                <element signature="e#25407#25408#0" expanded="true" />
+                <element signature="e#25707#25708#0" expanded="true" />
+                <element signature="e#25739#25740#0" expanded="true" />
+                <element signature="e#26082#26083#0" expanded="true" />
+                <element signature="e#26127#26128#0" expanded="true" />
+                <element signature="e#26138#26168#0" expanded="true" />
+                <element signature="e#27083#27113#0" expanded="true" />
+                <element signature="e#28303#28304#0" expanded="true" />
+                <element signature="e#28345#28346#0" expanded="true" />
+                <element signature="e#28379#28380#0" expanded="true" />
+                <element signature="e#28416#28417#0" expanded="true" />
+                <element signature="e#28454#28455#0" expanded="true" />
+                <element signature="e#28495#28496#0" expanded="true" />
+                <element signature="e#28506#28536#0" expanded="true" />
+                <element signature="e#33946#33947#0" expanded="true" />
+                <element signature="e#33997#33998#0" expanded="true" />
+                <element signature="e#34439#34440#0" expanded="true" />
+                <element signature="e#34484#34485#0" expanded="true" />
+                <element signature="e#34889#34890#0" expanded="true" />
+                <element signature="e#34963#34964#0" expanded="true" />
+                <element signature="e#35603#35604#0" expanded="true" />
+                <element signature="e#35661#35662#0" expanded="true" />
+                <element signature="e#35680#35710#0" expanded="true" />
+                <element signature="e#36259#36289#0" expanded="true" />
+                <element signature="e#39778#39779#0" expanded="true" />
+                <element signature="e#39845#39846#0" expanded="true" />
+                <element signature="e#40417#40447#0" expanded="true" />
+                <element signature="e#41366#41367#0" expanded="true" />
+                <element signature="e#41431#41432#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -70,7 +64,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Collections/Iterable.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="434">
+            <state relative-caret-position="1664">
               <caret line="68" column="27" selection-start-line="68" selection-start-column="27" selection-end-line="68" selection-end-column="27" />
               <folding>
                 <element signature="imports" expanded="true" />
@@ -134,7 +128,7 @@
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$USER_HOME$/IdeaProjects/Exercise" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -193,11 +187,12 @@
       <workItem from="1564647141089" duration="1244000" />
       <workItem from="1564705508354" duration="12307000" />
       <workItem from="1564798779293" duration="12001000" />
+      <workItem from="1564880594622" duration="8907000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="55372000" />
+    <option name="totallyTimeSpent" value="64279000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1295" height="695" extended-state="6" />
@@ -264,47 +259,10 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/test.java" />
-    <entry file="file://$PROJECT_DIR$/src/Collections/List.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="14820">
-          <caret line="572" column="45" selection-start-line="572" selection-start-column="45" selection-end-line="572" selection-end-column="45" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/Collection.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="200">
           <caret line="141" column="13" selection-start-line="141" selection-start-column="13" selection-end-line="141" selection-end-column="13" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/Collections/Iterable.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="434">
-          <caret line="68" column="27" selection-start-line="68" selection-start-column="27" selection-end-line="68" selection-end-column="27" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/Collections/AbstractList.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="130">
-          <caret line="5" column="15" selection-start-line="5" selection-start-column="15" selection-end-line="5" selection-end-column="15" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/Collections/AbstractCollection.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-2002">
-          <caret line="1" selection-start-line="1" selection-end-line="1" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -318,29 +276,81 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Collections/ArrayList.java">
+    <entry file="file://$PROJECT_DIR$/src/Collections/Iterable.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="122">
-          <caret line="620" column="7" lean-forward="true" selection-start-line="620" selection-start-column="7" selection-end-line="620" selection-end-column="7" />
+        <state relative-caret-position="1664">
+          <caret line="68" column="27" selection-start-line="68" selection-start-column="27" selection-end-line="68" selection-end-column="27" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#3844#3845#0" expanded="true" />
-            <element signature="e#3912#3913#0" expanded="true" />
-            <element signature="e#7962#7963#0" expanded="true" />
-            <element signature="e#7989#7990#0" expanded="true" />
-            <element signature="e#8171#8172#0" expanded="true" />
-            <element signature="e#8203#8204#0" expanded="true" />
-            <element signature="e#11314#11315#0" expanded="true" />
-            <element signature="e#11369#11370#0" expanded="true" />
-            <element signature="e#12711#12741#0" expanded="true" />
-            <element signature="e#13127#13157#1" expanded="true" />
-            <element signature="e#13187#13188#0" expanded="true" />
-            <element signature="e#13232#13233#0" expanded="true" />
-            <element signature="e#22277#22278#0" expanded="true" />
-            <element signature="e#22331#22332#0" expanded="true" />
-            <element signature="e#44212#44213#0" expanded="true" />
-            <element signature="e#44277#44278#0" expanded="true" />
-            <element signature="e#48987#49017#1" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Collections/List.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="14820">
+          <caret line="572" column="45" selection-start-line="572" selection-start-column="45" selection-end-line="572" selection-end-column="45" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Collections/AbstractList.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1011">
+          <caret line="552" column="26" lean-forward="true" selection-start-line="552" selection-start-column="26" selection-end-line="552" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Collections/AbstractCollection.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-6760">
+          <caret line="1" selection-start-line="1" selection-end-line="1" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Collections/ArrayList.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="316">
+          <caret line="1258" column="8" lean-forward="true" selection-start-line="1258" selection-start-column="8" selection-end-line="1258" selection-end-column="8" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#19431#19432#0" expanded="true" />
+            <element signature="e#19485#19486#0" expanded="true" />
+            <element signature="e#25370#25371#0" expanded="true" />
+            <element signature="e#25407#25408#0" expanded="true" />
+            <element signature="e#25707#25708#0" expanded="true" />
+            <element signature="e#25739#25740#0" expanded="true" />
+            <element signature="e#26082#26083#0" expanded="true" />
+            <element signature="e#26127#26128#0" expanded="true" />
+            <element signature="e#26138#26168#0" expanded="true" />
+            <element signature="e#27083#27113#0" expanded="true" />
+            <element signature="e#28303#28304#0" expanded="true" />
+            <element signature="e#28345#28346#0" expanded="true" />
+            <element signature="e#28379#28380#0" expanded="true" />
+            <element signature="e#28416#28417#0" expanded="true" />
+            <element signature="e#28454#28455#0" expanded="true" />
+            <element signature="e#28495#28496#0" expanded="true" />
+            <element signature="e#28506#28536#0" expanded="true" />
+            <element signature="e#33946#33947#0" expanded="true" />
+            <element signature="e#33997#33998#0" expanded="true" />
+            <element signature="e#34439#34440#0" expanded="true" />
+            <element signature="e#34484#34485#0" expanded="true" />
+            <element signature="e#34889#34890#0" expanded="true" />
+            <element signature="e#34963#34964#0" expanded="true" />
+            <element signature="e#35603#35604#0" expanded="true" />
+            <element signature="e#35661#35662#0" expanded="true" />
+            <element signature="e#35680#35710#0" expanded="true" />
+            <element signature="e#36259#36289#0" expanded="true" />
+            <element signature="e#39778#39779#0" expanded="true" />
+            <element signature="e#39845#39846#0" expanded="true" />
+            <element signature="e#40417#40447#0" expanded="true" />
+            <element signature="e#41366#41367#0" expanded="true" />
+            <element signature="e#41431#41432#0" expanded="true" />
           </folding>
         </state>
       </provider>
