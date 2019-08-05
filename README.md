@@ -8,7 +8,9 @@
 
     <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ArrayList.png" width=50% />
 
-* [LinkedList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/ArrayList.java)
+* [LinkedList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/LinkedList.java)
+
+    <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/LinkedList.png" width=50% />
 
 
 ### Stack
