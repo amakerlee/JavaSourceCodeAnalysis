@@ -10,7 +10,7 @@
 
 * [LinkedList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/LinkedList.java)
 
-    <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/LinkedList.png" width=50% />
+    <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/LinkedList.png" width=70% />
 
 
 ### Stack
