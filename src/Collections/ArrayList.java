@@ -1268,27 +1268,26 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
-     * Creates a <em><a href="Spliterator.html#binding">late-binding</a></em>
-     * and <em>fail-fast</em> {@link Spliterator} over the elements in this
-     * list.
+     * 在此列表中的元素上创建一个支持 late-binding 和 fail-fast 的 Spliterator。
      *
-     * <p>The {@code Spliterator} reports {@link Spliterator#SIZED},
-     * {@link Spliterator#SUBSIZED}, and {@link Spliterator#ORDERED}.
-     * Overriding implementations should document the reporting of additional
-     * characteristic values.
+     * @August 可分割迭代器（splitable iterator），增强并行处理能力。用来
+     * 多线程并行迭代的迭代器。主要作用是把集合分成几段，每个线程执行一段。
      *
      * @return a {@code Spliterator} over the elements in this list
      * @since 1.8
      */
     @Override
     public Spliterator<E> spliterator() {
-        return new ArrayListSpliterator<>(this, 0, -1, 0);
+        return new ArrayListSpliterator<E>(this, 0, -1, 0);
     }
 
-    /** Index-based split-by-two, lazily initialized Spliterator */
+    /** 基于索引的，二分的，懒加载器 */
     static final class ArrayListSpliterator<E> implements Spliterator<E> {
 
-        /*
+        /**
+         * 如果 ArrayList 是不可变的，或者在结构上是不可变的（没有添加，删除
+         * 等操作），我们可以用 ArrayList.spliterator 实现它们的 spliterator。
+         * 相反，我们在遍历过程中检测尽可能多的干扰，同时又不会牺牲太多性能。
          * If ArrayLists were immutable, or structurally immutable (no
          * adds, removes, etc), we could implement their spliterators
          * with Arrays.spliterator. Instead we detect as much
@@ -1320,12 +1319,17 @@ public class ArrayList<E> extends AbstractList<E>
          * these streamlinings.
          */
 
+        // 用于存放 ArrayList 对象
         private final ArrayList<E> list;
-        private int index; // current index, modified on advance/split
-        private int fence; // -1 until used; then one past last index
+        // 当前索引（包含），advance/split 操作时会被修改
+        private int index;
+        // 结束位置（不包含），-1 表示到最后一个元素
+        private int fence;
+        // 用于存放 list 的 modCount
         private int expectedModCount; // initialized when fence set
 
         /** Create new spliterator covering the given  range */
+        // 构造函数
         ArrayListSpliterator(ArrayList<E> list, int origin, int fence,
                              int expectedModCount) {
             this.list = list; // OK if null unless traversed
@@ -1334,12 +1338,16 @@ public class ArrayList<E> extends AbstractList<E>
             this.expectedModCount = expectedModCount;
         }
 
+        // 获取结束位置（首次使用需要对 fence 赋值）
         private int getFence() { // initialize fence to size on first use
             int hi; // (a specialized variant appears in method forEach)
             ArrayList<E> lst;
+            // 第一次初始化时 fence 才会小于 0
             if ((hi = fence) < 0) {
+                // list 为 null 时，fence = 0
                 if ((lst = list) == null)
                     hi = fence = 0;
+                // 否则，fence 等于 list 的长度
                 else {
                     expectedModCount = lst.modCount;
                     hi = fence = lst.size;
@@ -1348,17 +1356,28 @@ public class ArrayList<E> extends AbstractList<E>
             return hi;
         }
 
+        // 分割 list，返回一个新分割出的 spliterator 实例
         public ArrayListSpliterator<E> trySplit() {
+            // hi 为当前结束位置
+            // lo 为起始位置
+            // mid 为中间位置
             int hi = getFence(), lo = index, mid = (lo + hi) >>> 1;
+            // lo >= mid 表示不能再分割，返回 null
+            // lo < mid 可分割，切割（lo, mid) 出去，同时更新 index = mid
             return (lo >= mid) ? null : // divide range in half unless too small
                     new ArrayListSpliterator<E>(list, lo, index = mid,
                             expectedModCount);
         }
 
+        // 返回 true 表示可能还有元素未处理
+        // 返回 false 表示没有剩余的元素了
         public boolean tryAdvance(Consumer<? super E> action) {
             if (action == null)
                 throw new NullPointerException();
+            // hi 为当前的结束位置
+            // i 为起始位置
             int hi = getFence(), i = index;
+            // 还有剩余的元素没有处理
             if (i < hi) {
                 index = i + 1;
                 @SuppressWarnings("unchecked") E e = (E)list.elementData[i];
@@ -1370,6 +1389,7 @@ public class ArrayList<E> extends AbstractList<E>
             return false;
         }
 
+        // 顺序遍历处理所有剩下的元素
         public void forEachRemaining(Consumer<? super E> action) {
             int i, hi, mc; // hoist accesses and checks from loop
             ArrayList<E> lst; Object[] a;
@@ -1394,22 +1414,25 @@ public class ArrayList<E> extends AbstractList<E>
             throw new ConcurrentModificationException();
         }
 
+        // 估算大小
         public long estimateSize() {
             return (long) (getFence() - index);
         }
 
+        // 返回特征值
         public int characteristics() {
             return Spliterator.ORDERED | Spliterator.SIZED | Spliterator.SUBSIZED;
         }
     }
 
     @Override
+    // 过滤器删除元素
     public boolean removeIf(Predicate<? super E> filter) {
         Objects.requireNonNull(filter);
-        // figure out which elements are to be removed
-        // any exception thrown from the filter predicate at this stage
-        // will leave the collection unmodified
+        // 找出要删除的元素，抛出的任何异常都会使集合不发生变化
         int removeCount = 0;
+        // 一个 BitSet 类常见一种特殊类型的数组来保存位值。表示当前 index 的数
+        // 是否存在
         final BitSet removeSet = new BitSet(size);
         final int expectedModCount = modCount;
         final int size = this.size;
@@ -1425,7 +1448,7 @@ public class ArrayList<E> extends AbstractList<E>
             throw new ConcurrentModificationException();
         }
 
-        // shift surviving elements left over the spaces left by removed elements
+        // 删除元素的实现：向左移动存活的元素。
         final boolean anyToRemove = removeCount > 0;
         if (anyToRemove) {
             final int newSize = size - removeCount;
@@ -1448,6 +1471,7 @@ public class ArrayList<E> extends AbstractList<E>
 
     @Override
     @SuppressWarnings("unchecked")
+    // 根据操作符替换列表中所有元素
     public void replaceAll(UnaryOperator<E> operator) {
         Objects.requireNonNull(operator);
         final int expectedModCount = modCount;
@@ -1463,6 +1487,7 @@ public class ArrayList<E> extends AbstractList<E>
 
     @Override
     @SuppressWarnings("unchecked")
+    // 根据 Comparator 排序
     public void sort(Comparator<? super E> c) {
         final int expectedModCount = modCount;
         Arrays.sort((E[]) elementData, 0, size, c);
