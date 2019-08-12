@@ -4,50 +4,33 @@ import java.util.*;
 import java.util.function.Consumer;
 
 /**
- * Doubly-linked list implementation of the {@code List} and {@code Deque}
- * interfaces.  Implements all optional list operations, and permits all
- * elements (including {@code null}).
+ * 实现了 list 和 Deque 接口的双链表。实现所有可选列表操作，并允许所有元素
+ * （包括 null）。
  *
- * <p>All of the operations perform as could be expected for a doubly-linked
- * list.  Operations that index into the list will traverse the list from
- * the beginning or the end, whichever is closer to the specified index.
+ * 所有操作的执行都符合双链表的预期。列表中索引相关的操作将从头到尾遍历
+ * 列表，从而不断靠近指定索引。
  *
- * <p><strong>Note that this implementation is not synchronized.</strong>
- * If multiple threads access a linked list concurrently, and at least
- * one of the threads modifies the list structurally, it <i>must</i> be
- * synchronized externally.  (A structural modification is any operation
- * that adds or deletes one or more elements; merely setting the value of
- * an element is not a structural modification.)  This is typically
- * accomplished by synchronizing on some object that naturally
- * encapsulates the list.
+ * 注意，这个实现不是同步（synchronized）的。如果多个线程同时访问一个链表，
+ * 并且其中至少有一个线程从结构上修改了链表，那么必须在外部同步。（结构
+ * 修改是添加或删除一个或多个元素的操作；仅仅设置元素的值并不是从结构上的
+ * 修改。）这通常是对一些能自然封装列表的对象进行同步来实现的。
  *
- * If no such object exists, the list should be "wrapped" using the
- * {@link Collections#synchronizedList Collections.synchronizedList}
- * method.  This is best done at creation time, to prevent accidental
- * unsynchronized access to the list:<pre>
- *   List list = Collections.synchronizedList(new LinkedList(...));</pre>
+ * 如果不存在这样的对象，应该使用 Collections.synchronizedList 方法。这一
+ * 操作最好在创建时完成，以防止意外的异步列表访问：
+ * List list = Collections.synchronizedList(new LinkedList(...));
  *
- * <p>The iterators returned by this class's {@code iterator} and
- * {@code listIterator} methods are <i>fail-fast</i>: if the list is
- * structurally modified at any time after the iterator is created, in
- * any way except through the Iterator's own {@code remove} or
- * {@code add} methods, the iterator will throw a {@link
- * ConcurrentModificationException}.  Thus, in the face of concurrent
- * modification, the iterator fails quickly and cleanly, rather than
- * risking arbitrary, non-deterministic behavior at an undetermined
- * time in the future.
+ * 此类的 iterator 和 listIterator 方法返回的迭代器支持 fast-fail：如果在迭代器
+ * 被创建之后，列表除了迭代器自身的 add 或 remove 方法之外的任何结构性修改，
+ * 迭代器都会抛出 ConcurrentModificationException 异常。因此，在面对并发
+ * 修改时，迭代器会快速干净地 fail，而不是在将来某个不确定的时间出现不确定
+ * 的风险和行为。
  *
- * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
- * as it is, generally speaking, impossible to make any hard guarantees in the
- * presence of unsynchronized concurrent modification.  Fail-fast iterators
- * throw {@code ConcurrentModificationException} on a best-effort basis.
- * Therefore, it would be wrong to write a program that depended on this
- * exception for its correctness:   <i>the fail-fast behavior of iterators
- * should be used only to detect bugs.</i>
+ * 注意不能确保迭代器的 fast-fail 行为，通常来说，在存在异步的并发修改情况
+ * 下不可能做出任何严格的保证。fast-fail 迭代器以最大的努力抛出
+ * ConcurrentModificationException 异常。因此，编写一个依赖此异常来检查
+ * 正确性的程序是错误的：迭代器的 fail-fast 行为应该只用于监测 bug。
  *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 这个类是 Java Collections Framework 的成员。
  *
  * @author  Josh Bloch
  * @see     List
