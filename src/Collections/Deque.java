@@ -250,57 +250,44 @@ public interface Deque<E> extends Queue<E> {
     E peekLast();
 
     /**
-     * Removes the first occurrence of the specified element from this deque.
-     * If the deque does not contain the element, it is unchanged.
-     * More formally, removes the first element {@code e} such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>
-     * (if such an element exists).
-     * Returns {@code true} if this deque contained the specified element
-     * (or equivalently, if this deque changed as a result of the call).
+     * 从该队列中删除第一个匹配的元素。如果 deque 不包含该元素，队列
+     * 保持不变。更一般地，删除满足下列条件的
+     * 第一个元素 e ：(o==null ? e==null : o.equals(e))，如果该元素存在的话。
+     * 如果这个队列包含指定的元素返回 true。
      *
      * @param o element to be removed from this deque, if present
      * @return {@code true} if an element was removed as a result of this call
      * @throws ClassCastException if the class of the specified element
-     *         is incompatible with this deque
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     *         is incompatible with this deque (optional)
      * @throws NullPointerException if the specified element is null and this
-     *         deque does not permit null elements
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     *         deque does not permit null elements (optional)
      */
     boolean removeFirstOccurrence(Object o);
 
     /**
-     * Removes the last occurrence of the specified element from this deque.
-     * If the deque does not contain the element, it is unchanged.
-     * More formally, removes the last element {@code e} such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>
-     * (if such an element exists).
-     * Returns {@code true} if this deque contained the specified element
-     * (or equivalently, if this deque changed as a result of the call).
+     * 从该队列中删除最后一个匹配的元素。如果 deque 不包含该元素，
+     * 队列保持不变。更一般地，删除满足下列条件的最后
+     * 一个元素 e ：(o==null ? e==null : o.equals(e))，如果该元素存在的话。
+     * 如果这个队列包含指定的元素返回 true。
      *
      * @param o element to be removed from this deque, if present
      * @return {@code true} if an element was removed as a result of this call
      * @throws ClassCastException if the class of the specified element
-     *         is incompatible with this deque
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     *         is incompatible with this deque (optional)
      * @throws NullPointerException if the specified element is null and this
-     *         deque does not permit null elements
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     *         deque does not permit null elements (optional)
      */
     boolean removeLastOccurrence(Object o);
 
     // *** Queue methods ***
+    // Queue 相关的操作
 
     /**
-     * Inserts the specified element into the queue represented by this deque
-     * (in other words, at the tail of this deque) if it is possible to do so
-     * immediately without violating capacity restrictions, returning
-     * {@code true} upon success and throwing an
-     * {@code IllegalStateException} if no space is currently available.
-     * When using a capacity-restricted deque, it is generally preferable to
-     * use {@link #offer(Object) offer}.
+     * 如果插入操作不违反容量限制，那么将指定元素插入到队列尾部，成功
+     * 后返回 true，如果无空间可用抛出 IllegalStateException 异常。
+     * 如果队列为容量限制的 deque，那么使用 offer 更好。
      *
-     * <p>This method is equivalent to {@link #addLast}.
+     * 此方法等同于 addLast。
      *
      * @param e the element to add
      * @return {@code true} (as specified by {@link Collection#add})
@@ -316,15 +303,11 @@ public interface Deque<E> extends Queue<E> {
     boolean add(E e);
 
     /**
-     * Inserts the specified element into the queue represented by this deque
-     * (in other words, at the tail of this deque) if it is possible to do so
-     * immediately without violating capacity restrictions, returning
-     * {@code true} upon success and {@code false} if no space is currently
-     * available.  When using a capacity-restricted deque, this method is
-     * generally preferable to the {@link #add} method, which can fail to
-     * insert an element only by throwing an exception.
+     * 如果插入操作不违反容量限制，立即将指定元素插入到队列中。成功
+     * 返回 true，无空间可用时返回 false。当使用有容量限制的队列时，
+     * 此方法通常比 add 更可取，因为 add 插入失败只会抛出异常。
      *
-     * <p>This method is equivalent to {@link #offerLast}.
+     * 此方法等同于 offerLast。
      *
      * @param e the element to add
      * @return {@code true} if the element was added to this deque, else
@@ -339,12 +322,10 @@ public interface Deque<E> extends Queue<E> {
     boolean offer(E e);
 
     /**
-     * Retrieves and removes the head of the queue represented by this deque
-     * (in other words, the first element of this deque).
-     * This method differs from {@link #poll poll} only in that it throws an
-     * exception if this deque is empty.
+     * 检索并删除队列头（deque 的第一个元素）。这一个方法与 poll 的
+     * 不同之处在于如果队列为空，它会抛出异常。
      *
-     * <p>This method is equivalent to {@link #removeFirst()}.
+     * 此方法等同于 removeFirst。
      *
      * @return the head of the queue represented by this deque
      * @throws NoSuchElementException if this deque is empty
@@ -352,11 +333,9 @@ public interface Deque<E> extends Queue<E> {
     E remove();
 
     /**
-     * Retrieves and removes the head of the queue represented by this deque
-     * (in other words, the first element of this deque), or returns
-     * {@code null} if this deque is empty.
+     * 检索并删除队列头（deque 的第一个元素）。如果队列为空返回 null。
      *
-     * <p>This method is equivalent to {@link #pollFirst()}.
+     * 此方法等同于 pollFirst。
      *
      * @return the first element of this deque, or {@code null} if
      *         this deque is empty
@@ -364,12 +343,10 @@ public interface Deque<E> extends Queue<E> {
     E poll();
 
     /**
-     * Retrieves, but does not remove, the head of the queue represented by
-     * this deque (in other words, the first element of this deque).
-     * This method differs from {@link #peek peek} only in that it throws an
-     * exception if this deque is empty.
+     * 检索但不删除队列的头部（deque 的第一个元素）。这个方法和 peek
+     * 方法不同的是，他会在队列为空时抛出异常。
      *
-     * <p>This method is equivalent to {@link #getFirst()}.
+     * 此方法等同于 getFirst。
      *
      * @return the head of the queue represented by this deque
      * @throws NoSuchElementException if this deque is empty
@@ -377,11 +354,9 @@ public interface Deque<E> extends Queue<E> {
     E element();
 
     /**
-     * Retrieves, but does not remove, the head of the queue represented by
-     * this deque (in other words, the first element of this deque), or
-     * returns {@code null} if this deque is empty.
+     * 检索但不删除队列的头部。如果队列为空返回 null。
      *
-     * <p>This method is equivalent to {@link #peekFirst()}.
+     * 此方法等同于 peekFirst。
      *
      * @return the head of the queue represented by this deque, or
      *         {@code null} if this deque is empty
@@ -390,14 +365,13 @@ public interface Deque<E> extends Queue<E> {
 
 
     // *** Stack methods ***
+    // Stack 相关的操作
 
     /**
-     * Pushes an element onto the stack represented by this deque (in other
-     * words, at the head of this deque) if it is possible to do so
-     * immediately without violating capacity restrictions, throwing an
-     * {@code IllegalStateException} if no space is currently available.
+     * 如果插入操作不违反容量限制，立即将指定元素插入到栈中。如果没有
+     * 多余空间抛出 IllegalStateException 异常。
      *
-     * <p>This method is equivalent to {@link #addFirst}.
+     * 此方法等同于 addFirst。
      *
      * @param e the element to push
      * @throws IllegalStateException if the element cannot be added at this
@@ -412,10 +386,9 @@ public interface Deque<E> extends Queue<E> {
     void push(E e);
 
     /**
-     * Pops an element from the stack represented by this deque.  In other
-     * words, removes and returns the first element of this deque.
+     * 从栈中弹出栈顶元素。换句话说，从 deque 中移除并返回第一个元素。
      *
-     * <p>This method is equivalent to {@link #removeFirst()}.
+     * 此方法等同于 removeFirst。
      *
      * @return the element at the front of this deque (which is the top
      *         of the stack represented by this deque)
@@ -425,65 +398,55 @@ public interface Deque<E> extends Queue<E> {
 
 
     // *** Collection methods ***
+    // Collection 相关操作
 
     /**
-     * Removes the first occurrence of the specified element from this deque.
-     * If the deque does not contain the element, it is unchanged.
-     * More formally, removes the first element {@code e} such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>
-     * (if such an element exists).
-     * Returns {@code true} if this deque contained the specified element
-     * (or equivalently, if this deque changed as a result of the call).
+     * 从队列中删除第一个匹配的元素。如果不包含该元素，不做任何改变。
+     * 更正式地说，删除第一个满足下列条件的
+     * 元素 e： (o==null?e==null:o.equals(e))。如果此集合包含指定的元素，
+     * 则返回 true（如果此集合由于调用而更改，则返回 true）。
      *
-     * <p>This method is equivalent to {@link #removeFirstOccurrence(Object)}.
+     * 此方法等同于 removeFirstOccurrence(Object)。
      *
      * @param o element to be removed from this deque, if present
      * @return {@code true} if an element was removed as a result of this call
      * @throws ClassCastException if the class of the specified element
-     *         is incompatible with this deque
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     *         is incompatible with this deque (optional)
      * @throws NullPointerException if the specified element is null and this
-     *         deque does not permit null elements
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     *         deque does not permit null elements (optional)
      */
     boolean remove(Object o);
 
     /**
-     * Returns {@code true} if this deque contains the specified element.
-     * More formally, returns {@code true} if and only if this deque contains
-     * at least one element {@code e} such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
+     * 如果队列包含指定元素返回 true。
      *
      * @param o element whose presence in this deque is to be tested
      * @return {@code true} if this deque contains the specified element
      * @throws ClassCastException if the type of the specified element
-     *         is incompatible with this deque
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     *         is incompatible with this deque (optional)
      * @throws NullPointerException if the specified element is null and this
-     *         deque does not permit null elements
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     *         deque does not permit null elements (optional)
      */
     boolean contains(Object o);
 
     /**
-     * Returns the number of elements in this deque.
+     * 队列包含的元素个数。
      *
      * @return the number of elements in this deque
      */
     public int size();
 
     /**
-     * Returns an iterator over the elements in this deque in proper sequence.
-     * The elements will be returned in order from first (head) to last (tail).
+     * 返回队列的按序迭代器。顺序为从第一个元素（head）到最后
+     * 一个元素（tail）。
      *
      * @return an iterator over the elements in this deque in proper sequence
      */
     Iterator<E> iterator();
 
     /**
-     * Returns an iterator over the elements in this deque in reverse
-     * sequential order.  The elements will be returned in order from
-     * last (tail) to first (head).
+     * 返回队列的反序迭代器。顺序为从最后一个元素（tail）到第一个
+     * 元素（head）。
      *
      * @return an iterator over the elements in this deque in reverse
      * sequence
