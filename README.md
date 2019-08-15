@@ -1,7 +1,7 @@
-# Java Source Code Analysis
+                                                    # Java Source Code Analysis
 
 ### 1. Java Collections in java.util
-    >include List, Stack, Set, Map and HashTable
+    include List, Stack, Set, Map and HashTable
     
 #### List
 
