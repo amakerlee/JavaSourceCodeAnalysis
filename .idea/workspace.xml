@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="65d6684a-7237-4b2a-81b7-14792effb173" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Collections/LinkedList.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/LinkedList.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -15,37 +16,7 @@
     <option name="isMigrated" value="true" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/Collections/LinkedList.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="468">
-              <caret line="554" column="24" lean-forward="true" selection-start-line="554" selection-start-column="24" selection-end-line="554" selection-end-column="24" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#6244#6245#0" expanded="true" />
-                <element signature="e#6272#6273#0" expanded="true" />
-                <element signature="e#6484#6485#0" expanded="true" />
-                <element signature="e#6511#6512#0" expanded="true" />
-                <element signature="e#6984#6985#0" expanded="true" />
-                <element signature="e#7023#7024#0" expanded="true" />
-                <element signature="e#7174#7175#0" expanded="true" />
-                <element signature="e#7201#7202#0" expanded="true" />
-                <element signature="e#9445#9446#0" expanded="true" />
-                <element signature="e#9483#9484#0" expanded="true" />
-                <element signature="e#10743#10773#1" expanded="true" />
-                <element signature="e#14114#14115#0" expanded="true" />
-                <element signature="e#14163#14164#0" expanded="true" />
-                <element signature="e#14335#14336#0" expanded="true" />
-                <element signature="e#14385#14386#0" expanded="true" />
-                <element signature="e#14652#14653#0" expanded="true" />
-                <element signature="e#14706#14707#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-    </leaf>
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -76,9 +47,9 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="760" />
-    <option name="width" value="1167" />
+  <component name="ProjectFrameBounds" extendedState="7">
+    <option name="x" value="953" />
+    <option name="width" value="974" />
     <option name="height" value="1047" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -89,6 +60,8 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -111,15 +84,13 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
-      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../LeetCode/Exercise" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -190,16 +161,17 @@
       <workItem from="1565659244963" duration="12000" />
       <workItem from="1565659920482" duration="5000" />
       <workItem from="1565660990248" duration="17057000" />
+      <workItem from="1565848569821" duration="5668000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="109425000" />
+    <option name="totallyTimeSpent" value="115093000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <frame x="953" y="0" width="974" height="1047" extended-state="0" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1652452" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.41466084" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="UI Designer" order="3" />
@@ -379,27 +351,46 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/LinkedList.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="468">
-          <caret line="554" column="24" lean-forward="true" selection-start-line="554" selection-start-column="24" selection-end-line="554" selection-end-column="24" />
+        <state relative-caret-position="456">
+          <caret line="1064" column="18" lean-forward="true" selection-start-line="1064" selection-start-column="18" selection-end-line="1064" selection-end-column="18" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#6244#6245#0" expanded="true" />
-            <element signature="e#6272#6273#0" expanded="true" />
-            <element signature="e#6484#6485#0" expanded="true" />
-            <element signature="e#6511#6512#0" expanded="true" />
-            <element signature="e#6984#6985#0" expanded="true" />
-            <element signature="e#7023#7024#0" expanded="true" />
-            <element signature="e#7174#7175#0" expanded="true" />
-            <element signature="e#7201#7202#0" expanded="true" />
-            <element signature="e#9445#9446#0" expanded="true" />
-            <element signature="e#9483#9484#0" expanded="true" />
-            <element signature="e#10743#10773#1" expanded="true" />
-            <element signature="e#14114#14115#0" expanded="true" />
-            <element signature="e#14163#14164#0" expanded="true" />
-            <element signature="e#14335#14336#0" expanded="true" />
-            <element signature="e#14385#14386#0" expanded="true" />
-            <element signature="e#14652#14653#0" expanded="true" />
-            <element signature="e#14706#14707#0" expanded="true" />
+            <element signature="e#6354#6355#0" expanded="true" />
+            <element signature="e#6382#6383#0" expanded="true" />
+            <element signature="e#16791#16792#0" expanded="true" />
+            <element signature="e#16824#16825#0" expanded="true" />
+            <element signature="e#17354#17355#0" expanded="true" />
+            <element signature="e#17390#17391#0" expanded="true" />
+            <element signature="e#17640#17641#0" expanded="true" />
+            <element signature="e#17669#17670#0" expanded="true" />
+            <element signature="e#20083#20084#0" expanded="true" />
+            <element signature="e#20110#20111#0" expanded="true" />
+            <element signature="e#20568#20569#0" expanded="true" />
+            <element signature="e#20604#20605#0" expanded="true" />
+            <element signature="e#21030#21031#0" expanded="true" />
+            <element signature="e#21062#21063#0" expanded="true" />
+            <element signature="e#23625#23626#0" expanded="true" />
+            <element signature="e#23672#23673#0" expanded="true" />
+            <element signature="e#23994#23995#0" expanded="true" />
+            <element signature="e#24038#24039#0" expanded="true" />
+            <element signature="e#24368#24369#0" expanded="true" />
+            <element signature="e#24408#24409#0" expanded="true" />
+            <element signature="e#24446#24447#0" expanded="true" />
+            <element signature="e#24490#24491#0" expanded="true" />
+            <element signature="e#26311#26312#0" expanded="true" />
+            <element signature="e#26358#26359#0" expanded="true" />
+            <element signature="e#26597#26598#0" expanded="true" />
+            <element signature="e#26645#26646#0" expanded="true" />
+            <element signature="e#26671#26672#0" expanded="true" />
+            <element signature="e#26716#26717#0" expanded="true" />
+            <element signature="e#26747#26748#0" expanded="true" />
+            <element signature="e#26783#26784#0" expanded="true" />
+            <element signature="e#26796#26826#0" expanded="true" />
+            <element signature="e#30403#30433#0" expanded="true" />
+            <element signature="e#32907#32908#0" expanded="true" />
+            <element signature="e#32963#32964#0" expanded="true" />
+            <element signature="e#36108#36109#0" expanded="true" />
+            <element signature="e#36201#36202#0" expanded="true" />
           </folding>
         </state>
       </provider>
