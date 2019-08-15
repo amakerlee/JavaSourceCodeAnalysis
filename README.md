@@ -1,7 +1,6 @@
 # Java Source Code Analysis
 
-## Collections
-****
+### Java Collections in java.util
 ### List
 
 * [ArrayList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/ArrayList.java)
