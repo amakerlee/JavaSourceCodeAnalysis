@@ -1,7 +1,7 @@
 # Java Source Code Analysis
 
-### 1.Java Collections in java.util
-    include List, Stack, Set, Map and HashTable
+### 1. Java Collections in java.util
+    >include List, Stack, Set, Map and HashTable
     
 #### List
 
@@ -49,4 +49,4 @@
 
 
 ****
-### 2.Java Concurrency Tools in java.util.concurrent
+### 2. Java Concurrency Tools in java.util.concurrent
