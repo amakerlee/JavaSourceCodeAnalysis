@@ -1,6 +1,8 @@
 # Java Source Code Analysis
 
 ### Java Collections in java.util
+    include List, Stack, Set, Map and HashTable
+    
 ### List
 
 * [ArrayList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/ArrayList.java)
