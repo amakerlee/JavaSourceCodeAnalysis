@@ -577,7 +577,7 @@ public class Vector<E>
     }
 
     /**
-     * 删除向量中所有元素，并将其大小设为 0。
+     * 删除向量中所有元素，并将向量的大小设为 0。
      *
      * <p>This method is identical in functionality to the {@link #clear}
      * method (which is part of the {@link java.util.List} interface).
@@ -592,9 +592,8 @@ public class Vector<E>
     }
 
     /**
-     * Returns a clone of this vector. The copy will contain a
-     * reference to a clone of the internal data array, not a reference
-     * to the original internal data array of this {@code Vector} object.
+     * 返回向量的克隆。此克隆会保留指向新的内部数组的引用，而不是指向
+     * 原数组的引用。
      *
      * @return  a clone of this vector
      */
@@ -612,8 +611,7 @@ public class Vector<E>
     }
 
     /**
-     * Returns an array containing all of the elements in this Vector
-     * in the correct order.
+     * 按顺序返回一个包含所有元素的数组。
      *
      * @since 1.2
      */
@@ -622,18 +620,12 @@ public class Vector<E>
     }
 
     /**
-     * Returns an array containing all of the elements in this Vector in the
-     * correct order; the runtime type of the returned array is that of the
-     * specified array.  If the Vector fits in the specified array, it is
-     * returned therein.  Otherwise, a new array is allocated with the runtime
-     * type of the specified array and the size of this Vector.
+     * 按顺序返回一个包含向量中所有元素的数组；返回的数组即为参数指定
+     * 的数组。如果向量元素能全部保存在该数组中，那么返回该数组。否则，
+     * 开辟一个新的数组空间用来保存向量中的元素，并返回该数组。
      *
-     * <p>If the Vector fits in the specified array with room to spare
-     * (i.e., the array has more elements than the Vector),
-     * the element in the array immediately following the end of the
-     * Vector is set to null.  (This is useful in determining the length
-     * of the Vector <em>only</em> if the caller knows that the Vector
-     * does not contain any null elements.)
+     * 如果指定的数组还有多余的空间（即数组长度大于向量元素个数），
+     * 数组中的剩余元素设置为 null。
      *
      * @param a the array into which the elements of the Vector are to
      *          be stored, if it is big enough; otherwise, a new array of the
@@ -658,14 +650,16 @@ public class Vector<E>
     }
 
     // Positional Access Operations
+    // 位置访问操作
 
+    // 返回指定索引位置的元素
     @SuppressWarnings("unchecked")
     E elementData(int index) {
         return (E) elementData[index];
     }
 
     /**
-     * Returns the element at the specified position in this Vector.
+     * 返回向量中指定位置的元素。
      *
      * @param index index of the element to return
      * @return object at the specified index
@@ -681,8 +675,7 @@ public class Vector<E>
     }
 
     /**
-     * Replaces the element at the specified position in this Vector with the
-     * specified element.
+     * 用指定元素替换向量中指定位置的元素，并返回原来的元素。
      *
      * @param index index of the element to replace
      * @param element element to be stored at the specified position
@@ -701,7 +694,7 @@ public class Vector<E>
     }
 
     /**
-     * Appends the specified element to the end of this Vector.
+     * 将指定的元素添加到向量末尾。
      *
      * @param e element to be appended to this Vector
      * @return {@code true} (as specified by {@link java.util.Collection#add})
@@ -715,11 +708,8 @@ public class Vector<E>
     }
 
     /**
-     * Removes the first occurrence of the specified element in this Vector
-     * If the Vector does not contain the element, it is unchanged.  More
-     * formally, removes the element with the lowest index i such that
-     * {@code (o==null ? get(i)==null : o.equals(get(i)))} (if such
-     * an element exists).
+     * 删除向量中和指定元素匹配的第一个元素。如果向量不包含该元素，
+     * 不做出任何改变。
      *
      * @param o element to be removed from this Vector, if present
      * @return true if the Vector contained the specified element
@@ -730,9 +720,8 @@ public class Vector<E>
     }
 
     /**
-     * Inserts the specified element at the specified position in this Vector.
-     * Shifts the element currently at that position (if any) and any
-     * subsequent elements to the right (adds one to their indices).
+     * 在向量中指定位置插入指定元素。将当前位置和之后的元素向右移动
+     * 一位（索引加一）。
      *
      * @param index index at which the specified element is to be inserted
      * @param element element to be inserted
@@ -745,9 +734,8 @@ public class Vector<E>
     }
 
     /**
-     * Removes the element at the specified position in this Vector.
-     * Shifts any subsequent elements to the left (subtracts one from their
-     * indices).  Returns the element that was removed from the Vector.
+     * 删除指定位置处的元素。将之后的元素向左移动一位（索引减一）。
+     * 并返回从向量中删除的元素。
      *
      * @throws ArrayIndexOutOfBoundsException if the index is out of range
      *         ({@code index < 0 || index >= size()})
@@ -761,6 +749,8 @@ public class Vector<E>
             throw new ArrayIndexOutOfBoundsException(index);
         E oldValue = elementData(index);
 
+        // 删除该位置的元素的方法：使用 System.arraycopy 直接将之后的
+        // 元素往前移动一位。
         int numMoved = elementCount - index - 1;
         if (numMoved > 0)
             System.arraycopy(elementData, index+1, elementData, index,
@@ -771,8 +761,7 @@ public class Vector<E>
     }
 
     /**
-     * Removes all of the elements from this Vector.  The Vector will
-     * be empty after this call returns (unless it throws an exception).
+     * 删除向量的所有元素。此方法调用后向量为空（除非抛出异常）。
      *
      * @since 1.2
      */
@@ -781,10 +770,10 @@ public class Vector<E>
     }
 
     // Bulk Operations
+    // 批量操作
 
     /**
-     * Returns true if this Vector contains all of the elements in the
-     * specified Collection.
+     * 如果向量包含指定集合中的所有元素，返回 true。
      *
      * @param   c a collection whose elements will be tested for containment
      *          in this Vector
@@ -797,12 +786,9 @@ public class Vector<E>
     }
 
     /**
-     * Appends all of the elements in the specified Collection to the end of
-     * this Vector, in the order that they are returned by the specified
-     * Collection's Iterator.  The behavior of this operation is undefined if
-     * the specified Collection is modified while the operation is in progress.
-     * (This implies that the behavior of this call is undefined if the
-     * specified Collection is this Vector, and this Vector is nonempty.)
+     * 把指定集合中的所有元素添加到向量的末尾，以指定集合迭代器返回
+     * 的顺序。如果操作进行过程中，指定集合被修改，则此操作的行为
+     * 未定义。
      *
      * @param c elements to be inserted into this Vector
      * @return {@code true} if this Vector changed as a result of the call
@@ -813,6 +799,7 @@ public class Vector<E>
         modCount++;
         Object[] a = c.toArray();
         int numNew = a.length;
+        // 先将向量扩容到足够大，然后把指定集合的数组复制到向量的数组里。
         ensureCapacityHelper(elementCount + numNew);
         System.arraycopy(a, 0, elementData, elementCount, numNew);
         elementCount += numNew;
@@ -820,19 +807,16 @@ public class Vector<E>
     }
 
     /**
-     * Removes from this Vector all of its elements that are contained in the
-     * specified Collection.
+     * 删除向量中和指定集合相同的所有元素。
      *
      * @param c a collection of elements to be removed from the Vector
      * @return true if this Vector changed as a result of the call
      * @throws ClassCastException if the types of one or more elements
      *         in this vector are incompatible with the specified
-     *         collection
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     *         collection (optional)
      * @throws NullPointerException if this vector contains one or more null
      *         elements and the specified collection does not support null
-     *         elements
-     * (<a href="Collection.html#optional-restrictions">optional</a>),
+     *         elements (optional),
      *         or if the specified collection is null
      * @since 1.2
      */
@@ -841,22 +825,20 @@ public class Vector<E>
     }
 
     /**
-     * Retains only the elements in this Vector that are contained in the
-     * specified Collection.  In other words, removes from this Vector all
-     * of its elements that are not contained in the specified Collection.
+     * 保留向量中和指定元素相同的部分。换句话说，删除向量中和指定
+     * 集合元素不同的部分。
+     *
+     * @August 求交集
      *
      * @param c a collection of elements to be retained in this Vector
      *          (all other elements are removed)
      * @return true if this Vector changed as a result of the call
      * @throws ClassCastException if the types of one or more elements
      *         in this vector are incompatible with the specified
-     *         collection
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
+     *         collection (optional)
      * @throws NullPointerException if this vector contains one or more null
      *         elements and the specified collection does not support null
-     *         elements
-     *         (<a href="Collection.html#optional-restrictions">optional</a>),
-     *         or if the specified collection is null
+     *         elements (optional), or if the specified collection is null
      * @since 1.2
      */
     public synchronized boolean retainAll(Collection<?> c) {
@@ -864,12 +846,9 @@ public class Vector<E>
     }
 
     /**
-     * Inserts all of the elements in the specified Collection into this
-     * Vector at the specified position.  Shifts the element currently at
-     * that position (if any) and any subsequent elements to the right
-     * (increases their indices).  The new elements will appear in the Vector
-     * in the order that they are returned by the specified Collection's
-     * iterator.
+     * 把指定集合的所有元素插入到向量指定的位置。把当前位置和其之后
+     * 的元素向后移动（索引减小）。插入的顺序为指定集合迭代器返回的
+     * 顺序。
      *
      * @param index index at which to insert the first element from the
      *              specified collection
@@ -882,13 +861,18 @@ public class Vector<E>
      */
     public synchronized boolean addAll(int index, Collection<? extends E> c) {
         modCount++;
+
+        // 判断索引是否在范围内
         if (index < 0 || index > elementCount)
             throw new ArrayIndexOutOfBoundsException(index);
 
+        // 将指定集合转化成数组便于插入
         Object[] a = c.toArray();
         int numNew = a.length;
+        // 确保向量容量足够大
         ensureCapacityHelper(elementCount + numNew);
 
+        // 将向量的数组中的元素向后移动，然后插入
         int numMoved = elementCount - index;
         if (numMoved > 0)
             System.arraycopy(elementData, index, elementData, index + numNew,
@@ -900,13 +884,9 @@ public class Vector<E>
     }
 
     /**
-     * Compares the specified Object with this Vector for equality.  Returns
-     * true if and only if the specified Object is also a List, both Lists
-     * have the same size, and all corresponding pairs of elements in the two
-     * Lists are <em>equal</em>.  (Two elements {@code e1} and
-     * {@code e2} are <em>equal</em> if {@code (e1==null ? e2==null :
-     * e1.equals(e2))}.)  In other words, two Lists are defined to be
-     * equal if they contain the same elements in the same order.
+     * 比较指定对象和此向量是否相等。如果指定对象也是 List，两个集合
+     * 大小相同，且对应的元素均相等，那么返回 true。换句话说，如果两个
+     * 集合对应元素对应相等，那么说两个集合相等。
      *
      * @param o the Object to be compared for equality with this Vector
      * @return true if the specified Object is equal to this Vector
@@ -915,46 +895,29 @@ public class Vector<E>
         return super.equals(o);
     }
 
+
     /**
-     * Returns the hash code value for this Vector.
+     * 返回集合的 hash 值
      */
     public synchronized int hashCode() {
         return super.hashCode();
     }
 
     /**
-     * Returns a string representation of this Vector, containing
-     * the String representation of each element.
+     * 返回集合的字符串表示，包括集合所有元素的字符串表示。
      */
     public synchronized String toString() {
         return super.toString();
     }
 
     /**
-     * Returns a view of the portion of this List between fromIndex,
-     * inclusive, and toIndex, exclusive.  (If fromIndex and toIndex are
-     * equal, the returned List is empty.)  The returned List is backed by this
-     * List, so changes in the returned List are reflected in this List, and
-     * vice-versa.  The returned List supports all of the optional List
-     * operations supported by this List.
+     * 返回列表从 fromIndex（包含）到 toIndex（不包含）的视图。（如果
+     * fromIndex 等于 toIndex，那么返回的列表为空。）返回的列表由此
+     * 列表支撑，所以返回列表的任何改变将会影响此列表，反之亦然。返回
+     * 的列表支持所有此列表支持的操作。
      *
-     * <p>This method eliminates the need for explicit range operations (of
-     * the sort that commonly exist for arrays).  Any operation that expects
-     * a List can be used as a range operation by operating on a subList view
-     * instead of a whole List.  For example, the following idiom
-     * removes a range of elements from a List:
-     * <pre>
-     *      list.subList(from, to).clear();
-     * </pre>
-     * Similar idioms may be constructed for indexOf and lastIndexOf,
-     * and all of the algorithms in the Collections class can be applied to
-     * a subList.
-     *
-     * <p>The semantics of the List returned by this method become undefined if
-     * the backing list (i.e., this List) is <i>structurally modified</i> in
-     * any way other than via the returned List.  (Structural modifications are
-     * those that change the size of the List, or otherwise perturb it in such
-     * a fashion that iterations in progress may yield incorrect results.)
+     * 如果支撑列表在任何情况下进行了结构上的修改，那么返回列表的语义
+     * 未知。（结构性的修改指的时改变列表大小。
      *
      * @param fromIndex low endpoint (inclusive) of the subList
      * @param toIndex high endpoint (exclusive) of the subList
@@ -970,11 +933,9 @@ public class Vector<E>
     }
 
     /**
-     * Removes from this list all of the elements whose index is between
-     * {@code fromIndex}, inclusive, and {@code toIndex}, exclusive.
-     * Shifts any succeeding elements to the left (reduces their index).
-     * This call shortens the list by {@code (toIndex - fromIndex)} elements.
-     * (If {@code toIndex==fromIndex}, this operation has no effect.)
+     * 删除 fromIndex（包含）到 toIndex（不包含）范围内的所有元素。
+     * 将之后的元素向左移动（减小索引），如果 toIndex == fromIndex，
+     * 此操作没有任何影响。
      */
     protected synchronized void removeRange(int fromIndex, int toIndex) {
         modCount++;
@@ -989,10 +950,7 @@ public class Vector<E>
     }
 
     /**
-     * Loads a {@code Vector} instance from a stream
-     * (that is, deserializes it).
-     * This method performs checks to ensure the consistency
-     * of the fields.
+     * 从流中加载向量实例。（即反序列化向量）。这一方法确保域的持久化。
      *
      * @param in the stream
      * @throws IOException if an I/O error occurs
@@ -1012,10 +970,8 @@ public class Vector<E>
     }
 
     /**
-     * Save the state of the {@code Vector} instance to a stream (that
-     * is, serialize it).
-     * This method performs synchronization to ensure the consistency
-     * of the serialized data.
+     * 把向量实例的状态加载到流里面（即序列化）。
+     * 此方法确保流数据的持久化。
      */
     private void writeObject(java.io.ObjectOutputStream s)
             throws IOException {
@@ -1031,14 +987,8 @@ public class Vector<E>
     }
 
     /**
-     * Returns a list iterator over the elements in this list (in proper
-     * sequence), starting at the specified position in the list.
-     * The specified index indicates the first element that would be
-     * returned by an initial call to {@link ListIterator#next next}.
-     * An initial call to {@link ListIterator#previous previous} would
-     * return the element with the specified index minus one.
-     *
-     * <p>The returned list iterator is <a href="#fail-fast"><i>fail-fast</i></a>.
+     * 返回列表的迭代器（以正确的顺序），从列表指定位置开始。
+     * 返回的迭代器支持 fast-fail。
      *
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
@@ -1049,10 +999,8 @@ public class Vector<E>
     }
 
     /**
-     * Returns a list iterator over the elements in this list (in proper
-     * sequence).
-     *
-     * <p>The returned list iterator is <a href="#fail-fast"><i>fail-fast</i></a>.
+     * 返回列表的迭代器（以正确的顺序），从第一个元素开始。
+     * 返回的迭代器支持 fast-fail。
      *
      * @see #listIterator(int)
      */
@@ -1061,9 +1009,8 @@ public class Vector<E>
     }
 
     /**
-     * Returns an iterator over the elements in this list in proper sequence.
-     *
-     * <p>The returned iterator is <a href="#fail-fast"><i>fail-fast</i></a>.
+     * 返回迭代器（以正确的顺序），从列表指定位置开始。
+     * 返回的迭代器支持 fast-fail。
      *
      * @return an iterator over the elements in this list in proper sequence
      */
@@ -1072,19 +1019,21 @@ public class Vector<E>
     }
 
     /**
-     * An optimized version of AbstractList.Itr
+     * AbstractList.Itr 的优化版本
      */
     private class Itr implements Iterator<E> {
         int cursor;       // index of next element to return
         int lastRet = -1; // index of last element returned; -1 if no such
         int expectedModCount = modCount;
 
+        // 是否存在下一个元素
         public boolean hasNext() {
             // Racy but within spec, since modifications are checked
             // within or after synchronization in next/previous
             return cursor != elementCount;
         }
 
+        // 返回 cursor指向的元素，并将游标向前移动一位。
         public E next() {
             synchronized (Vector.this) {
                 checkForComodification();
@@ -1096,6 +1045,7 @@ public class Vector<E>
             }
         }
 
+        // 删除 lastRet 指向的元素。即 lastRet 不等于 -1 才能删除
         public void remove() {
             if (lastRet == -1)
                 throw new IllegalStateException();
@@ -1139,7 +1089,7 @@ public class Vector<E>
     }
 
     /**
-     * An optimized version of AbstractList.ListItr
+     * AbstractList.ListItr 的优化版本
      */
     final class ListItr extends Itr implements ListIterator<E> {
         ListItr(int index) {
@@ -1159,6 +1109,7 @@ public class Vector<E>
             return cursor - 1;
         }
 
+        // 返回 cursor - 1 指向的元素并向往回移动一位
         public E previous() {
             synchronized (Vector.this) {
                 checkForComodification();
@@ -1170,6 +1121,7 @@ public class Vector<E>
             }
         }
 
+        // 把 lastRet 处的元素设置为指定元素
         public void set(E e) {
             if (lastRet == -1)
                 throw new IllegalStateException();
@@ -1179,6 +1131,7 @@ public class Vector<E>
             }
         }
 
+        // 在 cursor 处添加指定元素
         public void add(E e) {
             int i = cursor;
             synchronized (Vector.this) {
@@ -1208,6 +1161,7 @@ public class Vector<E>
 
     @Override
     @SuppressWarnings("unchecked")
+    // 删除满足条件的元素
     public synchronized boolean removeIf(Predicate<? super E> filter) {
         Objects.requireNonNull(filter);
         // figure out which elements are to be removed
@@ -1267,6 +1221,7 @@ public class Vector<E>
 
     @SuppressWarnings("unchecked")
     @Override
+    // 按比较器的规则排序
     public synchronized void sort(Comparator<? super E> c) {
         final int expectedModCount = modCount;
         Arrays.sort((E[]) elementData, 0, elementCount, c);

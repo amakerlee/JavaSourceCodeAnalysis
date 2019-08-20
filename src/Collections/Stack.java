@@ -28,21 +28,15 @@ package Collections;
 import java.util.EmptyStackException;
 
 /**
- * The <code>Stack</code> class represents a last-in-first-out
- * (LIFO) stack of objects. It extends class <tt>Vector</tt> with five
- * operations that allow a vector to be treated as a stack. The usual
- * <tt>push</tt> and <tt>pop</tt> operations are provided, as well as a
- * method to <tt>peek</tt> at the top item on the stack, a method to test
- * for whether the stack is <tt>empty</tt>, and a method to <tt>search</tt>
- * the stack for an item and discover how far it is from the top.
- * <p>
- * When a stack is first created, it contains no items.
+ * 此 Stack 类表示后进先出 (LIFO) 的数据结构。它在 Vector 类的基础上
+ * 扩展了五个操作，这些操作让向量成为了堆栈。它提供了 push 和 pop
+ * 操作，一个获取堆栈顶部元素的 peek 方法，还有一个测试堆栈是否为
+ * 空的 empty 方法和一个搜索指定元素离栈顶有多远的 search 方法。
+ * 当一个栈被创建的时候，它不包含任何元素。
  *
- * <p>A more complete and consistent set of LIFO stack operations is
- * provided by the {@link Deque} interface and its implementations, which
- * should be used in preference to this class.  For example:
- * <pre>   {@code
- *   Deque<Integer> stack = new ArrayDeque<Integer>();}</pre>
+ * Deque 接口中提供了更多 LIFO 操作的实现，使用中应该优先考虑 Deque。
+ * 可以通过以下方式创建该类的对象：
+ * Deque<Integer> stack = new ArrayDeque<Integer>();
  *
  * @author  Jonathan Payne
  * @since   JDK1.0
@@ -50,33 +44,28 @@ import java.util.EmptyStackException;
 public
 class Stack<E> extends Vector<E> {
     /**
-     * Creates an empty Stack.
+     * 创建一个空的栈
      */
     public Stack() {
     }
 
     /**
-     * Pushes an item onto the top of this stack. This has exactly
-     * the same effect as:
-     * <blockquote><pre>
-     * addElement(item)</pre></blockquote>
+     * 将一个元素压到栈顶，此方法和 addElement 方法效果一样。
      *
      * @param   item   the item to be pushed onto this stack.
-     * @return  the <code>item</code> argument.
+     * @return  the item argument.
      * @see     java.util.Vector#addElement
      */
     public E push(E item) {
         addElement(item);
-
         return item;
     }
 
     /**
-     * Removes the object at the top of this stack and returns that
-     * object as the value of this function.
+     * 移除栈顶元素并返回该元素。
      *
      * @return  The object at the top of this stack (the last item
-     *          of the <tt>Vector</tt> object).
+     *          of the Vector object).
      * @throws  EmptyStackException  if this stack is empty.
      */
     public synchronized E pop() {
@@ -90,43 +79,37 @@ class Stack<E> extends Vector<E> {
     }
 
     /**
-     * Looks at the object at the top of this stack without removing it
-     * from the stack.
+     * 返回栈顶元素（不删除）。
      *
      * @return  the object at the top of this stack (the last item
-     *          of the <tt>Vector</tt> object).
+     *          of the Vector object).
      * @throws  EmptyStackException  if this stack is empty.
      */
     public synchronized E peek() {
         int     len = size();
-
         if (len == 0)
             throw new EmptyStackException();
         return elementAt(len - 1);
     }
 
     /**
-     * Tests if this stack is empty.
+     * 判断栈是否为空。
      *
-     * @return  <code>true</code> if and only if this stack contains
-     *          no items; <code>false</code> otherwise.
+     * @return  true if and only if this stack contains
+     *          no items; false otherwise.
      */
     public boolean empty() {
         return size() == 0;
     }
 
     /**
-     * Returns the 1-based position where an object is on this stack.
-     * If the object <tt>o</tt> occurs as an item in this stack, this
-     * method returns the distance from the top of the stack of the
-     * occurrence nearest the top of the stack; the topmost item on the
-     * stack is considered to be at distance <tt>1</tt>. The <tt>equals</tt>
-     * method is used to compare <tt>o</tt> to the
-     * items in this stack.
+     * 返回栈中元素的位置。如果对象 o 出现在栈中，这个方法返回离栈顶
+     * 最近的该元素的距离。栈顶元素的距离被定义成 1。equals 用来判断
+     * 是否匹配。
      *
      * @param   o   the desired object.
      * @return  the 1-based position from the top of the stack where
-     *          the object is located; the return value <code>-1</code>
+     *          the object is located; the return value -1
      *          indicates that the object is not on the stack.
      */
     public synchronized int search(Object o) {
