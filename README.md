@@ -24,7 +24,7 @@
 
     [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [List](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/List.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java) | [AbstractList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractList.java) | [Vector](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Vector.java)
 
-    <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/Stack.png" width=70% />
+    <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/Stack.png" width=60% />
 
 
 #### Queue
@@ -33,10 +33,14 @@
 
     [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Queue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Queue.java) | [Deque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Deque.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)
 
-    <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ArrayDeque.png" width=70% />
+    <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ArrayDeque.png" width=50% />
 
 
-* [PriorityQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/ArrayList.java)
+* [PriorityQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/PriorityQueue.java)
+
+    [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Queue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Queue.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)  | [AbstractQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractQueue.java)
+
+    <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/PriorityQueue.png" width=50% />
 
 
 #### Set
