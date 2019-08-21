@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="65d6684a-7237-4b2a-81b7-14792effb173" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/Collections/ArrayDeque.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/ArrayList.png" beforeDir="false" afterPath="$PROJECT_DIR$/images/ArrayList.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/LinkedList.png" beforeDir="false" afterPath="$PROJECT_DIR$/images/LinkedList.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/Stack.png" beforeDir="false" afterPath="$PROJECT_DIR$/images/Stack.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Collections/AbstractQueue.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/Collections/PriorityQueue.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -20,11 +17,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Collections/ArrayDeque.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-988">
-              <caret line="7" column="2" lean-forward="true" selection-start-line="7" selection-start-column="2" selection-end-line="7" selection-end-column="2" />
+            <state relative-caret-position="-312">
+              <caret line="48" column="3" lean-forward="true" selection-start-line="48" selection-start-column="3" selection-end-line="48" selection-end-column="3" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#5341#5342#0" expanded="true" />
@@ -85,6 +82,67 @@
           </provider>
         </entry>
       </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/Collections/PriorityQueue.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-1092">
+              <caret line="30" column="23" lean-forward="true" selection-start-line="30" selection-start-column="23" selection-end-line="30" selection-end-column="23" />
+              <folding>
+                <element signature="e#4452#4453#0" expanded="true" />
+                <element signature="e#4504#4505#0" expanded="true" />
+                <element signature="e#4923#4924#0" expanded="true" />
+                <element signature="e#4966#4967#0" expanded="true" />
+                <element signature="e#5431#5432#0" expanded="true" />
+                <element signature="e#5489#5490#0" expanded="true" />
+                <element signature="e#7300#7330#0" expanded="true" />
+                <element signature="e#8629#8659#0" expanded="true" />
+                <element signature="e#9453#9483#0" expanded="true" />
+                <element signature="e#12392#12393#0" expanded="true" />
+                <element signature="e#12423#12424#0" expanded="true" />
+                <element signature="e#13145#13175#0" expanded="true" />
+                <element signature="e#13234#13235#0" expanded="true" />
+                <element signature="e#13290#13291#0" expanded="true" />
+                <element signature="e#15126#15127#0" expanded="true" />
+                <element signature="e#15165#15166#0" expanded="true" />
+                <element signature="e#15742#15743#0" expanded="true" />
+                <element signature="e#15791#15792#0" expanded="true" />
+                <element signature="e#17643#17673#0" expanded="true" />
+                <element signature="e#18330#18331#0" expanded="true" />
+                <element signature="e#18386#18387#0" expanded="true" />
+                <element signature="e#20108#20138#0" expanded="true" />
+                <element signature="e#21502#21503#0" expanded="true" />
+                <element signature="e#21529#21530#0" expanded="true" />
+                <element signature="e#21774#21804#0" expanded="true" />
+                <element signature="e#22675#22705#0" expanded="true" />
+                <element signature="e#23849#23879#0" expanded="true" />
+                <element signature="e#24254#24284#0" expanded="true" />
+                <element signature="e#25053#25083#0" expanded="true" />
+                <element signature="e#25741#25771#0" expanded="true" />
+                <element signature="e#26471#26501#0" expanded="true" />
+                <element signature="e#27101#27102#0" expanded="true" />
+                <element signature="e#27134#27135#0" expanded="true" />
+                <element signature="e#29221#29222#0" expanded="true" />
+                <element signature="e#29291#29292#0" expanded="true" />
+                <element signature="e#30782#30812#0" expanded="true" />
+                <element signature="e#32211#32241#1" expanded="true" />
+                <element signature="e#32662#32663#0" expanded="true" />
+                <element signature="e#32720#32721#0" expanded="true" />
+                <element signature="e#32760#32761#0" expanded="true" />
+                <element signature="e#32853#32854#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/Collections/AbstractQueue.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="52">
+              <caret line="2" column="26" selection-start-line="2" selection-start-column="26" selection-end-line="2" selection-end-column="26" />
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
@@ -116,13 +174,13 @@
         <option value="$PROJECT_DIR$/src/Collections/Vector.java" />
         <option value="$PROJECT_DIR$/src/Collections/Stack.java" />
         <option value="$PROJECT_DIR$/src/Collections/ArrayDeque.java" />
+        <option value="$PROJECT_DIR$/src/Collections/PriorityQueue.java" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="1">
-    <option name="x" value="718" />
-    <option name="y" value="22" />
-    <option name="width" value="1120" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="-7" />
+    <option name="width" value="974" />
     <option name="height" value="1047" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -242,18 +300,18 @@
       <workItem from="1565848569821" duration="7299000" />
       <workItem from="1566183187234" duration="90000" />
       <workItem from="1566300414508" duration="4752000" />
-      <workItem from="1566350007795" duration="1243000" />
+      <workItem from="1566350007795" duration="1511000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="122809000" />
+    <option name="totallyTimeSpent" value="123077000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="718" y="22" width="1120" height="1047" extended-state="1" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.38962263" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.22014925" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="UI Designer" order="3" />
@@ -555,8 +613,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/ArrayDeque.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-988">
-          <caret line="7" column="2" lean-forward="true" selection-start-line="7" selection-start-column="2" selection-end-line="7" selection-end-column="2" />
+        <state relative-caret-position="-312">
+          <caret line="48" column="3" lean-forward="true" selection-start-line="48" selection-start-column="3" selection-end-line="48" selection-end-column="3" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#5341#5342#0" expanded="true" />
@@ -613,6 +671,63 @@
             <element signature="e#32389#32419#1" expanded="true" />
             <element signature="e#32921#32951#1" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Collections/PriorityQueue.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1092">
+          <caret line="30" column="23" lean-forward="true" selection-start-line="30" selection-start-column="23" selection-end-line="30" selection-end-column="23" />
+          <folding>
+            <element signature="e#4452#4453#0" expanded="true" />
+            <element signature="e#4504#4505#0" expanded="true" />
+            <element signature="e#4923#4924#0" expanded="true" />
+            <element signature="e#4966#4967#0" expanded="true" />
+            <element signature="e#5431#5432#0" expanded="true" />
+            <element signature="e#5489#5490#0" expanded="true" />
+            <element signature="e#7300#7330#0" expanded="true" />
+            <element signature="e#8629#8659#0" expanded="true" />
+            <element signature="e#9453#9483#0" expanded="true" />
+            <element signature="e#12392#12393#0" expanded="true" />
+            <element signature="e#12423#12424#0" expanded="true" />
+            <element signature="e#13145#13175#0" expanded="true" />
+            <element signature="e#13234#13235#0" expanded="true" />
+            <element signature="e#13290#13291#0" expanded="true" />
+            <element signature="e#15126#15127#0" expanded="true" />
+            <element signature="e#15165#15166#0" expanded="true" />
+            <element signature="e#15742#15743#0" expanded="true" />
+            <element signature="e#15791#15792#0" expanded="true" />
+            <element signature="e#17643#17673#0" expanded="true" />
+            <element signature="e#18330#18331#0" expanded="true" />
+            <element signature="e#18386#18387#0" expanded="true" />
+            <element signature="e#20108#20138#0" expanded="true" />
+            <element signature="e#21502#21503#0" expanded="true" />
+            <element signature="e#21529#21530#0" expanded="true" />
+            <element signature="e#21774#21804#0" expanded="true" />
+            <element signature="e#22675#22705#0" expanded="true" />
+            <element signature="e#23849#23879#0" expanded="true" />
+            <element signature="e#24254#24284#0" expanded="true" />
+            <element signature="e#25053#25083#0" expanded="true" />
+            <element signature="e#25741#25771#0" expanded="true" />
+            <element signature="e#26471#26501#0" expanded="true" />
+            <element signature="e#27101#27102#0" expanded="true" />
+            <element signature="e#27134#27135#0" expanded="true" />
+            <element signature="e#29221#29222#0" expanded="true" />
+            <element signature="e#29291#29292#0" expanded="true" />
+            <element signature="e#30782#30812#0" expanded="true" />
+            <element signature="e#32211#32241#1" expanded="true" />
+            <element signature="e#32662#32663#0" expanded="true" />
+            <element signature="e#32720#32721#0" expanded="true" />
+            <element signature="e#32760#32761#0" expanded="true" />
+            <element signature="e#32853#32854#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Collections/AbstractQueue.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="52">
+          <caret line="2" column="26" selection-start-line="2" selection-start-column="26" selection-end-line="2" selection-end-column="26" />
         </state>
       </provider>
     </entry>
