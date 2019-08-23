@@ -47,45 +47,22 @@ import java.util.function.Consumer;
 import sun.misc.SharedSecrets;
 
 /**
- * Resizable-array implementation of the {@link java.util.Deque} interface.  Array
- * deques have no capacity restrictions; they grow as necessary to support
- * usage.  They are not thread-safe; in the absence of external
- * synchronization, they do not support concurrent access by multiple threads.
- * Null elements are prohibited.  This class is likely to be faster than
- * {@link Stack} when used as a stack, and faster than {@link LinkedList}
- * when used as a queue.
+ * Deque接口的大小可调整数组的实现。Array deques 没有严格的容量限制；
+ * 可以根据需要增长。它们不是线程安全的类，在缺乏外部同步的情况下，
+ * 它们不支持多线程同时访问。禁止 null 元素。这个类作为堆栈的时候比
+ * Stack 要快，作为队列的时候比 LinkedList 要快。
  *
- * <p>Most {@code ArrayDeque} operations run in amortized constant time.
- * Exceptions include {@link #remove(Object) remove}, {@link
- * #removeFirstOccurrence removeFirstOccurrence}, {@link #removeLastOccurrence
- * removeLastOccurrence}, {@link #contains contains}, {@link #iterator
- * iterator.remove()}, and the bulk operations, all of which run in linear
- * time.
+ * ArrayDeque 支持的大多数运算都是在常数时间内运行。remove,
+ * removeFirstOccurrence, removeLastOccurrence, contains,
+ * iterator.remove() 和批量操作在线性时间内完成。
  *
- * <p>The iterators returned by this class's {@code iterator} method are
- * <i>fail-fast</i>: If the deque is modified at any time after the iterator
- * is created, in any way except through the iterator's own {@code remove}
- * method, the iterator will generally throw a {@link
- * ConcurrentModificationException}.  Thus, in the face of concurrent
- * modification, the iterator fails quickly and cleanly, rather than risking
- * arbitrary, non-deterministic behavior at an undetermined time in the
- * future.
+ * 这个类的 iterator 方法支持 fail-fast：在迭代器创建之后如果队列被修改，
+ * 除非是迭代器自身的 remove 方法，否则迭代器会抛出
+ * ConcurrentModificationException 异常。因此，在面对并发修改的时候，
+ * 迭代器会快速干净地失败，而不会在未来不确定的时间出现未知风险和
+ * 不确定的行为。
  *
- * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
- * as it is, generally speaking, impossible to make any hard guarantees in the
- * presence of unsynchronized concurrent modification.  Fail-fast iterators
- * throw {@code ConcurrentModificationException} on a best-effort basis.
- * Therefore, it would be wrong to write a program that depended on this
- * exception for its correctness: <i>the fail-fast behavior of iterators
- * should be used only to detect bugs.</i>
- *
- * <p>This class and its iterator implement all of the
- * <em>optional</em> methods of the {@link java.util.Collection} and {@link
- * Iterator} interfaces.
- *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 这个类是 Java Collections Framework 的成员.
  *
  * @author  Josh Bloch and Doug Lea
  * @since   1.6
@@ -95,38 +72,36 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         implements java.util.Deque<E>, Cloneable, Serializable
 {
     /**
-     * The array in which the elements of the deque are stored.
-     * The capacity of the deque is the length of this array, which is
-     * always a power of two. The array is never allowed to become
-     * full, except transiently within an addX method where it is
-     * resized (see doubleCapacity) immediately upon becoming full,
-     * thus avoiding head and tail wrapping around to equal each
-     * other.  We also guarantee that all array cells not holding
-     * deque elements are always null.
+     * 队列的元素都存储在这个数组里。队列的容量就是这个数组的长度，
+     * 其长度总是 2 的幂。数组永远不允许变成满的，除非是在 addX 除非
+     * 是在 addX 方法中。当数组变成满的时候，它会立刻调整大小 （参阅
+     * doubleCapacity），这样就避免了头和尾互相缠绕，使其相等。我们还
+     * 保证所有不包含元素的数组单元格始终为 null。
      */
-    transient Object[] elements; // non-private to simplify nested class access
+    transient Object[] elements; // 非私有成员，以简化嵌套类的访问。
 
     /**
-     * The index of the element at the head of the deque (which is the
-     * element that would be removed by remove() or pop()); or an
-     * arbitrary number equal to tail if the deque is empty.
+     * 队列头部元素的索引（该元素将被 remove 或者 pop 删除）；如果
+     * 队列为空，将会是等于 tail 的数。
      */
     transient int head;
 
     /**
-     * The index at which the next element would be added to the tail
-     * of the deque (via addLast(E), add(E), or push(E)).
+     *队列尾部索引，将下一个元素添加到该索引的下一个位置（通过 addLast(E)，
+     * add(E)，或者 push(E)）。
      */
     transient int tail;
 
     /**
-     * The minimum capacity that we'll use for a newly created deque.
-     * Must be a power of 2.
+     * 一个新创建的队列的最小容量。必须是 2 的幂。
      */
     private static final int MIN_INITIAL_CAPACITY = 8;
 
     // ******  Array allocation and resizing utilities ******
+    // 数组空间分配和再分配工具
 
+    // 计算容量，大于 numElement 的最接近 2 的整数次方的数
+    // 比如，3 算出来是 8，9 算出来是 16，33 算出来是 64
     private static int calculateSize(int numElements) {
         int initialCapacity = MIN_INITIAL_CAPACITY;
         // Find the best power of two to hold elements.
@@ -147,7 +122,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * Allocates empty array to hold the given number of elements.
+     * 分配空数组来保存指定数量的元素。
      *
      * @param numElements  the number of elements to hold
      */
@@ -156,19 +131,27 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * Doubles the capacity of this deque.  Call only when full, i.e.,
-     * when head and tail have wrapped around to become equal.
+     * 将队列容量设置为当前的两倍，当队列满时调用。例如 head 和 tail
+     * 缠绕在一起以致相等。
      */
     private void doubleCapacity() {
+        // assert 如果表达式为 true 则继续执行，如果为 false 抛出
+        // AssertionError，并终止执行
         assert head == tail;
         int p = head;
         int n = elements.length;
-        int r = n - p; // number of elements to the right of p
+        // 数组长度减去 head 位置的索引，表示 head 位置右边的元素个数。
+        int r = n - p;
+        // 新的容量，等于原来容量的两倍
         int newCapacity = n << 1;
         if (newCapacity < 0)
             throw new IllegalStateException("Sorry, deque too big");
+        // 创建新数组
         Object[] a = new Object[newCapacity];
+        // 把索引 p 之后的元素复制到新数组从索引 0 开始的位置
         System.arraycopy(elements, p, a, 0, r);
+        // 把索引 0 到 p 的元素复制到新数组从索引 r 开始的位置，复制完成
+        // 之后的顺序是正确的先后顺序
         System.arraycopy(elements, 0, a, r, p);
         elements = a;
         head = 0;
@@ -176,13 +159,13 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * Copies the elements from our element array into the specified array,
-     * in order (from first to last element in the deque).  It is assumed
-     * that the array is large enough to hold all elements in the deque.
+     * 按顺序（从队列的第一个元素到最后一个元素） 将元素数组中的元素
+     * 复制到指定的数组中。假设数组足够大，可以容纳队列中所有元素。
      *
      * @return its argument
      */
     private <T> T[] copyElements(T[] a) {
+        // head 在 tail 之前，一次复制，否则分两次复制（同 doubleCapacity）
         if (head < tail) {
             System.arraycopy(elements, head, a, 0, size());
         } else if (head > tail) {
@@ -194,16 +177,14 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * Constructs an empty array deque with an initial capacity
-     * sufficient to hold 16 elements.
+     * 构造一个容量为 16 的空队列
      */
     public ArrayDeque() {
         elements = new Object[16];
     }
 
     /**
-     * Constructs an empty array deque with an initial capacity
-     * sufficient to hold the specified number of elements.
+     * 构造初始容量为指定大小的空队列。
      *
      * @param numElements  lower bound on initial capacity of the deque
      */
@@ -212,11 +193,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * Constructs a deque containing the elements of the specified
-     * collection, in the order they are returned by the collection's
-     * iterator.  (The first element returned by the collection's
-     * iterator becomes the first element, or <i>front</i> of the
-     * deque.)
+     * 构造一个包含指定集合所有元素的队列，按照集合迭代器返回的顺序。
+     * （集合迭代器返回的第一个元素作为队列第一个元素，或者队列的 front）
      *
      * @param c the collection whose elements are to be placed into the deque
      * @throws NullPointerException if the specified collection is null
@@ -229,9 +207,11 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     // The main insertion and extraction methods are addFirst,
     // addLast, pollFirst, pollLast. The other methods are defined in
     // terms of these.
+    // 最核心的插入和提取方法是 addFirst，addLast，pollFirst，pollLast。
+    // 其他方法根据这些来定义。
 
     /**
-     * Inserts the specified element at the front of this deque.
+     * 在队列前插入指定元素。
      *
      * @param e the element to add
      * @throws NullPointerException if the specified element is null
@@ -239,15 +219,22 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     public void addFirst(E e) {
         if (e == null)
             throw new NullPointerException();
+        // @August 注意！！
+        // 将 head 减 1，如果 head 为 0 ，运算之后指向数组末尾，防止数组
+        // 到头了边界溢出，如果到头了就从末尾再往前。
+        // 由于数组长度为 2 的幂，减 1 之后，之前为 1 的位置之前的位置为 0，
+        // 之后的位置全为 1，所以和 head - 1 进行与运算后不 改变 head 的值。
+        // 如果 head 等于 0，减 1 之后为 -1，二进制表示每一位均为 1 ，进行
+        // 与运算之后 head 指向数组末尾。
         elements[head = (head - 1) & (elements.length - 1)] = e;
         if (head == tail)
             doubleCapacity();
     }
 
     /**
-     * Inserts the specified element at the end of this deque.
+     * 把指定元素添加到队列末尾。
      *
-     * <p>This method is equivalent to {@link #add}.
+     * This method is equivalent to {@link #add}.
      *
      * @param e the element to add
      * @throws NullPointerException if the specified element is null
@@ -255,13 +242,16 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     public void addLast(E e) {
         if (e == null)
             throw new NullPointerException();
+        // tail指向第一个没有元素的位置
         elements[tail] = e;
+        // tail + 1 一旦大于 elements.length - 1，tail 马上变成 0
         if ( (tail = (tail + 1) & (elements.length - 1)) == head)
             doubleCapacity();
     }
 
     /**
-     * Inserts the specified element at the front of this deque.
+     * 把指定元素插入到队列开头。
+     * 添加成功返回 true。
      *
      * @param e the element to add
      * @return {@code true} (as specified by {@link java.util.Deque#offerFirst})
@@ -273,7 +263,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * Inserts the specified element at the end of this deque.
+     * 把指定元素添加到队列末尾。
+     * 添加成功返回 true。
      *
      * @param e the element to add
      * @return {@code true} (as specified by {@link Deque#offerLast})
@@ -285,6 +276,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
+     * 删除第一个元素并返回该元素。
+     * 元素为空抛出异常。
      * @throws NoSuchElementException {@inheritDoc}
      */
     public E removeFirst() {
@@ -295,6 +288,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
+     * 删除最后一个元素并返回该元素。
+     * 元素为空抛出异常。
      * @throws NoSuchElementException {@inheritDoc}
      */
     public E removeLast() {
@@ -304,6 +299,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         return x;
     }
 
+    // 删除第一个元素。（将该元素设置为 null）
+    // 元素为空返回 null。
     public E pollFirst() {
         int h = head;
         @SuppressWarnings("unchecked")
@@ -316,6 +313,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         return result;
     }
 
+    // 删除最后一个元素。（将该元素设置为 null）
+    // 元素为空返回 null。
     public E pollLast() {
         int t = (tail - 1) & (elements.length - 1);
         @SuppressWarnings("unchecked")
@@ -328,6 +327,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
+     * 返回队列的第一个元素。
+     * 该元素为空抛出异常。
      * @throws NoSuchElementException {@inheritDoc}
      */
     public E getFirst() {
@@ -339,6 +340,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
+     * 返回队列的最后一个元素。
+     * 该元素为空抛出异常。
      * @throws NoSuchElementException {@inheritDoc}
      */
     public E getLast() {
@@ -349,12 +352,14 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         return result;
     }
 
+    // 返回队列的第一个元素
     @SuppressWarnings("unchecked")
     public E peekFirst() {
         // elements[head] is null if deque empty
         return (E) elements[head];
     }
 
+    // 返回队列的最后一个元素
     @SuppressWarnings("unchecked")
     public E peekLast() {
         return (E) elements[(tail - 1) & (elements.length - 1)];
@@ -947,7 +952,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
                 if (h > t)
                     t += n;
                 int m = ((h + t) >>> 1) & (n - 1);
-                return new DeqSpliterator<>(deq, h, index = m);
+                return new DeqSpliterator<E>(deq, h, index = m);
             }
             return null;
         }
