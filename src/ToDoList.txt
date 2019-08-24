@@ -1,0 +1,2 @@
+1. ArrayList 和 LinkedList 的异同
+2. 为什么 ArrayDeque 作为队列比 LinkedList 要好，为什么作为栈比 Stack 要好
