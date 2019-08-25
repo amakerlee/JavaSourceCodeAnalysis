@@ -45,9 +45,18 @@
 
 #### Set
 
-* [HashSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/ArrayList.java)
+* [HashSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/HashSet.java)
 
-* [TreeSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/ArrayList.java)
+    [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Set](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Set.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)  | [AbstractSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractSet.java)
+
+    <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/HashSet.png" width=50% />
+
+
+* [TreeSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/TreeSet.java)
+
+    [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Set](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Set.java) | [SortedSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/SortedSet.java) | [NavigableSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/NavigableSet.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)  | [AbstractSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractSet.java)
+
+    <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/TreeSet.png" width=70% />
 
 
 #### Map
