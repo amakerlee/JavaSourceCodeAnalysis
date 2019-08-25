@@ -2,13 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="65d6684a-7237-4b2a-81b7-14792effb173" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/Collections/AbstractSet.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Collections/HashSet.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Collections/NavigableSet.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Collections/Set.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Collections/SortedSet.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Collections/TreeSet.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Collections/AbstractQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/AbstractQueue.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ToDoList.txt" beforeDir="false" afterPath="$PROJECT_DIR$/src/ToDoList.txt" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -21,7 +17,20 @@
     <option name="isMigrated" value="true" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/Collections/AbstractQueue.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state>
+              <caret lean-forward="true" />
+              <folding>
+                <element signature="e#0#6462#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -61,23 +70,22 @@
         <option value="$PROJECT_DIR$/src/Collections/Vector.java" />
         <option value="$PROJECT_DIR$/src/Collections/Stack.java" />
         <option value="$PROJECT_DIR$/src/Collections/PriorityQueue.java" />
-        <option value="$PROJECT_DIR$/src/Collections/AbstractQueue.java" />
         <option value="$PROJECT_DIR$/src/Collections/ArrayDeque.java" />
-        <option value="$PROJECT_DIR$/src/ToDoList.txt" />
         <option value="$PROJECT_DIR$/src/Collections/Set.java" />
         <option value="$PROJECT_DIR$/src/Collections/AbstractSet.java" />
         <option value="$PROJECT_DIR$/src/Collections/SortedSet.java" />
         <option value="$PROJECT_DIR$/src/Collections/NavigableSet.java" />
         <option value="$PROJECT_DIR$/src/Collections/TreeSet.java" />
         <option value="$PROJECT_DIR$/src/Collections/HashSet.java" />
+        <option value="$PROJECT_DIR$/src/ToDoList.txt" />
+        <option value="$PROJECT_DIR$/src/Collections/AbstractQueue.java" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
-    <option name="x" value="690" />
-    <option name="y" value="189" />
-    <option name="width" value="1033" />
-    <option name="height" value="809" />
+  <component name="ProjectFrameBounds" extendedState="1">
+    <option name="x" value="889" />
+    <option name="width" value="1038" />
+    <option name="height" value="1047" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
@@ -202,17 +210,18 @@
       <workItem from="1566626726030" duration="287000" />
       <workItem from="1566627029529" duration="397000" />
       <workItem from="1566627445204" duration="1710000" />
-      <workItem from="1566630231267" duration="7597000" />
+      <workItem from="1566630231267" duration="11572000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="146706000" />
+    <option name="totallyTimeSpent" value="150681000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
+    <frame x="889" y="0" width="1038" height="1047" extended-state="1" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.1433902" />
+      <window_info content_ui="combo" id="Project" order="0" weight="0.29431072" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="UI Designer" order="3" />
@@ -552,13 +561,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ToDoList.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="24">
-          <caret line="1" column="49" lean-forward="true" selection-start-line="1" selection-start-column="49" selection-end-line="1" selection-end-column="49" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/Set.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="600">
@@ -621,19 +623,29 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Collections/AbstractQueue.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="43" column="32" selection-start-line="43" selection-start-column="32" selection-end-line="43" selection-end-column="32" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/PriorityQueue.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="504">
           <caret line="39" column="17" selection-start-line="39" selection-start-column="17" selection-end-line="39" selection-end-column="17" />
           <folding>
             <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ToDoList.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="48">
+          <caret line="2" column="23" selection-start-line="2" selection-start-column="22" selection-end-line="2" selection-end-column="23" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Collections/AbstractQueue.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state>
+          <caret lean-forward="true" />
+          <folding>
+            <element signature="e#0#6462#0" expanded="true" />
           </folding>
         </state>
       </provider>
