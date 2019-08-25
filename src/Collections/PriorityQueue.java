@@ -33,52 +33,32 @@ import java.util.function.Consumer;
 import sun.misc.SharedSecrets;
 
 /**
- * An unbounded priority {@linkplain java.util.Queue queue} based on a priority heap.
- * The elements of the priority queue are ordered according to their
- * {@linkplain Comparable natural ordering}, or by a {@link Comparator}
- * provided at queue construction time, depending on which constructor is
- * used.  A priority queue does not permit {@code null} elements.
- * A priority queue relying on natural ordering also does not permit
- * insertion of non-comparable objects (doing so may result in
- * {@code ClassCastException}).
+ * 一个基于优先级堆的无界优先级队列。根据 Comparable 比较器的自然顺序
+ * 确定优先级元素的排列顺序，或者根据构造队列时创建的 Comparator 比较器
+ * 排列队列元素。优先级队列不允许 null 元素。依赖于自然顺序的优先级队列
+ * 也不允许插入不可比较的对象（这样做可能抛出 ClassCastException 异常）。
  *
- * <p>The <em>head</em> of this queue is the <em>least</em> element
- * with respect to the specified ordering.  If multiple elements are
- * tied for least value, the head is one of those elements -- ties are
- * broken arbitrarily.  The queue retrieval operations {@code poll},
- * {@code remove}, {@code peek}, and {@code element} access the
- * element at the head of the queue.
+ * 队列的头部元素是于指定顺序相关的最小的元素。如果多个元素满足该条件，
+ * 那么头部元素是其中任意一个。队列的检索操作 poll, remove, peek, element
+ * 等会访问队列的头部元素。
  *
- * <p>A priority queue is unbounded, but has an internal
- * <i>capacity</i> governing the size of an array used to store the
- * elements on the queue.  It is always at least as large as the queue
- * size.  As elements are added to a priority queue, its capacity
- * grows automatically.  The details of the growth policy are not
- * specified.
  *
- * <p>This class and its iterator implement all of the
- * <em>optional</em> methods of the {@link java.util.Collection} and {@link
- * Iterator} interfaces.  The Iterator provided in method {@link
- * #iterator()} is <em>not</em> guaranteed to traverse the elements of
- * the priority queue in any particular order. If you need ordered
- * traversal, consider using {@code Arrays.sort(pq.toArray())}.
+ * 优先级队列是无界的，但是具有控制数组大小的内部容量。该容量应该大于等于
+ * 队列的大小。当元素被添加到优先级队列中时，其容量自动增加。没有指定
+ * 具体的增长策略。
  *
- * <p><strong>Note that this implementation is not synchronized.</strong>
- * Multiple threads should not access a {@code PriorityQueue}
- * instance concurrently if any of the threads modifies the queue.
- * Instead, use the thread-safe {@link
- * java.util.concurrent.PriorityBlockingQueue} class.
+ * 这个类和它的迭代器实现了 Collection 和 Iterator 接口的所有可选方法。
+ * iterator 方法提供的迭代器不能保证以任何特定的顺序遍历优先级队列的元素。
+ * 如果需要有序遍历，考虑使用 Arrays.sort(pq.toArray())。
  *
- * <p>Implementation note: this implementation provides
- * O(log(n)) time for the enqueuing and dequeuing methods
- * ({@code offer}, {@code poll}, {@code remove()} and {@code add});
- * linear time for the {@code remove(Object)} and {@code contains(Object)}
- * methods; and constant time for the retrieval methods
- * ({@code peek}, {@code element}, and {@code size}).
+ * 注意该实现不是同步的。多线程不应该同时修改优先级队列，而应该使用线程
+ * 安全的 PriorityBlockingQueue 类。
  *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此实现提供了时间代价为 O(log(n)) 的入队和出队方法：offer, poll, remove,
+ * add；提供了线性时间代价的 remove 和 contains 方法；除此之外，还有常数
+ * 时间代价的 peek, element, size 方法。
+ *
+ * 此类是 Java Collections Framework 的成员。
  *
  * @since 1.5
  * @author Josh Bloch, Doug Lea
@@ -89,48 +69,43 @@ public class PriorityQueue<E> extends AbstractQueue<E>
 
     private static final long serialVersionUID = -7720805057305804111L;
 
+    // 默认初始容量
     private static final int DEFAULT_INITIAL_CAPACITY = 11;
 
     /**
-     * Priority queue represented as a balanced binary heap: the two
-     * children of queue[n] are queue[2*n+1] and queue[2*(n+1)].  The
-     * priority queue is ordered by comparator, or by the elements'
-     * natural ordering, if comparator is null: For each node n in the
-     * heap and each descendant d of n, n <= d.  The element with the
-     * lowest value is in queue[0], assuming the queue is nonempty.
+     * 优先级队列表现为一个平衡的二进制堆：queue[n] 的两个子队列分别为
+     * queue[2*n+1] 和 queue[2*(n+1)]。如果队列的顺序由比较器决定，或者按
+     * 元素的自然顺序排序。对于堆中的每个节点 n 和 n 的每个后代 d，有 n <= d。
+     * 假定队列非空，堆中最小值的元素为 queue[0]。
      */
     transient Object[] queue; // non-private to simplify nested class access
 
     /**
-     * The number of elements in the priority queue.
+     * 优先级队列中的元素个数。
      */
     private int size = 0;
 
     /**
-     * The comparator, or null if priority queue uses elements'
-     * natural ordering.
+     * 比较器。如果使用元素的自然顺序排序的话此比较器为 null。
      */
     private final Comparator<? super E> comparator;
 
     /**
-     * The number of times this priority queue has been
-     * <i>structurally modified</i>.  See AbstractList for gory details.
+     * 优先级队列被结构性修改的次数。
      */
     transient int modCount = 0; // non-private to simplify nested class access
 
     /**
-     * Creates a {@code PriorityQueue} with the default initial
-     * capacity (11) that orders its elements according to their
-     * {@linkplain Comparable natural ordering}.
+     * 创建一个容量为默认初始容量的优先级队列。其中元素的顺序为
+     * Comparable 自然顺序。
      */
     public PriorityQueue() {
         this(DEFAULT_INITIAL_CAPACITY, null);
     }
 
     /**
-     * Creates a {@code PriorityQueue} with the specified initial
-     * capacity that orders its elements according to their
-     * {@linkplain Comparable natural ordering}.
+     * 创建一个特定初始容量的优先级队列，其中元素的顺序为 Comparable 的
+     * 自然顺序。
      *
      * @param initialCapacity the initial capacity for this priority queue
      * @throws IllegalArgumentException if {@code initialCapacity} is less
@@ -141,8 +116,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Creates a {@code PriorityQueue} with the default initial capacity and
-     * whose elements are ordered according to the specified comparator.
+     * 创建一个容量为默认初始容量，元素排列顺序为比较器指定顺序的优先级
+     * 队列。
      *
      * @param  comparator the comparator that will be used to order this
      *         priority queue.  If {@code null}, the {@linkplain Comparable
@@ -154,8 +129,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Creates a {@code PriorityQueue} with the specified initial capacity
-     * that orders its elements according to the specified comparator.
+     * 创建一个容量为默认初始容量，元素排列顺序为比较器指定顺序的优先级
+     * 队列。
      *
      * @param  initialCapacity the initial capacity for this priority queue
      * @param  comparator the comparator that will be used to order this
@@ -175,12 +150,9 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Creates a {@code PriorityQueue} containing the elements in the
-     * specified collection.  If the specified collection is an instance of
-     * a {@link SortedSet} or is another {@code PriorityQueue}, this
-     * priority queue will be ordered according to the same ordering.
-     * Otherwise, this priority queue will be ordered according to the
-     * {@linkplain Comparable natural ordering} of its elements.
+     * 创建一个包含指定集合所有元素的优先级队列。如果指定集合是一个
+     * SortedSet 的实例或者是另一个 PriorityQueue，这个优先级队列中的元素
+     * 会以相同的顺序排列。否则，这个优先级队列将根据元素的自然顺序排列。
      *
      * @param  c the collection whose elements are to be placed
      *         into this priority queue
@@ -209,10 +181,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Creates a {@code PriorityQueue} containing the elements in the
-     * specified priority queue.  This priority queue will be
-     * ordered according to the same ordering as the given priority
-     * queue.
+     * 创建一个包含指定集合所有元素的优先级队列。这个优先级队列中的元素
+     * 会以指定队列相同的顺序排序。
      *
      * @param  c the priority queue whose elements are to be placed
      *         into this priority queue
@@ -229,9 +199,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Creates a {@code PriorityQueue} containing the elements in the
-     * specified sorted set.   This priority queue will be ordered
-     * according to the same ordering as the given sorted set.
+     * 创建一个包含指定 SortedSet 的所有元素的优先级队列。这个优先级队列
+     * 中的元素以给定 SortedSet 的顺序排列。
      *
      * @param  c the sorted set whose elements are to be placed
      *         into this priority queue
@@ -247,6 +216,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         initElementsFromCollection(c);
     }
 
+    // 根据给定的优先级队列初始化此优先级队列，将所有元素复制到此队列中
+    // 直接将给定的优先级队列转化为数组，赋值给此队列
     private void initFromPriorityQueue(java.util.PriorityQueue<? extends E> c) {
         if (c.getClass() == java.util.PriorityQueue.class) {
             this.queue = c.toArray();
@@ -256,12 +227,16 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         }
     }
 
+    // 根据给定的 Collection 初始化此优先级队列，将所有元素复制到此队列中
     private void initElementsFromCollection(java.util.Collection<? extends E> c) {
         Object[] a = c.toArray();
         // If c.toArray incorrectly doesn't return Object[], copy it.
         if (a.getClass() != Object[].class)
+            // Arrays的copyOf()方法传回的数组是新的数组对象，改变传回数组中
+            // 的元素值，不会影响原来的数组。新数组的类型为 Object[]。
             a = Arrays.copyOf(a, a.length, Object[].class);
         int len = a.length;
+        // 目的是检查数组即优先级队列中是否有 null 元素，如果有则抛出异常
         if (len == 1 || this.comparator != null)
             for (int i = 0; i < len; i++)
                 if (a[i] == null)
@@ -271,35 +246,36 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
+     * 根据给定的集合中的元素初始化此队列。
      * Initializes queue array with elements from the given Collection.
      *
      * @param c the collection
      */
     private void initFromCollection(java.util.Collection<? extends E> c) {
         initElementsFromCollection(c);
+        // 堆处理
         heapify();
     }
 
     /**
-     * The maximum size of array to allocate.
-     * Some VMs reserve some header words in an array.
-     * Attempts to allocate larger arrays may result in
-     * OutOfMemoryError: Requested array size exceeds VM limit
+     * 数组最多能容纳的元素个数。
      */
     private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
     /**
+     * 增加数组容量
      * Increases the capacity of the array.
      *
      * @param minCapacity the desired minimum capacity
      */
     private void grow(int minCapacity) {
         int oldCapacity = queue.length;
-        // Double size if small; else grow by 50%
+        // 如果原容量小于 64，新容量变成 2 * oldCapacity + 2，否则，新容量
+        // 变成 1.5 * oldCapacity
         int newCapacity = oldCapacity + ((oldCapacity < 64) ?
                 (oldCapacity + 2) :
                 (oldCapacity >> 1));
-        // overflow-conscious code
+        // 如果新容量比规定的最大容量还要大，那么将新容量设置为整型最大值
         if (newCapacity - MAX_ARRAY_SIZE > 0)
             newCapacity = hugeCapacity(minCapacity);
         queue = Arrays.copyOf(queue, newCapacity);
@@ -308,13 +284,15 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     private static int hugeCapacity(int minCapacity) {
         if (minCapacity < 0) // overflow
             throw new OutOfMemoryError();
+        // 指定容量大于规定的最大容量，将新容量设置为整型最大值，否则设置
+        // 为规定的最大容量。
         return (minCapacity > MAX_ARRAY_SIZE) ?
                 Integer.MAX_VALUE :
                 MAX_ARRAY_SIZE;
     }
 
     /**
-     * Inserts the specified element into this priority queue.
+     * 将指定元素插入到优先级队列中
      *
      * @return {@code true} (as specified by {@link Collection#add})
      * @throws ClassCastException if the specified element cannot be
@@ -327,7 +305,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Inserts the specified element into this priority queue.
+     * 将指定元素插入到优先级队列中
      *
      * @return {@code true} (as specified by {@link Queue#offer})
      * @throws ClassCastException if the specified element cannot be
@@ -340,21 +318,25 @@ public class PriorityQueue<E> extends AbstractQueue<E>
             throw new NullPointerException();
         modCount++;
         int i = size;
+        // 扩容，确保队列容量不溢出
         if (i >= queue.length)
             grow(i + 1);
         size = i + 1;
         if (i == 0)
             queue[0] = e;
         else
+            // 执行添加操作
             siftUp(i, e);
         return true;
     }
 
     @SuppressWarnings("unchecked")
+    // 返回队列第一个元素（堆顶元素）
     public E peek() {
         return (size == 0) ? null : (E) queue[0];
     }
 
+    // 返回指定元素索引
     private int indexOf(Object o) {
         if (o != null) {
             for (int i = 0; i < size; i++)
@@ -365,12 +347,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Removes a single instance of the specified element from this queue,
-     * if it is present.  More formally, removes an element {@code e} such
-     * that {@code o.equals(e)}, if this queue contains one or more such
-     * elements.  Returns {@code true} if and only if this queue contained
-     * the specified element (or equivalently, if this queue changed as a
-     * result of the call).
+     * 从队列中删除指定元素的单个匹配实例。如果存在一个或多个删除任意一个。
+     * 当队列包含指定元素时返回 true（表示操作成功）
      *
      * @param o element to be removed from this queue, if present
      * @return {@code true} if this queue changed as a result of the call
@@ -386,8 +364,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Version of remove using reference equality, not equals.
-     * Needed by iterator.remove.
+     * 和 remove 不同的是，判断相等时直接判断引用，不使用 equals 方法
+     * iterator.remove 需要此方法
      *
      * @param o element to be removed from this queue, if present
      * @return {@code true} if removed
@@ -403,9 +381,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns {@code true} if this queue contains the specified element.
-     * More formally, returns {@code true} if and only if this queue contains
-     * at least one element {@code e} such that {@code o.equals(e)}.
+     * 如果队列包含指定元素返回 true，判断方是否相等使用 equals
      *
      * @param o object to be checked for containment in this queue
      * @return {@code true} if this queue contains the specified element
@@ -415,15 +391,11 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns an array containing all of the elements in this queue.
-     * The elements are in no particular order.
+     * 返回包含队列中所有元素的数组
+     * 这些元素没有特定的顺序
      *
-     * <p>The returned array will be "safe" in that no references to it are
-     * maintained by this queue.  (In other words, this method must allocate
-     * a new array).  The caller is thus free to modify the returned array.
-     *
-     * <p>This method acts as bridge between array-based and collection-based
-     * APIs.
+     * 返回的数组是“安全”的，因为队列不保留对它的引用。（换句话说，数组
+     * 空间是新分配的）。调用者可以随意修改返回的数组。
      *
      * @return an array containing all of the elements in this queue
      */
@@ -432,31 +404,16 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns an array containing all of the elements in this queue; the
-     * runtime type of the returned array is that of the specified array.
-     * The returned array elements are in no particular order.
-     * If the queue fits in the specified array, it is returned therein.
-     * Otherwise, a new array is allocated with the runtime type of the
-     * specified array and the size of this queue.
+     * 返回一个包含队列中的所有元素的数组返回数组的运行时类型是指定数组的
+     * 运行时类型。数组中元素的顺序没有规定。如果指定的数组能容纳队列的
+     * 所有元素，则返回指定数组。否则，将按照指定数组的运行时类型和该队列
+     * 的大小分配一个新数组。
      *
-     * <p>If the queue fits in the specified array with room to spare
-     * (i.e., the array has more elements than the queue), the element in
-     * the array immediately following the end of the collection is set to
-     * {@code null}.
+     * 如果指定数组还有空余的位置，则将其设置为 null。
      *
-     * <p>Like the {@link #toArray()} method, this method acts as bridge between
-     * array-based and collection-based APIs.  Further, this method allows
-     * precise control over the runtime type of the output array, and may,
-     * under certain circumstances, be used to save allocation costs.
-     *
-     * <p>Suppose {@code x} is a queue known to contain only strings.
-     * The following code can be used to dump the queue into a newly
-     * allocated array of {@code String}:
-     *
-     *  <pre> {@code String[] y = x.toArray(new String[0]);}</pre>
-     *
-     * Note that {@code toArray(new Object[0])} is identical in function to
-     * {@code toArray()}.
+     * 和 toArray 方法一样，将此方法作为沟通基于数组和基于集合的 API 的桥梁。
+     * 除此之外，此方法允许对输出数组的运行时类型进行控制，在精确的计算下，
+     * 可以用来节省空间。
      *
      * @param a the array into which the elements of the queue are to
      *          be stored, if it is big enough; otherwise, a new array of the
@@ -480,8 +437,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns an iterator over the elements in this queue. The iterator
-     * does not return the elements in any particular order.
+     * 返回队列元素的迭代器。迭代器中元素没有特定顺序。
      *
      * @return an iterator over the elements in this queue
      */
@@ -490,17 +446,9 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     private final class Itr implements Iterator<E> {
-        /**
-         * Index (into queue array) of element to be returned by
-         * subsequent call to next.
-         */
+
         private int cursor = 0;
 
-        /**
-         * Index of element returned by most recent call to next,
-         * unless that element came from the forgetMeNot list.
-         * Set to -1 if element is deleted by a call to remove.
-         */
         private int lastRet = -1;
 
         /**
