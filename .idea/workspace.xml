@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="65d6684a-7237-4b2a-81b7-14792effb173" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Collections/PriorityQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/PriorityQueue.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
@@ -19,8 +20,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Collections/ArrayDeque.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="325">
-              <caret line="795" column="7" lean-forward="true" selection-start-line="795" selection-start-column="7" selection-end-line="795" selection-end-column="7" />
+            <state relative-caret-position="182">
+              <caret line="801" column="13" selection-start-line="801" selection-start-column="13" selection-end-line="801" selection-end-column="13" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#16315#16316#0" expanded="true" />
@@ -33,38 +34,22 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Collections/PriorityQueue.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="417">
-              <caret line="454" column="11" selection-start-line="454" selection-start-column="11" selection-end-line="454" selection-end-column="11" />
+            <state relative-caret-position="364">
+              <caret line="569" column="29" lean-forward="true" selection-start-line="569" selection-start-column="29" selection-end-line="569" selection-end-column="29" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#4436#4437#0" expanded="true" />
-                <element signature="e#4488#4489#0" expanded="true" />
-                <element signature="e#4907#4908#0" expanded="true" />
-                <element signature="e#4950#4951#0" expanded="true" />
-                <element signature="e#5415#5416#0" expanded="true" />
-                <element signature="e#5473#5474#0" expanded="true" />
-                <element signature="e#7280#7310#0" expanded="true" />
-                <element signature="e#8609#8639#0" expanded="true" />
-                <element signature="e#9433#9463#0" expanded="true" />
-                <element signature="e#12334#12335#0" expanded="true" />
-                <element signature="e#12365#12366#0" expanded="true" />
-                <element signature="e#13125#13155#0" expanded="true" />
-                <element signature="e#13176#13177#0" expanded="true" />
-                <element signature="e#13232#13233#0" expanded="true" />
-                <element signature="e#15068#15069#0" expanded="true" />
-                <element signature="e#15107#15108#0" expanded="true" />
-                <element signature="e#15684#15685#0" expanded="true" />
-                <element signature="e#15733#15734#0" expanded="true" />
-                <element signature="e#17623#17653#0" expanded="true" />
-                <element signature="e#18272#18273#0" expanded="true" />
-                <element signature="e#18304#18305#0" expanded="true" />
-                <element signature="e#21404#21405#0" expanded="true" />
-                <element signature="e#21431#21432#0" expanded="true" />
-                <element signature="e#21710#21740#0" expanded="true" />
-                <element signature="e#27011#27012#0" expanded="true" />
-                <element signature="e#27044#27045#0" expanded="true" />
-                <element signature="e#29177#29178#0" expanded="true" />
-                <element signature="e#29247#29248#0" expanded="true" />
+                <element signature="e#13420#13421#0" expanded="true" />
+                <element signature="e#13452#13453#0" expanded="true" />
+                <element signature="e#14680#14710#0" expanded="true" />
+                <element signature="e#16264#16294#0" expanded="true" />
+                <element signature="e#18144#18174#0" expanded="true" />
+                <element signature="e#18735#18765#0" expanded="true" />
+                <element signature="e#19534#19564#0" expanded="true" />
+                <element signature="e#20222#20252#0" expanded="true" />
+                <element signature="e#20952#20982#0" expanded="true" />
+                <element signature="e#21556#21557#0" expanded="true" />
+                <element signature="e#21589#21590#0" expanded="true" />
+                <element signature="e#26590#26620#1" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -124,9 +109,9 @@
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="1">
-    <option name="x" value="888" />
-    <option name="width" value="1039" />
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="953" />
+    <option name="width" value="974" />
     <option name="height" value="1047" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -136,38 +121,13 @@
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
-    <panes>
-      <pane id="Scope" />
-      <pane id="PackagesPane" />
-      <pane id="ProjectPane">
-        <subPane>
-          <expand>
-            <path>
-              <item name="JavaSourceCodeAnalysis" type="b2602c69:ProjectViewProjectNode" />
-              <item name="JavaSourceCodeAnalysis" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="JavaSourceCodeAnalysis" type="b2602c69:ProjectViewProjectNode" />
-              <item name="JavaSourceCodeAnalysis" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="JavaSourceCodeAnalysis" type="b2602c69:ProjectViewProjectNode" />
-              <item name="JavaSourceCodeAnalysis" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="Collections" type="462c0819:PsiDirectoryNode" />
-            </path>
-          </expand>
-          <select />
-        </subPane>
-      </pane>
-    </panes>
+    <panes />
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="F:/IdeaProjects/QingTing" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../LeetCode/Exercise" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -176,7 +136,7 @@
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Color Scheme Font" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -252,15 +212,21 @@
       <workItem from="1566626726030" duration="287000" />
       <workItem from="1566627029529" duration="397000" />
       <workItem from="1566627445204" duration="1710000" />
-      <workItem from="1566630231267" duration="22572000" />
+      <workItem from="1566630231267" duration="23970000" />
+      <workItem from="1566802906498" duration="1128000" />
+      <workItem from="1566819474229" duration="70000" />
+      <workItem from="1566819557842" duration="875000" />
+      <workItem from="1566820448474" duration="1650000" />
+      <workItem from="1566822112704" duration="172000" />
+      <workItem from="1566822297673" duration="4261000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="161681000" />
+    <option name="totallyTimeSpent" value="171235000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="888" y="0" width="1039" height="1047" extended-state="0" />
+    <frame x="953" y="0" width="974" height="1047" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.29417774" />
@@ -650,10 +616,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="jar://C:/Program Files/Java/jdk1.8.0_211/src.zip!/java/lang/Comparable.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="2">
+          <caret line="95" column="17" selection-start-line="95" selection-start-column="17" selection-end-line="95" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/ArrayDeque.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="325">
-          <caret line="795" column="7" lean-forward="true" selection-start-line="795" selection-start-column="7" selection-end-line="795" selection-end-column="7" />
+        <state relative-caret-position="182">
+          <caret line="801" column="13" selection-start-line="801" selection-start-column="13" selection-end-line="801" selection-end-column="13" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#16315#16316#0" expanded="true" />
@@ -664,38 +637,22 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/PriorityQueue.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="417">
-          <caret line="454" column="11" selection-start-line="454" selection-start-column="11" selection-end-line="454" selection-end-column="11" />
+        <state relative-caret-position="364">
+          <caret line="569" column="29" lean-forward="true" selection-start-line="569" selection-start-column="29" selection-end-line="569" selection-end-column="29" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#4436#4437#0" expanded="true" />
-            <element signature="e#4488#4489#0" expanded="true" />
-            <element signature="e#4907#4908#0" expanded="true" />
-            <element signature="e#4950#4951#0" expanded="true" />
-            <element signature="e#5415#5416#0" expanded="true" />
-            <element signature="e#5473#5474#0" expanded="true" />
-            <element signature="e#7280#7310#0" expanded="true" />
-            <element signature="e#8609#8639#0" expanded="true" />
-            <element signature="e#9433#9463#0" expanded="true" />
-            <element signature="e#12334#12335#0" expanded="true" />
-            <element signature="e#12365#12366#0" expanded="true" />
-            <element signature="e#13125#13155#0" expanded="true" />
-            <element signature="e#13176#13177#0" expanded="true" />
-            <element signature="e#13232#13233#0" expanded="true" />
-            <element signature="e#15068#15069#0" expanded="true" />
-            <element signature="e#15107#15108#0" expanded="true" />
-            <element signature="e#15684#15685#0" expanded="true" />
-            <element signature="e#15733#15734#0" expanded="true" />
-            <element signature="e#17623#17653#0" expanded="true" />
-            <element signature="e#18272#18273#0" expanded="true" />
-            <element signature="e#18304#18305#0" expanded="true" />
-            <element signature="e#21404#21405#0" expanded="true" />
-            <element signature="e#21431#21432#0" expanded="true" />
-            <element signature="e#21710#21740#0" expanded="true" />
-            <element signature="e#27011#27012#0" expanded="true" />
-            <element signature="e#27044#27045#0" expanded="true" />
-            <element signature="e#29177#29178#0" expanded="true" />
-            <element signature="e#29247#29248#0" expanded="true" />
+            <element signature="e#13420#13421#0" expanded="true" />
+            <element signature="e#13452#13453#0" expanded="true" />
+            <element signature="e#14680#14710#0" expanded="true" />
+            <element signature="e#16264#16294#0" expanded="true" />
+            <element signature="e#18144#18174#0" expanded="true" />
+            <element signature="e#18735#18765#0" expanded="true" />
+            <element signature="e#19534#19564#0" expanded="true" />
+            <element signature="e#20222#20252#0" expanded="true" />
+            <element signature="e#20952#20982#0" expanded="true" />
+            <element signature="e#21556#21557#0" expanded="true" />
+            <element signature="e#21589#21590#0" expanded="true" />
+            <element signature="e#26590#26620#1" expanded="true" />
           </folding>
         </state>
       </provider>

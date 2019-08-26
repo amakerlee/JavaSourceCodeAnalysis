@@ -452,31 +452,25 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         private int lastRet = -1;
 
         /**
-         * A queue of elements that were moved from the unvisited portion of
-         * the heap into the visited portion as a result of "unlucky" element
-         * removals during the iteration.  (Unlucky element removals are those
-         * that require a siftup instead of a siftdown.)  We must visit all of
-         * the elements in this list to complete the iteration.  We do this
-         * after we've completed the "normal" iteration.
+         * 从堆中未访问的部分移动到已访问的部分的元素，即作为迭代过程中
+         * 删除的“不幸”元素。（不幸的元素是那些需要 siftUp 而不是
+         * siftDown 的元素）。我们必须在迭代过程中访问列表中所有的元素。
+         * 这一步在我们完成普通的迭代之后进行。
          *
-         * We expect that most iterations, even those involving removals,
-         * will not need to store elements in this field.
+         * 我们希望大多数的迭代过程，甚至是包含删除操作的迭代，都不需要
+         * 在这个部分存储元素。
          */
         private java.util.ArrayDeque<E> forgetMeNot = null;
 
         /**
-         * Element returned by the most recent call to next iff that
-         * element was drawn from the forgetMeNot list.
+         * 如果该元素是从 forgetMeNot 列表中取出的，则由最近一次调用的
+         * next 返回。
          */
         private E lastRetElt = null;
 
-        /**
-         * The modCount value that the iterator believes that the backing
-         * Queue should have.  If this expectation is violated, the iterator
-         * has detected concurrent modification.
-         */
         private int expectedModCount = modCount;
 
+        // 判断是否有下一个元素
         public boolean hasNext() {
             return cursor < size ||
                     (forgetMeNot != null && !forgetMeNot.isEmpty());
@@ -520,13 +514,14 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         }
     }
 
+    // 返回队列的大小
     public int size() {
         return size;
     }
 
     /**
-     * Removes all of the elements from this priority queue.
-     * The queue will be empty after this call returns.
+     * 删除优先级队列的所有元素。
+     * 此方法调用后队列为空。
      */
     public void clear() {
         modCount++;
@@ -550,7 +545,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Removes the ith element from queue.
+     * 从队列中删除第 i 个元素。
      *
      * Normally this method leaves the elements at up to i-1,
      * inclusive, untouched.  Under these circumstances, it returns
@@ -565,13 +560,19 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     private E removeAt(int i) {
         // assert i >= 0 && i < size;
         modCount++;
+        // s 为数组中最后一个元素的索引，同时 size 减一
         int s = --size;
-        if (s == i) // removed last element
+        // 如果删除的是最后一个元素，直接将最后一个元素置为 null，并结束
+        // 此方法
+        if (s == i)
             queue[i] = null;
         else {
             E moved = (E) queue[s];
             queue[s] = null;
+            // 将位置 i 的元素替换成 moved，即原来的最后一个元素，然后判断
+            // 是否下沉
             siftDown(i, moved);
+            // 如果没有上移，说明可能它的位置在下面，接着判断是否上移
             if (queue[i] == moved) {
                 siftUp(i, moved);
                 if (queue[i] != moved)
@@ -582,13 +583,15 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Inserts item x at position k, maintaining heap invariant by
-     * promoting x up the tree until it is greater than or equal to
-     * its parent, or is the root.
+     * 在 k 位置插入元素 x（从 k 位置开始调整堆，找到元素 x 的位置，忽略
+     * 原先 k 位置的元素），通过向上提升 x 直到它大于等于它的父元素或者
+     * 根元素，来保证满足堆成立的条件。
      *
-     * To simplify and speed up coercions and comparisons. the
-     * Comparable and Comparator versions are separated into different
-     * methods that are otherwise identical. (Similarly for siftDown.)
+     * 为了简化和加速强制转换和比较，Comparable（元素的默认比较器）
+     * 和 Comparator（指定的比较器）被分成不同的方法，这两个方法基本
+     * 等同。（siftDown 同理）
+     *
+     * @August 注意此方法为 private，仅类内部调用
      *
      * @param k the position to fill
      * @param x the item to insert
@@ -600,25 +603,36 @@ public class PriorityQueue<E> extends AbstractQueue<E>
             siftUpComparable(k, x);
     }
 
+    // 对于默认比较器，插入元素时调整堆的方法
     @SuppressWarnings("unchecked")
     private void siftUpComparable(int k, E x) {
+        // <? extends E>，集合中元素类型上限为 E，即只能是 E 或者 E 的子类
+        // <? super E>，集合中元素类型下限为 E，即只能是 E 或者 E 的父类
         Comparable<? super E> key = (Comparable<? super E>) x;
         while (k > 0) {
+            // 获取 k 的父节点
             int parent = (k - 1) >>> 1;
+            // 获取父节点的元素
             Object e = queue[parent];
+            // 如果 key 的值大于等于其父节点的值 e，那么不需要调整，结束操作
+            // 最后建成小顶堆
             if (key.compareTo((E) e) >= 0)
                 break;
+            // 否则将父节点的值复制到 k 位置，然后 k 指向父节点的位置，继续比较
             queue[k] = e;
             k = parent;
         }
+        // 找到指定元素的位置 k，将指定元素存在 k 位置
         queue[k] = key;
     }
 
+    // 对于指定的比较器，插入元素时调整堆的方法
     @SuppressWarnings("unchecked")
     private void siftUpUsingComparator(int k, E x) {
         while (k > 0) {
             int parent = (k - 1) >>> 1;
             Object e = queue[parent];
+            // 如果 x 大于其父节点的值 e，那么不用调整，跳出循环
             if (comparator.compare(x, (E) e) >= 0)
                 break;
             queue[k] = e;
@@ -628,9 +642,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Inserts item x at position k, maintaining heap invariant by
-     * demoting x down the tree repeatedly until it is less than or
-     * equal to its children or is a leaf.
+     * 在 k 位置插入元素 x，通过向下调整 x 直到它小于等于它的子节点或者
+     * 叶节点，来保证满足堆成立的条件。
      *
      * @param k the position to fill
      * @param x the item to insert
@@ -642,17 +655,25 @@ public class PriorityQueue<E> extends AbstractQueue<E>
             siftDownComparable(k, x);
     }
 
+    // 对于默认的比较器，插入元素时下沉元素的方法
     @SuppressWarnings("unchecked")
     private void siftDownComparable(int k, E x) {
         Comparable<? super E> key = (Comparable<? super E>)x;
-        int half = size >>> 1;        // loop while a non-leaf
+        // half 为队列中间一半的位置，
+        int half = size >>> 1;
+        // k 小于中间位置索引值时循环，因为堆的叶节点索引大于等于中间
+        // 位置索引
         while (k < half) {
-            int child = (k << 1) + 1; // assume left child is least
+            // 获取 k 的左子节点的索引
+            int child = (k << 1) + 1;
+            // 获取左子节点的值 c
             Object c = queue[child];
             int right = child + 1;
+            // 如果存在右子节点，找出两个子节点的值较小的那一个
             if (right < size &&
                     ((Comparable<? super E>) c).compareTo((E) queue[right]) > 0)
                 c = queue[child = right];
+            // 如果 key 的值小于等于较小子节点的值， 结束循环
             if (key.compareTo((E) c) <= 0)
                 break;
             queue[k] = c;
@@ -680,8 +701,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Establishes the heap invariant (described above) in the entire tree,
-     * assuming nothing about the order of the elements prior to the call.
+     * 从最后一个元素的父节点位置开始建堆
      */
     @SuppressWarnings("unchecked")
     private void heapify() {
@@ -690,9 +710,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns the comparator used to order the elements in this
-     * queue, or {@code null} if this queue is sorted according to
-     * the {@linkplain Comparable natural ordering} of its elements.
+     * 返回用来对堆元素进行排序的比较器 comparator，如果按照元素自身的
+     * Comparable 排序的话，返回 null。
      *
      * @return the comparator used to order this queue, or
      *         {@code null} if this queue is sorted according to the
@@ -703,7 +722,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Saves this queue to a stream (that is, serializes it).
+     * 序列化
      *
      * @serialData The length of the array backing the instance is
      *             emitted (int), followed by all of its elements
@@ -724,8 +743,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Reconstitutes the {@code PriorityQueue} instance from a stream
-     * (that is, deserializes it).
+     * 反序列化
      *
      * @param s the stream
      */
