@@ -3,7 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="65d6684a-7237-4b2a-81b7-14792effb173" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Collections/PriorityQueue.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/PriorityQueue.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Collections/AbstractSet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/AbstractSet.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -17,39 +17,13 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/Collections/ArrayDeque.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="182">
-              <caret line="801" column="13" selection-start-line="801" selection-start-column="13" selection-end-line="801" selection-end-column="13" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#16315#16316#0" expanded="true" />
-                <element signature="e#16350#16351#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/Collections/PriorityQueue.java">
+        <entry file="file://$PROJECT_DIR$/src/Collections/AbstractSet.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="364">
-              <caret line="569" column="29" lean-forward="true" selection-start-line="569" selection-start-column="29" selection-end-line="569" selection-end-column="29" />
+            <state relative-caret-position="3250">
+              <caret line="148" column="53" lean-forward="true" selection-start-line="148" selection-start-column="53" selection-end-line="148" selection-end-column="53" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#13420#13421#0" expanded="true" />
-                <element signature="e#13452#13453#0" expanded="true" />
-                <element signature="e#14680#14710#0" expanded="true" />
-                <element signature="e#16264#16294#0" expanded="true" />
-                <element signature="e#18144#18174#0" expanded="true" />
-                <element signature="e#18735#18765#0" expanded="true" />
-                <element signature="e#19534#19564#0" expanded="true" />
-                <element signature="e#20222#20252#0" expanded="true" />
-                <element signature="e#20952#20982#0" expanded="true" />
-                <element signature="e#21556#21557#0" expanded="true" />
-                <element signature="e#21589#21590#0" expanded="true" />
-                <element signature="e#26590#26620#1" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -98,7 +72,6 @@
         <option value="$PROJECT_DIR$/src/Collections/Stack.java" />
         <option value="$PROJECT_DIR$/src/Collections/ArrayDeque.java" />
         <option value="$PROJECT_DIR$/src/Collections/Set.java" />
-        <option value="$PROJECT_DIR$/src/Collections/AbstractSet.java" />
         <option value="$PROJECT_DIR$/src/Collections/SortedSet.java" />
         <option value="$PROJECT_DIR$/src/Collections/NavigableSet.java" />
         <option value="$PROJECT_DIR$/src/Collections/TreeSet.java" />
@@ -106,12 +79,13 @@
         <option value="$PROJECT_DIR$/src/ToDoList.txt" />
         <option value="$PROJECT_DIR$/src/Collections/AbstractQueue.java" />
         <option value="$PROJECT_DIR$/src/Collections/PriorityQueue.java" />
+        <option value="$PROJECT_DIR$/src/Collections/AbstractSet.java" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="6">
-    <option name="x" value="953" />
-    <option name="width" value="974" />
+    <option name="x" value="875" />
+    <option name="width" value="1052" />
     <option name="height" value="1047" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -127,7 +101,7 @@
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../LeetCode/Exercise" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../特种设备/SpecialEquipmentManagement" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -218,18 +192,20 @@
       <workItem from="1566819557842" duration="875000" />
       <workItem from="1566820448474" duration="1650000" />
       <workItem from="1566822112704" duration="172000" />
-      <workItem from="1566822297673" duration="4261000" />
+      <workItem from="1566822297673" duration="5706000" />
+      <workItem from="1567041425390" duration="2043000" />
+      <workItem from="1567128664796" duration="679000" />
+      <workItem from="1567147234792" duration="1830000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="171235000" />
+    <option name="totallyTimeSpent" value="177232000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="953" y="0" width="974" height="1047" extended-state="0" />
-    <editor active="true" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.29417774" />
+      <window_info content_ui="combo" id="Project" order="0" weight="0.4037199" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="UI Designer" order="3" />
@@ -557,16 +533,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Collections/AbstractSet.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="304">
-          <caret line="61" column="7" lean-forward="true" selection-start-line="61" selection-start-column="7" selection-end-line="61" selection-end-column="7" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/TreeSet.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="11256">
@@ -623,22 +589,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Collections/ArrayDeque.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="182">
-          <caret line="801" column="13" selection-start-line="801" selection-start-column="13" selection-end-line="801" selection-end-column="13" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#16315#16316#0" expanded="true" />
-            <element signature="e#16350#16351#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/PriorityQueue.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="364">
-          <caret line="569" column="29" lean-forward="true" selection-start-line="569" selection-start-column="29" selection-end-line="569" selection-end-column="29" />
+        <state relative-caret-position="494">
+          <caret line="574" column="42" lean-forward="true" selection-start-line="574" selection-start-column="42" selection-end-line="574" selection-end-column="42" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#13420#13421#0" expanded="true" />
@@ -653,6 +607,28 @@
             <element signature="e#21556#21557#0" expanded="true" />
             <element signature="e#21589#21590#0" expanded="true" />
             <element signature="e#26590#26620#1" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Collections/ArrayDeque.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="182">
+          <caret line="801" column="13" selection-start-line="801" selection-start-column="13" selection-end-line="801" selection-end-column="13" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#16315#16316#0" expanded="true" />
+            <element signature="e#16350#16351#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Collections/AbstractSet.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3250">
+          <caret line="148" column="53" lean-forward="true" selection-start-line="148" selection-start-column="53" selection-end-line="148" selection-end-column="53" />
+          <folding>
+            <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>

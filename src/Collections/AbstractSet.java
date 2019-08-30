@@ -29,24 +29,17 @@ import java.util.Iterator;
 import java.util.Objects;
 
 /**
- * This class provides a skeletal implementation of the <tt>Set</tt>
- * interface to minimize the effort required to implement this
- * interface. <p>
+ * 此类提供 Set 接口的基本实现，以最小化实现该接口所需的工作。
  *
- * The process of implementing a set by extending this class is identical
- * to that of implementing a Collection by extending AbstractCollection,
- * except that all of the methods and constructors in subclasses of this
- * class must obey the additional constraints imposed by the <tt>Set</tt>
- * interface (for instance, the add method must not permit addition of
- * multiple instances of an object to a set).<p>
+ * 通过扩展这个类来实现 Set 的过程等同于通过扩展 AbstractCollection
+ * 来实现 Collection 的过程，除了此类的子类中的所有方法和构造函数都
+ * 必须遵守 Set 接口施加的约束之外。（例如，add 方法不允许在集合中
+ * 添加 object的多个实例）
  *
- * Note that this class does not override any of the implementations from
- * the <tt>AbstractCollection</tt> class.  It merely adds implementations
- * for <tt>equals</tt> and <tt>hashCode</tt>.<p>
+ * 注意这个类不会覆盖 AbstractCollection 类中的任何实现。它仅仅添加了
+ * equals 和 hashCode 的实现。
  *
- * This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此类是 Java Collections Framework 的成员。
  *
  * @param <E> the type of elements maintained by this set
  *
@@ -58,32 +51,27 @@ import java.util.Objects;
  * @since 1.2
  */
 
-public abstract class AbstractSet<E> extends AbstractCollection<E> implements Set<E> {
+public abstract class AbstractSet<E> extends java.util.AbstractCollection<E> implements Set<E> {
     /**
-     * Sole constructor.  (For invocation by subclass constructors, typically
-     * implicit.)
+     * 唯一的构造函数。（用于子类构造函数调用，通常是隐式的。）
      */
     protected AbstractSet() {
     }
 
     // Comparison and hashing
+    // 比较和 hash 操作
 
     /**
-     * Compares the specified object with this set for equality.  Returns
-     * <tt>true</tt> if the given object is also a set, the two sets have
-     * the same size, and every member of the given set is contained in
-     * this set.  This ensures that the <tt>equals</tt> method works
-     * properly across different implementations of the <tt>Set</tt>
-     * interface.<p>
+     * 比较指定对象和此 set 是否相等。如果给定的对象也是一个 set，两个
+     * 集合大小相同，且给定集合包含在此集合内，则返回 true。这一点确保
+     * 了两个不同的 Set 接口的实现也能使用 equals 函数。
      *
-     * This implementation first checks if the specified object is this
-     * set; if so it returns <tt>true</tt>.  Then, it checks if the
-     * specified object is a set whose size is identical to the size of
-     * this set; if not, it returns false.  If so, it returns
-     * <tt>containsAll((Collection) o)</tt>.
+     * 这个实现首先检查指定的对象是不是此集合，如果是返回 true。然后
+     * 检查指定对象是否是一个和此集合大小相等的 set，如果不是返回 false。
+     * 如果是的话，返回 containsAll((Collection)o) 的值。
      *
      * @param o object to be compared for equality with this set
-     * @return <tt>true</tt> if the specified object is equal to this set
+     * @return true if the specified object is equal to this set
      */
     public boolean equals(Object o) {
         if (o == this)
@@ -91,7 +79,7 @@ public abstract class AbstractSet<E> extends AbstractCollection<E> implements Se
 
         if (!(o instanceof Set))
             return false;
-        Collection<?> c = (Collection<?>) o;
+        java.util.Collection<?> c = (java.util.Collection<?>) o;
         if (c.size() != size())
             return false;
         try {
@@ -104,17 +92,11 @@ public abstract class AbstractSet<E> extends AbstractCollection<E> implements Se
     }
 
     /**
-     * Returns the hash code value for this set.  The hash code of a set is
-     * defined to be the sum of the hash codes of the elements in the set,
-     * where the hash code of a <tt>null</tt> element is defined to be zero.
-     * This ensures that <tt>s1.equals(s2)</tt> implies that
-     * <tt>s1.hashCode()==s2.hashCode()</tt> for any two sets <tt>s1</tt>
-     * and <tt>s2</tt>, as required by the general contract of
-     * {@link Object#hashCode}.
+     * 返回此集合的 hash 值。集合的 hash 值定义为集合元素的 hash 值之和，
+     * 其中 null 元素的 hash 值定义为零。
      *
-     * <p>This implementation iterates over the set, calling the
-     * <tt>hashCode</tt> method on each element in the set, and adding up
-     * the results.
+     * 此实现遍历集合，调用 hashCode 方法获取集合元素的 hash 值，然后
+     * 相加得到结果。
      *
      * @return the hash code value for this set
      * @see Object#equals(Object)
