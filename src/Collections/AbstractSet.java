@@ -114,27 +114,18 @@ public abstract class AbstractSet<E> extends java.util.AbstractCollection<E> imp
     }
 
     /**
-     * Removes from this set all of its elements that are contained in the
-     * specified collection (optional operation).  If the specified
-     * collection is also a set, this operation effectively modifies this
-     * set so that its value is the <i>asymmetric set difference</i> of
-     * the two sets.
+     * 从此 set 的所有元素中移除指定集合包含的元素（可选操作）。如果指定
+     * 集合也是一个 set，此操作将有效地改变这个集合，从而让它的值成为两个
+     * 集合的非对称集的差。
      *
-     * <p>This implementation determines which is the smaller of this set
-     * and the specified collection, by invoking the <tt>size</tt>
-     * method on each.  If this set has fewer elements, then the
-     * implementation iterates over this set, checking each element
-     * returned by the iterator in turn to see if it is contained in
-     * the specified collection.  If it is so contained, it is removed
-     * from this set with the iterator's <tt>remove</tt> method.  If
-     * the specified collection has fewer elements, then the
-     * implementation iterates over the specified collection, removing
-     * from this set each element returned by the iterator, using this
-     * set's <tt>remove</tt> method.
+     * 这个实现通过调用 size 方法来确定这个集合和指定集合哪个更小。如果此
+     * 集合更小，那么对此集合进行迭代，检查迭代器返回的每一个元素是否包含
+     * 在指定集合里面。如果包含，那么使用迭代器的 remove 方法将其从集合中
+     * 删除。如果指定集合更小，那么此方法遍历指定集合，使用集合的 remove
+     * 方法，从此集合中删除迭代器返回的元素。
      *
-     * <p>Note that this implementation will throw an
-     * <tt>UnsupportedOperationException</tt> if the iterator returned by the
-     * <tt>iterator</tt> method does not implement the <tt>remove</tt> method.
+     * 注意如果迭代器不支持 remove 方法，此实现会抛出
+     * UnsupportedOperationException 异常。
      *
      * @param  c collection containing elements to be removed from this set
      * @return <tt>true</tt> if this set changed as a result of the call
@@ -154,10 +145,12 @@ public abstract class AbstractSet<E> extends java.util.AbstractCollection<E> imp
         Objects.requireNonNull(c);
         boolean modified = false;
 
+        // 此集合大于指定集合，使用此集合的 remove 方法删除
         if (size() > c.size()) {
             for (Iterator<?> i = c.iterator(); i.hasNext(); )
                 modified |= remove(i.next());
         } else {
+            // 此集合小于等于指定集合，使用指定集合迭代器的 remove 方法删除
             for (Iterator<?> i = iterator(); i.hasNext(); ) {
                 if (c.contains(i.next())) {
                     i.remove();
