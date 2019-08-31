@@ -35,88 +35,54 @@ import java.util.function.Function;
 import java.io.Serializable;
 
 /**
- * An object that maps keys to values.  A map cannot contain duplicate keys;
- * each key can map to at most one value.
+ * Map 是一个有键值对映射的对象。一个 map 不能包含重复的 key；每一个
+ * key 最多能映射一个 value。
  *
- * <p>This interface takes the place of the <tt>Dictionary</tt> class, which
- * was a totally abstract class rather than an interface.
+ * 这个接口替代了 Dictionary 类，Dictionary 类是抽象类而不是接口
+ * （替代原因：接口总是优于抽象类）
  *
- * <p>The <tt>Map</tt> interface provides three <i>collection views</i>, which
- * allow a map's contents to be viewed as a set of keys, collection of values,
- * or set of key-value mappings.  The <i>order</i> of a map is defined as
- * the order in which the iterators on the map's collection views return their
- * elements.  Some map implementations, like the <tt>TreeMap</tt> class, make
- * specific guarantees as to their order; others, like the <tt>HashMap</tt>
- * class, do not.
+ * Map 接口提供了三个集合试图，分别是 keys 的 set 集合，values 的集合，
+ * key-value 映射的 set 集合（注意 values 集合不是 set 类型，因为 value
+ * 可能相同）。map 的顺序定义成 map 的集合视图的迭代器返回的顺序。一些
+ * map 的实现，比如 TreeMap 类，对于顺序有特殊的规定；其他的 map 实现类，
+ * 比如 HashMap 类，就没有特殊规定。
  *
- * <p>Note: great care must be exercised if mutable objects are used as map
- * keys.  The behavior of a map is not specified if the value of an object is
- * changed in a manner that affects <tt>equals</tt> comparisons while the
- * object is a key in the map.  A special case of this prohibition is that it
- * is not permissible for a map to contain itself as a key.  While it is
- * permissible for a map to contain itself as a value, extreme caution is
- * advised: the <tt>equals</tt> and <tt>hashCode</tt> methods are no longer
- * well defined on such a map.
+ * 注意：如果把可变的对象作为 map 的 key，需要特别注意。当该对象作为 map
+ * 的 key，且其值改变了，会影响 equals 的比较，从而导致 map 的行为未知。
+ * 此项禁止的一个特殊例子是，不允许将 map 本身作为 map 的 key。尽管允许
+ * 将 map 本身作为 map 的 value，但是要特别注意，equals 和 hashCode 方法
+ * 在这样的 map 里面可能不能正常使用。
  *
- * <p>All general-purpose map implementation classes should provide two
- * "standard" constructors: a void (no arguments) constructor which creates an
- * empty map, and a constructor with a single argument of type <tt>Map</tt>,
- * which creates a new map with the same key-value mappings as its argument.
- * In effect, the latter constructor allows the user to copy any map,
- * producing an equivalent map of the desired class.  There is no way to
- * enforce this recommendation (as interfaces cannot contain constructors) but
- * all of the general-purpose map implementations in the JDK comply.
+ * 所有通用的 map 实现类都应该提供两个标准的构造函数：一个无参数且返回
+ * 类型为 void 类型的构造函数，用来构造一个空的 map，另一个就是仅含有
+ * 一个参数且参数类型为 Map 的构造函数，用来构造一个和指定集合有相同 key
+ * 和 value 映射的 map。实际上，后一个构造函数允许用户复制任何的 map，
+ * 新生成和给定 map 一样的 map。map 接口没有办法强制执行这一建议（因为
+ * 接口不能包含构造函数），但是 JDK中所有通用的 map 的实现都遵守这一规范。
  *
- * <p>The "destructive" methods contained in this interface, that is, the
- * methods that modify the map on which they operate, are specified to throw
- * <tt>UnsupportedOperationException</tt> if this map does not support the
- * operation.  If this is the case, these methods may, but are not required
- * to, throw an <tt>UnsupportedOperationException</tt> if the invocation would
- * have no effect on the map.  For example, invoking the {@link #putAll(java.util.Map)}
- * method on an unmodifiable map may, but is not required to, throw the
- * exception if the map whose mappings are to be "superimposed" is empty.
+ * 如果一个方法不被 map 支持，且这个操作会改变 map 的结构，而且其已在
+ * map 接口中作了具体的定义，它将会抛出 UnsupportedOperationException
+ * 异常。在这种情况下，这些方法可能会，但并不一定会抛出
+ * UnsupportedOperationException 异常，如果调用不会产生任何影响的话。
  *
- * <p>Some map implementations have restrictions on the keys and values they
- * may contain.  For example, some implementations prohibit null keys and
- * values, and some have restrictions on the types of their keys.  Attempting
- * to insert an ineligible key or value throws an unchecked exception,
- * typically <tt>NullPointerException</tt> or <tt>ClassCastException</tt>.
- * Attempting to query the presence of an ineligible key or value may throw an
- * exception, or it may simply return false; some implementations will exhibit
- * the former behavior and some will exhibit the latter.  More generally,
- * attempting an operation on an ineligible key or value whose completion
- * would not result in the insertion of an ineligible element into the map may
- * throw an exception or it may succeed, at the option of the implementation.
- * Such exceptions are marked as "optional" in the specification for this
- * interface.
+ * 一些 map 的实现在 key 和 value 上会有限制。比如，一些实现不允许 key 或者
+ * value 为 null，一些在 key 的数据类型上也有限制。尝试插入非法的 key 或
+ * value 会抛出未检查的异常，特别是 NullPointerException 或者
+ * ClassCastException 异常。试图查询非法的 key 或者 value 会抛出异常，
+ * 或者会返回 false，一些实现会禁止前一种行为，一些会禁止后一种。更一般地，
+ * 对于非法的 key 或者 value 的操作，将非法的元素插入到 map 中，可能会成功，
  *
- * <p>Many methods in Collections Framework interfaces are defined
- * in terms of the {@link Object#equals(Object) equals} method.  For
- * example, the specification for the {@link #containsKey(Object)
- * containsKey(Object key)} method says: "returns <tt>true</tt> if and
- * only if this map contains a mapping for a key <tt>k</tt> such that
- * <tt>(key==null ? k==null : key.equals(k))</tt>." This specification should
- * <i>not</i> be construed to imply that invoking <tt>Map.containsKey</tt>
- * with a non-null argument <tt>key</tt> will cause <tt>key.equals(k)</tt> to
- * be invoked for any key <tt>k</tt>.  Implementations are free to
- * implement optimizations whereby the <tt>equals</tt> invocation is avoided,
- * for example, by first comparing the hash codes of the two keys.  (The
- * {@link Object#hashCode()} specification guarantees that two objects with
- * unequal hash codes cannot be equal.)  More generally, implementations of
- * the various Collections Framework interfaces are free to take advantage of
- * the specified behavior of underlying {@link Object} methods wherever the
- * implementor deems it appropriate.
+ * 在 Collections Framework 中定义了很多基于 equals 的方法。例如
+ * containsKey 方法。具体的实现可以通过避免调用 equals 方法，例如通过比较
+ * 两个 key 的 hash 值来判断。（如果两个对象的 hash 值不同，那么两个对象
+ * 不可能相等。）更一般地，大量 Collections Framework 的接口都可以利用
+ * Object 的方法。
  *
- * <p>Some map operations which perform recursive traversal of the map may fail
- * with an exception for self-referential instances where the map directly or
- * indirectly contains itself. This includes the {@code clone()},
- * {@code equals()}, {@code hashCode()} and {@code toString()} methods.
- * Implementations may optionally handle the self-referential scenario, however
- * most current implementations do not do so.
+ * @August containsKey()方法调用的getEntry方法源码看出，在if的判定条件
+ * 中，equals是作为最后一个判定条件出现的，也就是说如果if前面的判定条件
+ * 为true，那么是不会调用equals()方法的。
  *
- * <p>This interface is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此接口是 Java Collections Framework 的成员。
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
@@ -132,76 +98,56 @@ import java.io.Serializable;
  */
 public interface Map<K,V> {
     // Query Operations
+    // 查询操作
 
     /**
-     * Returns the number of key-value mappings in this map.  If the
-     * map contains more than <tt>Integer.MAX_VALUE</tt> elements, returns
-     * <tt>Integer.MAX_VALUE</tt>.
+     * 返回 key-value 映射的个数。如果超过 Integer.MAX_VALUE，那么返回
+     * Integer.MAX_VALUE
      *
      * @return the number of key-value mappings in this map
      */
     int size();
 
     /**
-     * Returns <tt>true</tt> if this map contains no key-value mappings.
+     * 如果不包含任何 key-value 映射，返回 true
      *
-     * @return <tt>true</tt> if this map contains no key-value mappings
+     * @return true if this map contains no key-value mappings
      */
     boolean isEmpty();
 
     /**
-     * Returns <tt>true</tt> if this map contains a mapping for the specified
-     * key.  More formally, returns <tt>true</tt> if and only if
-     * this map contains a mapping for a key <tt>k</tt> such that
-     * <tt>(key==null ? k==null : key.equals(k))</tt>.  (There can be
-     * at most one such mapping.)
+     * 如果包含指定的 key，返回 true
      *
      * @param key key whose presence in this map is to be tested
-     * @return <tt>true</tt> if this map contains a mapping for the specified
+     * @return true if this map contains a mapping for the specified
      *         key
      * @throws ClassCastException if the key is of an inappropriate type for
      *         this map
-     * (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified key is null and this map
      *         does not permit null keys
-     * (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      */
     boolean containsKey(Object key);
 
     /**
-     * Returns <tt>true</tt> if this map maps one or more keys to the
-     * specified value.  More formally, returns <tt>true</tt> if and only if
-     * this map contains at least one mapping to a value <tt>v</tt> such that
-     * <tt>(value==null ? v==null : value.equals(v))</tt>.  This operation
-     * will probably require time linear in the map size for most
-     * implementations of the <tt>Map</tt> interface.
+     * 如果 map 中至少有一个 key 对应指定的 value，返回 true。在大多数
+     * map 的实现中，这一操作都需要 map 大小的线性时间来完成
      *
      * @param value value whose presence in this map is to be tested
-     * @return <tt>true</tt> if this map maps one or more keys to the
+     * @return true if this map maps one or more keys to the
      *         specified value
      * @throws ClassCastException if the value is of an inappropriate type for
      *         this map
-     * (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified value is null and this
      *         map does not permit null values
-     * (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      */
     boolean containsValue(Object value);
 
     /**
-     * Returns the value to which the specified key is mapped,
-     * or {@code null} if this map contains no mapping for the key.
+     * 返回指定 key 对应的 value，如果不存在对应的映射，返回 null。
      *
-     * <p>More formally, if this map contains a mapping from a key
-     * {@code k} to a value {@code v} such that {@code (key==null ? k==null :
-     * key.equals(k))}, then this method returns {@code v}; otherwise
-     * it returns {@code null}.  (There can be at most one such mapping.)
-     *
-     * <p>If this map permits null values, then a return value of
-     * {@code null} does not <i>necessarily</i> indicate that the map
-     * contains no mapping for the key; it's also possible that the map
-     * explicitly maps the key to {@code null}.  The {@link #containsKey
-     * containsKey} operation may be used to distinguish these two cases.
+     * 如果 map 允许 null，那么返回 null 并不意味着 map 不存在指定 key 的映射，
+     * 也可能是该 key 对应的 value 为 null。containsKey 方法可以用于区分这
+     * 两种情况。
      *
      * @param key the key whose associated value is to be returned
      * @return the value to which the specified key is mapped, or
@@ -216,6 +162,7 @@ public interface Map<K,V> {
     V get(Object key);
 
     // Modification Operations
+    // 修改操作
 
     /**
      * Associates the specified value with the specified key in this map

@@ -2,13 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="65d6684a-7237-4b2a-81b7-14792effb173" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/Collections/AbstractMap.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Collections/HashMap.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/Collections/Map.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Collections/AbstractSet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/AbstractSet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Collections/HashSet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/HashSet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/Collections/Set.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/Set.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Collections/Map.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/Map.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -35,7 +29,21 @@
     <option name="isMigrated" value="true" />
   </component>
   <component name="FileEditorManager">
-    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/Collections/Map.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="414">
+              <caret line="174" column="46" selection-start-line="174" selection-start-column="46" selection-end-line="174" selection-end-column="46" />
+              <folding>
+                <element signature="e#0#53676#0" expanded="true" />
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -54,6 +62,7 @@
       <find>Collection</find>
       <find>to</find>
       <find>toArray</find>
+      <find>TreeNode</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -86,15 +95,21 @@
         <option value="$PROJECT_DIR$/src/Collections/AbstractSet.java" />
         <option value="$PROJECT_DIR$/src/Collections/Set.java" />
         <option value="$PROJECT_DIR$/src/Collections/HashSet.java" />
-        <option value="$PROJECT_DIR$/src/Collections/Map.java" />
         <option value="$PROJECT_DIR$/src/Collections/AbstractMap.java" />
         <option value="$PROJECT_DIR$/src/Collections/HashMap.java" />
+        <option value="$PROJECT_DIR$/src/Collections/Map.java" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
-    <option name="x" value="781" />
-    <option name="width" value="1148" />
+  <component name="MavenProjectNavigator">
+    <treeState>
+      <expand />
+      <select />
+    </treeState>
+  </component>
+  <component name="ProjectFrameBounds" extendedState="6">
+    <option name="x" value="700" />
+    <option name="width" value="1230" />
     <option name="height" value="1031" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -144,7 +159,7 @@
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Color Scheme Font" />
+    <property name="settings.editor.selected.configurable" value="editor.preferences.appearance" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
@@ -232,23 +247,24 @@
       <workItem from="1567147234792" duration="1830000" />
       <workItem from="1567223577724" duration="1308000" />
       <workItem from="1567224939719" duration="488000" />
-      <workItem from="1567225963898" duration="7492000" />
+      <workItem from="1567225963898" duration="12376000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="186520000" />
+    <option name="totallyTimeSpent" value="191404000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-7" y="-7" width="1295" height="695" extended-state="6" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.21907842" />
-      <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
-      <window_info id="Designer" order="2" />
-      <window_info id="UI Designer" order="3" />
-      <window_info id="Favorites" order="4" side_tool="true" />
-      <window_info id="Image Layers" order="5" />
-      <window_info id="Capture Tool" order="6" />
+      <window_info id="Structure" order="0" side_tool="true" weight="0.25" />
+      <window_info id="Designer" order="1" />
+      <window_info id="UI Designer" order="2" />
+      <window_info id="Favorites" order="3" side_tool="true" />
+      <window_info id="Image Layers" order="4" />
+      <window_info id="Capture Tool" order="5" />
+      <window_info content_ui="combo" id="Project" order="6" weight="0.4548105" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.32968238" />
       <window_info anchor="bottom" id="Run" order="2" />
@@ -266,8 +282,8 @@
       <window_info anchor="right" id="Ant Build" order="1" weight="0.2497979" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
       <window_info anchor="right" id="Palette" order="3" />
-      <window_info anchor="right" id="Maven" order="4" />
-      <window_info anchor="right" id="Database" order="5" weight="0.32956153" />
+      <window_info anchor="right" id="Maven" order="4" weight="0.32944608" />
+      <window_info anchor="right" id="Database" order="5" weight="0.32944608" />
       <window_info anchor="right" id="Palette&#9;" order="6" />
       <window_info anchor="right" id="Theme Preview" order="7" />
       <window_info anchor="right" id="Capture Analysis" order="8" />
@@ -275,6 +291,10 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="antWorkspaceConfiguration">
+    <option name="IS_AUTOSCROLL_TO_SOURCE" value="false" />
+    <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/JAVASourceCodeAnalysis.iml">
@@ -487,16 +507,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Collections/Map.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="23">
-          <caret line="1" column="2" lean-forward="true" selection-start-line="1" selection-start-column="2" selection-end-line="1" selection-end-column="2" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/HashMap.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="92">
@@ -516,6 +526,17 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1610">
           <caret line="93" column="13" selection-start-line="93" selection-start-column="13" selection-end-line="93" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Collections/Map.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="414">
+          <caret line="174" column="46" selection-start-line="174" selection-start-column="46" selection-end-line="174" selection-end-column="46" />
+          <folding>
+            <element signature="e#0#53676#0" expanded="true" />
+            <element signature="imports" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
