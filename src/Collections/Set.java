@@ -29,46 +29,27 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * A collection that contains no duplicate elements.  More formally, sets
- * contain no pair of elements <code>e1</code> and <code>e2</code> such that
- * <code>e1.equals(e2)</code>, and at most one null element.  As implied by
- * its name, this interface models the mathematical <i>set</i> abstraction.
+ * 不包含重复元素的集合。最多只包含一个空元素。顾名思义，该接口对数学中
+ * 的 set 进行抽象。
  *
- * <p>The <tt>Set</tt> interface places additional stipulations, beyond those
- * inherited from the <tt>Collection</tt> interface, on the contracts of all
- * constructors and on the contracts of the <tt>add</tt>, <tt>equals</tt> and
- * <tt>hashCode</tt> methods.  Declarations for other inherited methods are
- * also included here for convenience.  (The specifications accompanying these
- * declarations have been tailored to the <tt>Set</tt> interface, but they do
- * not contain any additional stipulations.)
+ * Set 接口在集合接口继承约定之外，在所有构造函数以及 add, equals, hashCode
+ * 方法的约定上有额外的规范。为了方便起见，这里还包含了其他继承方法的声明。
+ * （这些规范是针对 Set 接口定制的）
  *
- * <p>The additional stipulation on constructors is, not surprisingly,
- * that all constructors must create a set that contains no duplicate elements
- * (as defined above).
+ * 关于构造函数的额外规定是，所有构造函数都必须创建一个不包含重复元素的
+ * 集合。
  *
- * <p>Note: Great care must be exercised if mutable objects are used as set
- * elements.  The behavior of a set is not specified if the value of an object
- * is changed in a manner that affects <tt>equals</tt> comparisons while the
- * object is an element in the set.  A special case of this prohibition is
- * that it is not permissible for a set to contain itself as an element.
+ * 注意：如果使用可变的元素作为集合元素，必须格外小心。如果对象作为一个
+ * 集合元素，而对象的值改变时，会影响 equals 的比较，从而集合的行为不确定。
+ * 这一限制的一个典型例子是，不允许将集合本身作为集合的一个元素。
  *
- * <p>Some set implementations have restrictions on the elements that
- * they may contain.  For example, some implementations prohibit null elements,
- * and some have restrictions on the types of their elements.  Attempting to
- * add an ineligible element throws an unchecked exception, typically
- * <tt>NullPointerException</tt> or <tt>ClassCastException</tt>.  Attempting
- * to query the presence of an ineligible element may throw an exception,
- * or it may simply return false; some implementations will exhibit the former
- * behavior and some will exhibit the latter.  More generally, attempting an
- * operation on an ineligible element whose completion would not result in
- * the insertion of an ineligible element into the set may throw an
- * exception or it may succeed, at the option of the implementation.
- * Such exceptions are marked as "optional" in the specification for this
- * interface.
+ * 一些 set 的实现对其包含的元素有限制。例如，一些实现禁止 null 元素，一些
+ * 对元素类型有限制。试图插入一个非法元素会抛出未检查的异常，特别是
+ * NullPointerException 或者 ClassCastException。试图查询非法元素会抛出
+ * 异常，或者只是返回 false；一些实现会出现前一种情况，一些会出现后一种
+ * 情况。
  *
- * <p>This interface is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此接口是 Java Collections Framework 的成员。
  *
  * @param <E> the type of elements maintained by this set
  *
@@ -87,99 +68,52 @@ import java.util.List;
 
 public interface Set<E> extends java.util.Collection<E> {
     // Query Operations
+    // 查询操作
 
     /**
-     * Returns the number of elements in this set (its cardinality).  If this
-     * set contains more than <tt>Integer.MAX_VALUE</tt> elements, returns
-     * <tt>Integer.MAX_VALUE</tt>.
+     * 返回集合集合元素的个数。如果此集合包含了超过 Integer.MAX_VALUE
+     * 个元素，则返回 Integer.MAX_VALUE
      *
      * @return the number of elements in this set (its cardinality)
      */
     int size();
 
     /**
-     * Returns <tt>true</tt> if this set contains no elements.
+     * 如果集合不包含任何元素返回 true
      *
-     * @return <tt>true</tt> if this set contains no elements
+     * @return true if this set contains no elements
      */
     boolean isEmpty();
 
     /**
-     * Returns <tt>true</tt> if this set contains the specified element.
-     * More formally, returns <tt>true</tt> if and only if this set
-     * contains an element <tt>e</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
+     * 如果集合包含指定元素则返回 true
      *
      * @param o element whose presence in this set is to be tested
-     * @return <tt>true</tt> if this set contains the specified element
+     * @return true if this set contains the specified element
      * @throws ClassCastException if the type of the specified element
      *         is incompatible with this set
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
      *         set does not permit null elements
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
      */
     boolean contains(Object o);
 
     /**
-     * Returns an iterator over the elements in this set.  The elements are
-     * returned in no particular order (unless this set is an instance of some
-     * class that provides a guarantee).
+     * 返回集合元素的迭代器。返回的元素没有特定的顺序（除非此集合是一种
+     * 提供这一保证的类）
      *
      * @return an iterator over the elements in this set
      */
     Iterator<E> iterator();
 
     /**
-     * Returns an array containing all of the elements in this set.
-     * If this set makes any guarantees as to what order its elements
-     * are returned by its iterator, this method must return the
-     * elements in the same order.
-     *
-     * <p>The returned array will be "safe" in that no references to it
-     * are maintained by this set.  (In other words, this method must
-     * allocate a new array even if this set is backed by an array).
-     * The caller is thus free to modify the returned array.
-     *
-     * <p>This method acts as bridge between array-based and collection-based
-     * APIs.
+     * 返回包含集合所有元素的数组
      *
      * @return an array containing all the elements in this set
      */
     Object[] toArray();
 
     /**
-     * Returns an array containing all of the elements in this set; the
-     * runtime type of the returned array is that of the specified array.
-     * If the set fits in the specified array, it is returned therein.
-     * Otherwise, a new array is allocated with the runtime type of the
-     * specified array and the size of this set.
-     *
-     * <p>If this set fits in the specified array with room to spare
-     * (i.e., the array has more elements than this set), the element in
-     * the array immediately following the end of the set is set to
-     * <tt>null</tt>.  (This is useful in determining the length of this
-     * set <i>only</i> if the caller knows that this set does not contain
-     * any null elements.)
-     *
-     * <p>If this set makes any guarantees as to what order its elements
-     * are returned by its iterator, this method must return the elements
-     * in the same order.
-     *
-     * <p>Like the {@link #toArray()} method, this method acts as bridge between
-     * array-based and collection-based APIs.  Further, this method allows
-     * precise control over the runtime type of the output array, and may,
-     * under certain circumstances, be used to save allocation costs.
-     *
-     * <p>Suppose <tt>x</tt> is a set known to contain only strings.
-     * The following code can be used to dump the set into a newly allocated
-     * array of <tt>String</tt>:
-     *
-     * <pre>
-     *     String[] y = x.toArray(new String[0]);</pre>
-     *
-     * Note that <tt>toArray(new Object[0])</tt> is identical in function to
-     * <tt>toArray()</tt>.
+     * 返回包含集合所有元素的数组
      *
      * @param a the array into which the elements of this set are to be
      *        stored, if it is big enough; otherwise, a new array of the same
@@ -194,24 +128,16 @@ public interface Set<E> extends java.util.Collection<E> {
 
 
     // Modification Operations
+    // 修改操作
 
     /**
-     * Adds the specified element to this set if it is not already present
-     * (optional operation).  More formally, adds the specified element
-     * <tt>e</tt> to this set if the set contains no element <tt>e2</tt>
-     * such that
-     * <tt>(e==null&nbsp;?&nbsp;e2==null&nbsp;:&nbsp;e.equals(e2))</tt>.
-     * If this set already contains the element, the call leaves the set
-     * unchanged and returns <tt>false</tt>.  In combination with the
-     * restriction on constructors, this ensures that sets never contain
-     * duplicate elements.
+     * 将指定元素添加到集合中，如果集合中之前不存在该元素的话。如果集合
+     * 已经包含该元素，则不作出任何改变，并返回 false。对构造 set 集合的
+     * 限制，确保了 set 不包含重复的元素。
      *
-     * <p>The stipulation above does not imply that sets must accept all
-     * elements; sets may refuse to add any particular element, including
-     * <tt>null</tt>, and throw an exception, as described in the
-     * specification for {@link java.util.Collection#add Collection.add}.
-     * Individual set implementations should clearly document any
-     * restrictions on the elements that they may contain.
+     * 上述规定并不意味着集合必须接受所有元素；集合可能会拒绝添加特殊的
+     * 元素，包括 null，然后像 Collection.add 规范中描述的那样，抛出异常。
+     * 每一个 set 的实现应该清楚地说明对其可以包含元素的限制。
      *
      * @param e element to be added to this set
      * @return <tt>true</tt> if this set did not already contain the specified
@@ -229,23 +155,15 @@ public interface Set<E> extends java.util.Collection<E> {
 
 
     /**
-     * Removes the specified element from this set if it is present
-     * (optional operation).  More formally, removes an element <tt>e</tt>
-     * such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>, if
-     * this set contains such an element.  Returns <tt>true</tt> if this set
-     * contained the element (or equivalently, if this set changed as a
-     * result of the call).  (This set will not contain the element once the
-     * call returns.)
+     * 从集合中删除指定元素，如果它存在的话（可选操作）。如果存在该元素
+     * 则返回 true
      *
      * @param o object to be removed from this set, if present
      * @return <tt>true</tt> if this set contained the specified element
      * @throws ClassCastException if the type of the specified element
      *         is incompatible with this set
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified element is null and this
      *         set does not permit null elements
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws UnsupportedOperationException if the <tt>remove</tt> operation
      *         is not supported by this set
      */
@@ -253,38 +171,33 @@ public interface Set<E> extends java.util.Collection<E> {
 
 
     // Bulk Operations
+    // 批量操作
 
     /**
-     * Returns <tt>true</tt> if this set contains all of the elements of the
-     * specified collection.  If the specified collection is also a set, this
-     * method returns <tt>true</tt> if it is a <i>subset</i> of this set.
+     * 如果此集合包含指定集合的所有元素则返回 true。如果指定集合也是 set，
+     * 且指定集合是此集合的子集，则返回 true。
      *
      * @param  c collection to be checked for containment in this set
-     * @return <tt>true</tt> if this set contains all of the elements of the
+     * @return true if this set contains all of the elements of the
      *         specified collection
      * @throws ClassCastException if the types of one or more elements
      *         in the specified collection are incompatible with this
      *         set
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified collection contains one
      *         or more null elements and this set does not permit null
-     *         elements
-     * (<a href="Collection.html#optional-restrictions">optional</a>),
-     *         or if the specified collection is null
+     *         elements, or if the specified collection is null
      * @see    #contains(Object)
      */
     boolean containsAll(java.util.Collection<?> c);
 
     /**
-     * Adds all of the elements in the specified collection to this set if
-     * they're not already present (optional operation).  If the specified
-     * collection is also a set, the <tt>addAll</tt> operation effectively
-     * modifies this set so that its value is the <i>union</i> of the two
-     * sets.  The behavior of this operation is undefined if the specified
-     * collection is modified while the operation is in progress.
+     * 将指定集合的所有元素添加到此集合中，如果这些元素在此集合中不存在
+     * 的话。如果指定集合也是 set，addAll 操作会修改此集合，从而此集合的
+     * 元素是两个集合的并集。如果操作进行过程中此集合被修改，那么此操作的
+     * 行为未知。
      *
      * @param  c collection containing elements to be added to this set
-     * @return <tt>true</tt> if this set changed as a result of the call
+     * @return true if this set changed as a result of the call
      *
      * @throws UnsupportedOperationException if the <tt>addAll</tt> operation
      *         is not supported by this set
@@ -300,34 +213,25 @@ public interface Set<E> extends java.util.Collection<E> {
     boolean addAll(java.util.Collection<? extends E> c);
 
     /**
-     * Retains only the elements in this set that are contained in the
-     * specified collection (optional operation).  In other words, removes
-     * from this set all of its elements that are not contained in the
-     * specified collection.  If the specified collection is also a set, this
-     * operation effectively modifies this set so that its value is the
-     * <i>intersection</i> of the two sets.
+     * 只保留此集合中和指定集合相同的元素。换句话说，删除只存在于此集合而
+     * 不存在于指定集合中的元素。如果指定集合也是 set，那么此方法会修改此
+     * 集合，最终此集合是两个集合的交集。
      *
      * @param  c collection containing elements to be retained in this set
-     * @return <tt>true</tt> if this set changed as a result of the call
+     * @return true if this set changed as a result of the call
      * @throws UnsupportedOperationException if the <tt>retainAll</tt> operation
      *         is not supported by this set
      * @throws ClassCastException if the class of an element of this set
      *         is incompatible with the specified collection
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if this set contains a null element and the
-     *         specified collection does not permit null elements
-     *         (<a href="Collection.html#optional-restrictions">optional</a>),
-     *         or if the specified collection is null
+     *         specified collection does not permit null elements or if the
+     *         specified collection is null
      * @see #remove(Object)
      */
     boolean retainAll(java.util.Collection<?> c);
 
     /**
-     * Removes from this set all of its elements that are contained in the
-     * specified collection (optional operation).  If the specified
-     * collection is also a set, this operation effectively modifies this
-     * set so that its value is the <i>asymmetric set difference</i> of
-     * the two sets.
+     * 从此集合中删除和指定集合中相同的元素。
      *
      * @param  c collection containing elements to be removed from this set
      * @return <tt>true</tt> if this set changed as a result of the call
@@ -335,19 +239,16 @@ public interface Set<E> extends java.util.Collection<E> {
      *         is not supported by this set
      * @throws ClassCastException if the class of an element of this set
      *         is incompatible with the specified collection
-     * (<a href="Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if this set contains a null element and the
-     *         specified collection does not permit null elements
-     *         (<a href="Collection.html#optional-restrictions">optional</a>),
-     *         or if the specified collection is null
+     *         specified collection does not permit null elements, or if the
+     *         specified collection is null
      * @see #remove(Object)
      * @see #contains(Object)
      */
     boolean removeAll(Collection<?> c);
 
     /**
-     * Removes all of the elements from this set (optional operation).
-     * The set will be empty after this call returns.
+     * 删除集合中所有元素。
      *
      * @throws UnsupportedOperationException if the <tt>clear</tt> method
      *         is not supported by this set
@@ -356,15 +257,12 @@ public interface Set<E> extends java.util.Collection<E> {
 
 
     // Comparison and hashing
+    // 比较和 hash 操作
 
     /**
-     * Compares the specified object with this set for equality.  Returns
-     * <tt>true</tt> if the specified object is also a set, the two sets
-     * have the same size, and every member of the specified set is
-     * contained in this set (or equivalently, every member of this set is
-     * contained in the specified set).  This definition ensures that the
-     * equals method works properly across different implementations of the
-     * set interface.
+     * 比较此集合和指定集合是否相等。如果指定集合也是 set，且两个集合大小
+     * 相同，指定集合的每一个元素都包含在此集合中（或者说，此集合的每一个
+     * 元素都包含在指定集合中），那么说两个集合相等，返回 true
      *
      * @param o object to be compared for equality with this set
      * @return <tt>true</tt> if the specified object is equal to this set
@@ -372,13 +270,8 @@ public interface Set<E> extends java.util.Collection<E> {
     boolean equals(Object o);
 
     /**
-     * Returns the hash code value for this set.  The hash code of a set is
-     * defined to be the sum of the hash codes of the elements in the set,
-     * where the hash code of a <tt>null</tt> element is defined to be zero.
-     * This ensures that <tt>s1.equals(s2)</tt> implies that
-     * <tt>s1.hashCode()==s2.hashCode()</tt> for any two sets <tt>s1</tt>
-     * and <tt>s2</tt>, as required by the general contract of
-     * {@link Object#hashCode}.
+     * 返回集合的 hash 值。集合的 hash 值定义为集合所有元素 hash 值的和，
+     *  null 元素的 hash 值定义为 0
      *
      * @return the hash code value for this set
      * @see Object#equals(Object)
@@ -389,16 +282,14 @@ public interface Set<E> extends java.util.Collection<E> {
     /**
      * Creates a {@code Spliterator} over the elements in this set.
      *
-     * <p>The {@code Spliterator} reports {@link Spliterator#DISTINCT}.
+     * The {@code Spliterator} reports {@link Spliterator#DISTINCT}.
      * Implementations should document the reporting of additional
      * characteristic values.
      *
      * @implSpec
-     * The default implementation creates a
-     * <em><a href="Spliterator.html#binding">late-binding</a></em> spliterator
-     * from the set's {@code Iterator}.  The spliterator inherits the
-     * <em>fail-fast</em> properties of the set's iterator.
-     * <p>
+     * The default implementation creates a spliterator from the set's
+     * {@code Iterator}.  The spliterator inherits the fail-fast properties
+     * of the set's iterator.
      * The created {@code Spliterator} additionally reports
      * {@link Spliterator#SIZED}.
      *
