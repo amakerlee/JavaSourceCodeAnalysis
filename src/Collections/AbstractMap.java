@@ -28,33 +28,24 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 /**
- * This class provides a skeletal implementation of the <tt>Map</tt>
- * interface, to minimize the effort required to implement this interface.
+ * 此类提供 Map 接口的基本实现，以最小化实现此接口所需的工作。
  *
- * <p>To implement an unmodifiable map, the programmer needs only to extend this
- * class and provide an implementation for the <tt>entrySet</tt> method, which
- * returns a set-view of the map's mappings.  Typically, the returned set
- * will, in turn, be implemented atop <tt>AbstractSet</tt>.  This set should
- * not support the <tt>add</tt> or <tt>remove</tt> methods, and its iterator
- * should not support the <tt>remove</tt> method.
+ * 为了实现不可修改的映射，程序员只需要继承此类，并提供 entrySet 方法
+ * 的实现，entrySet 方法返回 map 每一个映射的集合视图。通常，返回的
+ * 集合在 AbstractSet 之上实现。这个集合不应该支持 add 或者 remove
+ * 方法，它的迭代器不应该支持 remove 方法。
  *
- * <p>To implement a modifiable map, the programmer must additionally override
- * this class's <tt>put</tt> method (which otherwise throws an
- * <tt>UnsupportedOperationException</tt>), and the iterator returned by
- * <tt>entrySet().iterator()</tt> must additionally implement its
- * <tt>remove</tt> method.
+ * 为了实现可修改的映射，程序员必须额外覆盖此类的 put 方法（否则会抛出
+ * UnsupportedOperationException 异常），entrySet().iterator() 返回的
+ * 迭代器必须额外实现它的 remove 方法。
  *
- * <p>The programmer should generally provide a void (no argument) and map
- * constructor, as per the recommendation in the <tt>Map</tt> interface
- * specification.
+ * 按照 Map 接口规范的建议，程序员应该提供一个 void（无参数）和 map
+ * 构造函数。
  *
- * <p>The documentation for each non-abstract method in this class describes its
- * implementation in detail.  Each of these methods may be overridden if the
- * map being implemented admits a more efficient implementation.
+ * 此类中每一个非抽象的方法文档中都描述了其具体实现。如果正在实现的
+ * 映射允许更有效的实现，则可以覆盖它们。
  *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此类是 Java Collections Framework 的成员。
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
@@ -68,19 +59,19 @@ import java.util.Map.Entry;
 
 public abstract class AbstractMap<K,V> implements Map<K,V> {
     /**
-     * Sole constructor.  (For invocation by subclass constructors, typically
-     * implicit.)
+     * 唯一的构造函数。（用于子类的构造函数调用，特别是隐式的。）
      */
     protected AbstractMap() {
     }
 
     // Query Operations
+    // 查询操作
 
     /**
      * {@inheritDoc}
      *
      * @implSpec
-     * This implementation returns <tt>entrySet().size()</tt>.
+     * This implementation returns entrySet().size().
      */
     public int size() {
         return entrySet().size();
@@ -90,7 +81,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * {@inheritDoc}
      *
      * @implSpec
-     * This implementation returns <tt>size() == 0</tt>.
+     * This implementation returns size() == 0.
      */
     public boolean isEmpty() {
         return size() == 0;
@@ -100,11 +91,9 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * {@inheritDoc}
      *
      * @implSpec
-     * This implementation iterates over <tt>entrySet()</tt> searching
-     * for an entry with the specified value.  If such an entry is found,
-     * <tt>true</tt> is returned.  If the iteration terminates without
-     * finding such an entry, <tt>false</tt> is returned.  Note that this
-     * implementation requires linear time in the size of the map.
+     * 此实现迭代遍历 entrySet() 来搜索指定 value 所在的 entry。如果这样
+     * 的 entry 存在的话，返回 true。如果没有找到这样的 entry，迭代停止，
+     * 并返回 false。注意这一实现需要线性时间。
      *
      * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
@@ -118,6 +107,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
                     return true;
             }
         } else {
+            // 迭代遍历 entrySet
             while (i.hasNext()) {
                 Entry<K,V> e = i.next();
                 if (value.equals(e.getValue()))
@@ -131,12 +121,9 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * {@inheritDoc}
      *
      * @implSpec
-     * This implementation iterates over <tt>entrySet()</tt> searching
-     * for an entry with the specified key.  If such an entry is found,
-     * <tt>true</tt> is returned.  If the iteration terminates without
-     * finding such an entry, <tt>false</tt> is returned.  Note that this
-     * implementation requires linear time in the size of the map; many
-     * implementations will override this method.
+     * 此实现迭代遍历 entrySet() 来搜索指定 key 所在的 entry。如果这样
+     * 的 entry 存在的话，返回 true。如果没有找到这样的 entry，迭代停止，
+     * 并返回 false。注意这一实现需要线性时间。
      *
      * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
@@ -150,6 +137,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
                     return true;
             }
         } else {
+            // 迭代遍历 entrySet
             while (i.hasNext()) {
                 Entry<K,V> e = i.next();
                 if (key.equals(e.getKey()))
@@ -163,12 +151,9 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * {@inheritDoc}
      *
      * @implSpec
-     * This implementation iterates over <tt>entrySet()</tt> searching
-     * for an entry with the specified key.  If such an entry is found,
-     * the entry's value is returned.  If the iteration terminates without
-     * finding such an entry, <tt>null</tt> is returned.  Note that this
-     * implementation requires linear time in the size of the map; many
-     * implementations will override this method.
+     * 此实现迭代遍历 entrySet() 来搜索指定 key 所在的 entry。如果这样
+     * 的 entry 存在的话，返回 entry 的 value 值。如果没有找到这样的
+     * entry，迭代停止，并返回 null。注意这一实现需要线性时间。
      *
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
@@ -182,6 +167,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
                     return e.getValue();
             }
         } else {
+            // 迭代遍历 entrySet
             while (i.hasNext()) {
                 Entry<K,V> e = i.next();
                 if (key.equals(e.getKey()))
@@ -193,13 +179,13 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
 
 
     // Modification Operations
+    // 修改操作
 
     /**
      * {@inheritDoc}
      *
      * @implSpec
-     * This implementation always throws an
-     * <tt>UnsupportedOperationException</tt>.
+     * This implementation always throws an UnsupportedOperationException.
      *
      * @throws UnsupportedOperationException {@inheritDoc}
      * @throws ClassCastException            {@inheritDoc}
@@ -214,19 +200,13 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * {@inheritDoc}
      *
      * @implSpec
-     * This implementation iterates over <tt>entrySet()</tt> searching for an
-     * entry with the specified key.  If such an entry is found, its value is
-     * obtained with its <tt>getValue</tt> operation, the entry is removed
-     * from the collection (and the backing map) with the iterator's
-     * <tt>remove</tt> operation, and the saved value is returned.  If the
-     * iteration terminates without finding such an entry, <tt>null</tt> is
-     * returned.  Note that this implementation requires linear time in the
-     * size of the map; many implementations will override this method.
+     * 此实现迭代遍历 entrySet 搜索指定 key 所在的 entry。如果找到满足
+     * 条件的 entry，通过 getValue 方法获取它的 value 值，并使用迭代器的
+     * remove 方法删除该 entry。如果没有找到满足条件的 entry，迭代停止
+     * 并返回 null。注意这一实现需要线性时间。
      *
-     * <p>Note that this implementation throws an
-     * <tt>UnsupportedOperationException</tt> if the <tt>entrySet</tt>
-     * iterator does not support the <tt>remove</tt> method and this map
-     * contains a mapping for the specified key.
+     * 如果 entrySet 的迭代不支持 remove 方法且此 map 包含指定 key 的映射，
+     * 此实现会抛出 UnsupportedOperationException 异常。
      *
      * @throws UnsupportedOperationException {@inheritDoc}
      * @throws ClassCastException            {@inheritDoc}
@@ -235,6 +215,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
     public V remove(Object key) {
         Iterator<Entry<K,V>> i = entrySet().iterator();
         Entry<K,V> correctEntry = null;
+        // correctEntry 指向将要删除的 entry
         if (key==null) {
             while (correctEntry==null && i.hasNext()) {
                 Entry<K,V> e = i.next();
@@ -249,6 +230,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
             }
         }
 
+        // 删除 entry 并返回其 value
         V oldValue = null;
         if (correctEntry !=null) {
             oldValue = correctEntry.getValue();
@@ -259,18 +241,18 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
 
 
     // Bulk Operations
+    // 批量操作
 
     /**
      * {@inheritDoc}
      *
      * @implSpec
-     * This implementation iterates over the specified map's
-     * <tt>entrySet()</tt> collection, and calls this map's <tt>put</tt>
-     * operation once for each entry returned by the iteration.
+     * 此实现对指定 map 的 entrySet 进行迭代，然后对每一个 entry 调用
+     * map 的 put 操作。
      *
-     * <p>Note that this implementation throws an
-     * <tt>UnsupportedOperationException</tt> if this map does not support
-     * the <tt>put</tt> operation and the specified map is nonempty.
+     * 如果此 map 不支持 put 方法且指定的 map 非空，此实现会抛出
+     * UnsupportedOperationException 异常。
+     * 此实现会抛出 UnsupportedOperationException 异常。
      *
      * @throws UnsupportedOperationException {@inheritDoc}
      * @throws ClassCastException            {@inheritDoc}
@@ -286,11 +268,10 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * {@inheritDoc}
      *
      * @implSpec
-     * This implementation calls <tt>entrySet().clear()</tt>.
+     * 此实现调用 entrySet.clear 方法。
      *
-     * <p>Note that this implementation throws an
-     * <tt>UnsupportedOperationException</tt> if the <tt>entrySet</tt>
-     * does not support the <tt>clear</tt> operation.
+     * 如果 entrySet 不支持 clear 操作此实现会抛出
+     * UnsupportedOperationException 异常。
      *
      * @throws UnsupportedOperationException {@inheritDoc}
      */
@@ -300,21 +281,17 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
 
 
     // Views
+    // 视图
 
     /**
-     * Each of these fields are initialized to contain an instance of the
-     * appropriate view the first time this view is requested.  The views are
-     * stateless, so there's no reason to create more than one of each.
+     * 第一次请求视图的时候初始化这些字段，用来容纳一个适当的视图实例。
+     * 这个视图是无状态的，所以没有理由创建多个视图。
      *
-     * <p>Since there is no synchronization performed while accessing these fields,
-     * it is expected that java.util.Map view classes using these fields have
-     * no non-final fields (or any fields at all except for outer-this). Adhering
-     * to this rule would make the races on these fields benign.
+     * 由于在访问这些字段的时候没有执行同步，所以希望使用这些字段的
+     * java.util.Map 视图类没有非 final 字段（或者出了 outer-this 之外的字段）。
      *
-     * <p>It is also imperative that implementations read the field only once,
-     * as in:
-     *
-     * <pre> {@code
+     * 此实现只读取这些字段一次：
+     * {@code
      * public Set<K> keySet() {
      *   Set<K> ks = keySet;  // single racy read
      *   if (ks == null) {
@@ -323,7 +300,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      *   }
      *   return ks;
      * }
-     *}</pre>
+     *}
      */
     transient Set<K>        keySet;
     transient Collection<V> values;
@@ -332,52 +309,55 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * {@inheritDoc}
      *
      * @implSpec
-     * This implementation returns a set that subclasses {@link AbstractSet}.
-     * The subclass's iterator method returns a "wrapper object" over this
-     * map's <tt>entrySet()</tt> iterator.  The <tt>size</tt> method
-     * delegates to this map's <tt>size</tt> method and the
-     * <tt>contains</tt> method delegates to this map's
-     * <tt>containsKey</tt> method.
+     * 此实现返回一个继承自 AbstractSet 的集合。子类的迭代方法返回一个
+     * 在 map 的 entrySet 迭代器之上的“包装器对象”。size 方法委托给此
+     * map 的 size 方法，contains 方法委托给此 map 的 containsKey 方法。
      *
-     * <p>The set is created the first time this method is called,
-     * and returned in response to all subsequent calls.  No synchronization
-     * is performed, so there is a slight chance that multiple calls to this
-     * method will not all return the same set.
+     * 此集合在方法第一次调用的时候创建，并作为对所有后续调用的返回结果。
+     * 因为不执行同步，所以对该方法的多个调用可能不会返回相同的 set。
      */
     public Set<K> keySet() {
         Set<K> ks = keySet;
         if (ks == null) {
             ks = new AbstractSet<K>() {
+                // AbstractSet 的迭代器
                 public Iterator<K> iterator() {
                     return new Iterator<K>() {
                         private Iterator<Entry<K,V>> i = entrySet().iterator();
 
+                        // 是否有下一个
                         public boolean hasNext() {
                             return i.hasNext();
                         }
 
+                        // 向右移动一位，并返回 key
                         public K next() {
                             return i.next().getKey();
                         }
 
+                        // 删除
                         public void remove() {
                             i.remove();
                         }
                     };
                 }
 
+                // 返回 Map 的大小
                 public int size() {
                     return AbstractMap.this.size();
                 }
 
+                // 判断 Map 是否为空
                 public boolean isEmpty() {
                     return AbstractMap.this.isEmpty();
                 }
 
+                // 清除 Map 的所有元素
                 public void clear() {
                     AbstractMap.this.clear();
                 }
 
+                // 是否包含指定 key
                 public boolean contains(Object k) {
                     return AbstractMap.this.containsKey(k);
                 }
@@ -391,22 +371,19 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * {@inheritDoc}
      *
      * @implSpec
-     * This implementation returns a collection that subclasses {@link
-     * AbstractCollection}.  The subclass's iterator method returns a
-     * "wrapper object" over this map's <tt>entrySet()</tt> iterator.
-     * The <tt>size</tt> method delegates to this map's <tt>size</tt>
-     * method and the <tt>contains</tt> method delegates to this map's
-     * <tt>containsValue</tt> method.
+     * 此实现返回一个继承自 AbstractCollection 的集合。子类的迭代方法
+     * 返回一个在 map 的 entrySet 迭代器之上的“包装器对象”。size 方法
+     * 委托给此 map 的 size 方法，contains 方法委托给此 map 的
+     * containsValue 方法。
      *
-     * <p>The collection is created the first time this method is called, and
-     * returned in response to all subsequent calls.  No synchronization is
-     * performed, so there is a slight chance that multiple calls to this
-     * method will not all return the same collection.
+     * 此集合在方法第一次调用的时候创建，并作为对所有后续调用的返回结果。
+     * 因为不执行同步，所以对该方法的多个调用可能不会返回相同的 set。
      */
     public Collection<V> values() {
         Collection<V> vals = values;
         if (vals == null) {
             vals = new AbstractCollection<V>() {
+                // 集合的迭代器
                 public Iterator<V> iterator() {
                     return new Iterator<V>() {
                         private Iterator<Entry<K,V>> i = entrySet().iterator();
