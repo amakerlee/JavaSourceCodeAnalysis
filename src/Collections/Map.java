@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
@@ -733,48 +732,38 @@ public interface Map<K,V> {
     }
 
     /**
-     * If the specified key is not already associated with a value (or is mapped
-     * to {@code null}), attempts to compute its value using the given mapping
-     * function and enters it into this map unless {@code null}.
+     * 如果指定的 key 没有和对应的 value（或者映射到 null），使用给定的
+     * mapping function 计算它的 value，如果计算出来的 value 不为 null，则
+     * 将其插入到 map 中。
      *
-     * <p>If the function returns {@code null} no mapping is recorded. If
-     * the function itself throws an (unchecked) exception, the
-     * exception is rethrown, and no mapping is recorded.  The most
-     * common usage is to construct a new object serving as an initial
-     * mapped value or memoized result, as in:
-     *
-     * <pre> {@code
+     * 如果计算 function 返回结果为 null，则不插入任何映射。如果函数本身
+     * 抛出未检查的异常，则异常会被重新抛出，也不会插入任何映射。最常见
+     * 的用法是构造一个新的对象作为初始映射值或者 memorized 的结果，
+     * 如下所示：
+     * {@code
      * map.computeIfAbsent(key, k -> new Value(f(k)));
-     * }</pre>
+     * }
      *
-     * <p>Or to implement a multi-value map, {@code Map<K,Collection<V>>},
-     * supporting multiple values per key:
-     *
-     * <pre> {@code
+     * 或者实现一个 multi-value 的映射，即 key 对应的多个 value，所有的
+     * value 保存在一个 Collection 中。
+     * {@code
      * map.computeIfAbsent(key, k -> new HashSet<V>()).add(v);
-     * }</pre>
+     * }
      *
      *
      * @implSpec
-     * The default implementation is equivalent to the following steps for this
-     * {@code map}, then returning the current value or {@code null} if now
-     * absent:
-     *
-     * <pre> {@code
+     * 本方法默认的实现等价于以下步骤：
+     * {@code
      * if (map.get(key) == null) {
      *     V newValue = mappingFunction.apply(key);
      *     if (newValue != null)
      *         map.put(key, newValue);
      * }
-     * }</pre>
+     * }
      *
-     * <p>The default implementation makes no guarantees about synchronization
-     * or atomicity properties of this method. Any implementation providing
-     * atomicity guarantees must override this method and document its
-     * concurrency properties. In particular, all implementations of
-     * subinterface {@link java.util.concurrent.ConcurrentMap} must document
-     * whether the function is applied once atomically only if the value is not
-     * present.
+     * 此默认实现不保证同步性和原子性。任何想要保证原子性的实现都必须重写
+     * 此方法。特别是，ConcurrentMap 子接口的实现必须给出说明，如果 value
+     * 不存在，function 是否是原子性的。
      *
      * @param key key with which the specified value is to be associated
      * @param mappingFunction the function to compute a value
@@ -785,10 +774,8 @@ public interface Map<K,V> {
      *         is null
      * @throws UnsupportedOperationException if the {@code put} operation
      *         is not supported by this map
-     *         (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      * @throws ClassCastException if the class of the specified key or value
      *         prevents it from being stored in this map
-     *         (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      * @since 1.8
      */
     default V computeIfAbsent(K key,
@@ -807,19 +794,15 @@ public interface Map<K,V> {
     }
 
     /**
-     * If the value for the specified key is present and non-null, attempts to
-     * compute a new mapping given the key and its current mapped value.
+     * 如果 map 中指定的 key 存在对应的 value 且不为 null，使用 function
+     * 计算出新的 value。
      *
-     * <p>If the function returns {@code null}, the mapping is removed.  If the
-     * function itself throws an (unchecked) exception, the exception is
-     * rethrown, and the current mapping is left unchanged.
+     * 如果 function 返回 null，删除此 entry。如果 function 本身抛出了未检查
+     * 的异常，则再次抛出此异常，且不改变当前的映射。
      *
      * @implSpec
-     * The default implementation is equivalent to performing the following
-     * steps for this {@code map}, then returning the current value or
-     * {@code null} if now absent:
-     *
-     * <pre> {@code
+     * 本方法默认的实现等价于以下步骤：
+     * {@code
      * if (map.get(key) != null) {
      *     V oldValue = map.get(key);
      *     V newValue = remappingFunction.apply(key, oldValue);
@@ -828,15 +811,11 @@ public interface Map<K,V> {
      *     else
      *         map.remove(key);
      * }
-     * }</pre>
+     * }
      *
-     * <p>The default implementation makes no guarantees about synchronization
-     * or atomicity properties of this method. Any implementation providing
-     * atomicity guarantees must override this method and document its
-     * concurrency properties. In particular, all implementations of
-     * subinterface {@link java.util.concurrent.ConcurrentMap} must document
-     * whether the function is applied once atomically only if the value is not
-     * present.
+     * 此默认实现不保证同步性和原子性。任何想要保证原子性的实现都必须重写
+     * 此方法。特别是，ConcurrentMap 子接口的实现必须给出说明，如果 value
+     * 不存在，function 是否是原子性的。
      *
      * @param key key with which the specified value is to be associated
      * @param remappingFunction the function to compute a value
@@ -846,10 +825,8 @@ public interface Map<K,V> {
      *         remappingFunction is null
      * @throws UnsupportedOperationException if the {@code put} operation
      *         is not supported by this map
-     *         (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      * @throws ClassCastException if the class of the specified key or value
      *         prevents it from being stored in this map
-     *         (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      * @since 1.8
      */
     default V computeIfPresent(K key,
@@ -871,26 +848,19 @@ public interface Map<K,V> {
     }
 
     /**
-     * Attempts to compute a mapping for the specified key and its current
-     * mapped value (or {@code null} if there is no current mapping). For
-     * example, to either create or append a {@code String} msg to a value
-     * mapping:
+     * 利用指定的 key 和它当前的 value（如果当前不存在映射则 value 为 null）
+     * 计算对应的映射。例如，向一个 value 中新建或拼接一个 String：
+     * {@code
+     * map.compute(key, (k, v) -> (v == null) ? msg : v.concat(msg))
+     * }
      *
-     * <pre> {@code
-     * map.compute(key, (k, v) -> (v == null) ? msg : v.concat(msg))}</pre>
-     * (Method {@link #merge merge()} is often simpler to use for such purposes.)
-     *
-     * <p>If the function returns {@code null}, the mapping is removed (or
-     * remains absent if initially absent).  If the function itself throws an
-     * (unchecked) exception, the exception is rethrown, and the current mapping
-     * is left unchanged.
+     * 如果 function 返回 null，则移除该映射（如果本来就不存在不进行移除
+     * 操作）。如果 function 本身抛出了未检查的异常，则再次抛出此异常，
+     * 且不改变当前的映射。
      *
      * @implSpec
-     * The default implementation is equivalent to performing the following
-     * steps for this {@code map}, then returning the current value or
-     * {@code null} if absent:
-     *
-     * <pre> {@code
+     * 本方法默认的实现等价于以下步骤：
+     * {@code
      * V oldValue = map.get(key);
      * V newValue = remappingFunction.apply(key, oldValue);
      * if (oldValue != null ) {
@@ -904,15 +874,11 @@ public interface Map<K,V> {
      *    else
      *       return null;
      * }
-     * }</pre>
+     * }
      *
-     * <p>The default implementation makes no guarantees about synchronization
-     * or atomicity properties of this method. Any implementation providing
-     * atomicity guarantees must override this method and document its
-     * concurrency properties. In particular, all implementations of
-     * subinterface {@link java.util.concurrent.ConcurrentMap} must document
-     * whether the function is applied once atomically only if the value is not
-     * present.
+     * 此默认实现不保证同步性和原子性。任何想要保证原子性的实现都必须重写
+     * 此方法。特别是，ConcurrentMap 子接口的实现必须给出说明，如果 value
+     * 不存在，function 是否是原子性的。
      *
      * @param key key with which the specified value is to be associated
      * @param remappingFunction the function to compute a value
@@ -922,10 +888,8 @@ public interface Map<K,V> {
      *         remappingFunction is null
      * @throws UnsupportedOperationException if the {@code put} operation
      *         is not supported by this map
-     *         (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      * @throws ClassCastException if the class of the specified key or value
      *         prevents it from being stored in this map
-     *         (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      * @since 1.8
      */
     default V compute(K key,
@@ -952,28 +916,21 @@ public interface Map<K,V> {
     }
 
     /**
-     * If the specified key is not already associated with a value or is
-     * associated with null, associates it with the given non-null value.
-     * Otherwise, replaces the associated value with the results of the given
-     * remapping function, or removes if the result is {@code null}. This
-     * method may be of use when combining multiple mapped values for a key.
-     * For example, to either create or append a {@code String msg} to a
-     * value mapping:
-     *
-     * <pre> {@code
+     * 如果指定的 key 没有关联的 value 或者关联的 value 为 null，把它和
+     * 给定的非 null 值关联起来。如果有关联的 value，用给定的 function 的
+     * 返回值替换原来的 value，如果 function 的结果为 null，那么删除此映射。
+     * 这一方法常用于对一个 key 合并多个映射的 value 。比如，要创建或
+     * 追加一个 String 给一个值映射：
+     * {@code
      * map.merge(key, msg, String::concat)
-     * }</pre>
+     * }
      *
-     * <p>If the function returns {@code null} the mapping is removed.  If the
-     * function itself throws an (unchecked) exception, the exception is
-     * rethrown, and the current mapping is left unchanged.
+     * 如果 function 返回 null，则 map 中原 entry 被移除。如果 function
+     * 本身抛出异常,则异常会被重新抛出，且当前map不会发生更改。
      *
      * @implSpec
-     * The default implementation is equivalent to performing the following
-     * steps for this {@code map}, then returning the current value or
-     * {@code null} if absent:
-     *
-     * <pre> {@code
+     * 本方法的默认实现和下面代码等价，返回结果为当前 value 或者 null：
+     * {@code
      * V oldValue = map.get(key);
      * V newValue = (oldValue == null) ? value :
      *              remappingFunction.apply(oldValue, value);
@@ -981,15 +938,11 @@ public interface Map<K,V> {
      *     map.remove(key);
      * else
      *     map.put(key, newValue);
-     * }</pre>
+     * }
      *
-     * <p>The default implementation makes no guarantees about synchronization
-     * or atomicity properties of this method. Any implementation providing
-     * atomicity guarantees must override this method and document its
-     * concurrency properties. In particular, all implementations of
-     * subinterface {@link java.util.concurrent.ConcurrentMap} must document
-     * whether the function is applied once atomically only if the value is not
-     * present.
+     * 此默认实现不保证同步性和原子性。任何想要保证原子性的实现都必须重写
+     * 此方法。特别是，ConcurrentMap 子接口的实现必须给出说明，如果 value
+     * 不存在，function 是否是原子性的。
      *
      * @param key key with which the resulting value is to be associated
      * @param value the non-null value to be merged with the existing value
@@ -1000,10 +953,8 @@ public interface Map<K,V> {
      *         value is associated with the key
      * @throws UnsupportedOperationException if the {@code put} operation
      *         is not supported by this map
-     *         (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      * @throws ClassCastException if the class of the specified key or value
      *         prevents it from being stored in this map
-     *         (<a href="{@docRoot}/java/util/Collection.html#optional-restrictions">optional</a>)
      * @throws NullPointerException if the specified key is null and this map
      *         does not support null keys or the value or remappingFunction is
      *         null
