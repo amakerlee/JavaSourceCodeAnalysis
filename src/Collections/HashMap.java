@@ -38,23 +38,18 @@ import java.util.function.Function;
 import sun.misc.SharedSecrets;
 
 /**
- * Hash table based implementation of the <tt>Map</tt> interface.  This
- * implementation provides all of the optional map operations, and permits
- * <tt>null</tt> values and the <tt>null</tt> key.  (The <tt>HashMap</tt>
- * class is roughly equivalent to <tt>Hashtable</tt>, except that it is
- * unsynchronized and permits nulls.)  This class makes no guarantees as to
- * the order of the map; in particular, it does not guarantee that the order
- * will remain constant over time.
+ * 基于 Map 接口实现的 hash table。此实现提供了所有可选的 map 操作，
+ * 且允许 value 和 key 为 null。（HashMap 大致相当于 Hashtable，只是
+ * HashMap 不支持同步，并且允许为 null。）此类不保证映射的顺序，
+ * 特别是，不保证映射的顺序永远不变。
  *
- * <p>This implementation provides constant-time performance for the basic
- * operations (<tt>get</tt> and <tt>put</tt>), assuming the hash function
- * disperses the elements properly among the buckets.  Iteration over
- * collection views requires time proportional to the "capacity" of the
- * <tt>HashMap</tt> instance (the number of buckets) plus its size (the number
- * of key-value mappings).  Thus, it's very important not to set the initial
- * capacity too high (or the load factor too low) if iteration performance is
- * important.
+ * 此实现提供了常数时间内的基本操作（get 和 put），假定 hash 函数将
+ * 所有元素正确分布在桶里。集合视图的迭代时间和 HashMap 实例
+ * （桶的数量）加上它的大小（映射的数量）成比例。
  *
+ * HashMap 的实例有两个参数影响其性能：初始大小和加载因子。容量是
+ * hash table 中桶的数量，初始容量即为 hash table 创建时桶的数量。
+ * 加载因子是衡量
  * <p>An instance of <tt>HashMap</tt> has two parameters that affect its
  * performance: <i>initial capacity</i> and <i>load factor</i>.  The
  * <i>capacity</i> is the number of buckets in the hash table, and the initial

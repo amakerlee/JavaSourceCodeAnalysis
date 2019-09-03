@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="65d6684a-7237-4b2a-81b7-14792effb173" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/src/Collections/AbstractMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/AbstractMap.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/HashMapNotice.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/Collections/HashMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/HashMap.java" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -17,29 +19,26 @@
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
       <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/src/Collections/AbstractMap.java">
+        <entry file="file://$PROJECT_DIR$/src/Collections/HashMap.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="118">
-              <caret line="743" column="60" lean-forward="true" selection-start-line="743" selection-start-column="60" selection-end-line="743" selection-end-column="60" />
+            <state relative-caret-position="390">
+              <caret line="51" column="10" selection-start-line="51" selection-start-column="10" selection-end-line="51" selection-end-column="10" />
               <folding>
+                <element signature="e#0#91657#0" expanded="true" />
                 <element signature="imports" expanded="true" />
-                <element signature="e#16115#16116#0" expanded="true" />
-                <element signature="e#16177#16178#0" expanded="true" />
-                <element signature="e#18050#18051#0" expanded="true" />
-                <element signature="e#18084#18085#0" expanded="true" />
-                <element signature="e#18265#18266#0" expanded="true" />
-                <element signature="e#18301#18302#0" expanded="true" />
-                <element signature="e#21120#21121#0" expanded="true" />
-                <element signature="e#21168#21169#0" expanded="true" />
-                <element signature="e#22599#22600#0" expanded="true" />
-                <element signature="e#22633#22634#0" expanded="true" />
-                <element signature="e#22814#22815#0" expanded="true" />
-                <element signature="e#22850#22851#0" expanded="true" />
-                <element signature="e#23346#23347#0" expanded="true" />
-                <element signature="e#23411#23412#0" expanded="true" />
+                <element signature="e#15714#15757#0" expanded="true" />
+                <element signature="e#23660#23661#0" expanded="true" />
+                <element signature="e#23714#23715#0" expanded="true" />
+                <element signature="e#24361#24362#0" expanded="true" />
+                <element signature="e#24426#24427#0" expanded="true" />
               </folding>
             </state>
           </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/HashMapNotice.txt">
+          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
     </leaf>
@@ -52,12 +51,13 @@
       <list>
         <option value="$PROJECT_DIR$/src/Collections/Map.java" />
         <option value="$PROJECT_DIR$/src/Collections/AbstractMap.java" />
+        <option value="$PROJECT_DIR$/src/Collections/HashMap.java" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds" extendedState="1">
-    <option name="x" value="699" />
-    <option name="width" value="1228" />
+    <option name="x" value="742" />
+    <option name="width" value="1185" />
     <option name="height" value="1047" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -67,7 +67,37 @@
     <navigator proportions="" version="1">
       <foldersAlwaysOnTop value="true" />
     </navigator>
-    <panes />
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <expand>
+            <path>
+              <item name="JavaSourceCodeAnalysis" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JavaSourceCodeAnalysis" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="JavaSourceCodeAnalysis" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JavaSourceCodeAnalysis" type="462c0819:PsiDirectoryNode" />
+              <item name=".idea" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="JavaSourceCodeAnalysis" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JavaSourceCodeAnalysis" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="JavaSourceCodeAnalysis" type="b2602c69:ProjectViewProjectNode" />
+              <item name="JavaSourceCodeAnalysis" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="Collections" type="462c0819:PsiDirectoryNode" />
+            </path>
+          </expand>
+          <select />
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
+    </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
@@ -97,18 +127,18 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1567492582607</updated>
-      <workItem from="1567492584083" duration="3996000" />
+      <workItem from="1567492584083" duration="7095000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="15578000" />
+    <option name="totallyTimeSpent" value="18677000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="699" y="0" width="1228" height="1047" extended-state="1" />
+    <frame x="742" y="0" width="1185" height="1047" extended-state="1" />
     <editor active="true" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.40809628" />
+      <window_info content_ui="combo" id="Project" order="0" weight="0.30136988" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="UI Designer" order="3" />
@@ -160,19 +190,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/Collections/HashMap.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="18512">
-          <caret line="755" column="21" selection-start-line="755" selection-start-column="21" selection-end-line="755" selection-end-column="21" />
-          <folding>
-            <element signature="e#23660#23661#0" expanded="true" />
-            <element signature="e#23714#23715#0" expanded="true" />
-            <element signature="e#24361#24362#0" expanded="true" />
-            <element signature="e#24426#24427#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/Map.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="-3372">
@@ -203,6 +220,32 @@
             <element signature="e#22850#22851#0" expanded="true" />
             <element signature="e#23346#23347#0" expanded="true" />
             <element signature="e#23411#23412#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ToDoList.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="26">
+          <caret line="1" column="14" selection-start-line="1" selection-start-column="14" selection-end-line="1" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/HashMapNotice.txt">
+      <provider selected="true" editor-type-id="text-editor" />
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/Collections/HashMap.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="390">
+          <caret line="51" column="10" selection-start-line="51" selection-start-column="10" selection-end-line="51" selection-end-column="10" />
+          <folding>
+            <element signature="e#0#91657#0" expanded="true" />
+            <element signature="imports" expanded="true" />
+            <element signature="e#15714#15757#0" expanded="true" />
+            <element signature="e#23660#23661#0" expanded="true" />
+            <element signature="e#23714#23715#0" expanded="true" />
+            <element signature="e#24361#24362#0" expanded="true" />
+            <element signature="e#24426#24427#0" expanded="true" />
           </folding>
         </state>
       </provider>
