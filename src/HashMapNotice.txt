@@ -1,0 +1,9 @@
+顶部注释：
+底层：HashMap是Map接口基于哈希表的实现。
+是否允许null：HashMap允许key和value为null。
+是否有序：HashMap不保证映射的顺序，特别是它不保证该顺序恒久不变。
+何时rehash：超出当前允许的最大容量。initial capacity*load factor就是当前允许的最大元素数目，超过initial capacity*load factor之后，HashMap就会进行rehashed操作来进行扩容，扩容后的的容量为之前的两倍。
+初始化容量对性能的影响：不应设置地太小，设置地小虽然可以节省空间，但会频繁地进行rehash操作。rehash会影响性能。总结：小了会增大时间开销（频繁rehash）；大了会增大空间开销（占用了更多空间）和时间开销（影响遍历）。
+加载因子对性能的影响：加载因子过高虽然减少了空间开销，但同时也增加了查询成本。0.75是个折中的选择。总结：小了会增大时间开销（频繁rehash）；大了会也增大时间开销（影响遍历）。
+是否同步：HashMap不是同步的。
+迭代器：迭代器是fast-fail的。

@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="65d6684a-7237-4b2a-81b7-14792effb173" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/HashMapNotice.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Collections/HashMap.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Collections/HashMap.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/HashMapNotice.txt" beforeDir="false" afterPath="$PROJECT_DIR$/src/HashMapNotice.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/ToDoList.txt" beforeDir="false" afterPath="$PROJECT_DIR$/src/ToDoList.txt" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -18,27 +18,48 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/Collections/HashMap.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="390">
-              <caret line="51" column="10" selection-start-line="51" selection-start-column="10" selection-end-line="51" selection-end-column="10" />
+            <state relative-caret-position="32006">
+              <caret line="1247" lean-forward="true" selection-start-line="1247" selection-end-line="1247" />
               <folding>
                 <element signature="e#0#91657#0" expanded="true" />
                 <element signature="imports" expanded="true" />
+                <element signature="e#12882#12883#0" expanded="true" />
+                <element signature="e#12960#12961#0" expanded="true" />
                 <element signature="e#15714#15757#0" expanded="true" />
                 <element signature="e#23660#23661#0" expanded="true" />
                 <element signature="e#23714#23715#0" expanded="true" />
                 <element signature="e#24361#24362#0" expanded="true" />
                 <element signature="e#24426#24427#0" expanded="true" />
+                <element signature="e#31091#31092#0" expanded="true" />
+                <element signature="e#31129#31130#0" expanded="true" />
+                <element signature="e#42179#42180#0" expanded="true" />
+                <element signature="e#42243#42244#0" expanded="true" />
+                <element signature="e#42312#42313#0" expanded="true" />
+                <element signature="e#42388#42389#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/src/ToDoList.txt">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="104">
+              <caret line="4" lean-forward="true" selection-start-line="4" selection-end-line="4" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/HashMapNotice.txt">
-          <provider selected="true" editor-type-id="text-editor" />
+          <provider selected="true" editor-type-id="text-editor">
+            <state>
+              <caret lean-forward="true" />
+            </state>
+          </provider>
         </entry>
       </file>
     </leaf>
@@ -51,13 +72,15 @@
       <list>
         <option value="$PROJECT_DIR$/src/Collections/Map.java" />
         <option value="$PROJECT_DIR$/src/Collections/AbstractMap.java" />
+        <option value="$PROJECT_DIR$/src/HashMapNotice.txt" />
         <option value="$PROJECT_DIR$/src/Collections/HashMap.java" />
+        <option value="$PROJECT_DIR$/src/ToDoList.txt" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="1">
-    <option name="x" value="742" />
-    <option name="width" value="1185" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="776" />
+    <option name="width" value="1151" />
     <option name="height" value="1047" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -127,18 +150,17 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1567492582607</updated>
-      <workItem from="1567492584083" duration="7095000" />
+      <workItem from="1567492584083" duration="14321000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="18677000" />
+    <option name="totallyTimeSpent" value="25903000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="742" y="0" width="1185" height="1047" extended-state="1" />
-    <editor active="true" />
+    <frame x="776" y="0" width="1151" height="1047" extended-state="0" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" weight="0.30136988" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.30064163" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="UI Designer" order="3" />
@@ -224,29 +246,41 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/ToDoList.txt">
+    <entry file="file://$PROJECT_DIR$/src/HashMapNotice.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="26">
-          <caret line="1" column="14" selection-start-line="1" selection-start-column="14" selection-end-line="1" selection-end-column="14" />
+        <state>
+          <caret lean-forward="true" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/HashMapNotice.txt">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/HashMap.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="390">
-          <caret line="51" column="10" selection-start-line="51" selection-start-column="10" selection-end-line="51" selection-end-column="10" />
+        <state relative-caret-position="32006">
+          <caret line="1247" lean-forward="true" selection-start-line="1247" selection-end-line="1247" />
           <folding>
             <element signature="e#0#91657#0" expanded="true" />
             <element signature="imports" expanded="true" />
+            <element signature="e#12882#12883#0" expanded="true" />
+            <element signature="e#12960#12961#0" expanded="true" />
             <element signature="e#15714#15757#0" expanded="true" />
             <element signature="e#23660#23661#0" expanded="true" />
             <element signature="e#23714#23715#0" expanded="true" />
             <element signature="e#24361#24362#0" expanded="true" />
             <element signature="e#24426#24427#0" expanded="true" />
+            <element signature="e#31091#31092#0" expanded="true" />
+            <element signature="e#31129#31130#0" expanded="true" />
+            <element signature="e#42179#42180#0" expanded="true" />
+            <element signature="e#42243#42244#0" expanded="true" />
+            <element signature="e#42312#42313#0" expanded="true" />
+            <element signature="e#42388#42389#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/ToDoList.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="104">
+          <caret line="4" lean-forward="true" selection-start-line="4" selection-end-line="4" />
         </state>
       </provider>
     </entry>

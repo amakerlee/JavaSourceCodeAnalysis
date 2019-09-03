@@ -49,73 +49,46 @@ import sun.misc.SharedSecrets;
  *
  * HashMap 的实例有两个参数影响其性能：初始大小和加载因子。容量是
  * hash table 中桶的数量，初始容量即为 hash table 创建时桶的数量。
- * 加载因子是衡量
- * <p>An instance of <tt>HashMap</tt> has two parameters that affect its
- * performance: <i>initial capacity</i> and <i>load factor</i>.  The
- * <i>capacity</i> is the number of buckets in the hash table, and the initial
- * capacity is simply the capacity at the time the hash table is created.  The
- * <i>load factor</i> is a measure of how full the hash table is allowed to
- * get before its capacity is automatically increased.  When the number of
- * entries in the hash table exceeds the product of the load factor and the
- * current capacity, the hash table is <i>rehashed</i> (that is, internal data
- * structures are rebuilt) so that the hash table has approximately twice the
- * number of buckets.
+ * 加载因子是衡量 hash table 在其容量自动增加之前可以达到多满的参数。
+ * 当hash table 中 entry 的数量超过了初始容量和加载因子的乘积（初始容量
+ * 和加载因子的乘积就是当前允许的最大容量），hash table 会执行 rehash
+ * 操作（内部数据结构会重建），才能让桶的数量为原来的两倍。
  *
- * <p>As a general rule, the default load factor (.75) offers a good
- * tradeoff between time and space costs.  Higher values decrease the
- * space overhead but increase the lookup cost (reflected in most of
- * the operations of the <tt>HashMap</tt> class, including
- * <tt>get</tt> and <tt>put</tt>).  The expected number of entries in
- * the map and its load factor should be taken into account when
- * setting its initial capacity, so as to minimize the number of
- * rehash operations.  If the initial capacity is greater than the
- * maximum number of entries divided by the load factor, no rehash
- * operations will ever occur.
+ * 通常将加载因子的值设为 0.75 是时间和空间成本的折衷。如果设置为更高
+ * 的值虽然会减少空间成本，但是会增加查询成本（查询操作会影响大部分
+ * HashMap 类中的操作，包括 get 和 set）。在设置初始容量的时候就应该
+ * 考虑加载因子的值和 map 中 entry 的总数，以便最大限度地减少 rehash
+ * 操作的次数。如果初始容量大于最大条目数除以加载因子，则不会发生
+ * rehash 操作。
  *
- * <p>If many mappings are to be stored in a <tt>HashMap</tt>
- * instance, creating it with a sufficiently large capacity will allow
- * the mappings to be stored more efficiently than letting it perform
- * automatic rehashing as needed to grow the table.  Note that using
- * many keys with the same {@code hashCode()} is a sure way to slow
- * down performance of any hash table. To ameliorate impact, when keys
- * are {@link Comparable}, this class may use comparison order among
- * keys to help break ties.
+ * 如果大量的映射存储在 HashMap 实例中，在创建的时候设置为足够大的
+ * 容量相对于按需执行自动的 rehash 操作，能更有效地存储映射关系。
+ * 值得注意的是，使用多个 hashCode() 相同的键肯定会降低 hash table 的
+ * 性能。为了改善这一不足，当 key 可以通过 Comparable 比较的时候，此类
+ * 会进行比较和排序来帮助解开联系。
  *
- * <p><strong>Note that this implementation is not synchronized.</strong>
- * If multiple threads access a hash map concurrently, and at least one of
- * the threads modifies the map structurally, it <i>must</i> be
- * synchronized externally.  (A structural modification is any operation
- * that adds or deletes one or more mappings; merely changing the value
- * associated with a key that an instance already contains is not a
- * structural modification.)  This is typically accomplished by
- * synchronizing on some object that naturally encapsulates the map.
+ * 此实现不是同步的。如果多个线程同时访问一个 HashMap，而且至少一个
+ * 线程从结构上修改了 map，那它必须保持外部同步。（结构上的修改指的
+ * 是添加或删除一个或多个映射的操作，仅仅改变 map 中某个 key 相关联
+ * 的 value 不是结构上的修改。一般通过对自然封装该映射的对象进行同步
+ * 操作来完成，如果不存在这样的对象，应该用 Collections.synchronizedMap
+ * 方法来 “包装” 该映射。最好在创建时完成该操作，以防止对 map 意外的
+ * 访问：
+ * Map m = Collections.synchronizedMap(new HashMap(...));
  *
- * If no such object exists, the map should be "wrapped" using the
- * {@link Collections#synchronizedMap Collections.synchronizedMap}
- * method.  This is best done at creation time, to prevent accidental
- * unsynchronized access to the map:<pre>
- *   Map m = Collections.synchronizedMap(new HashMap(...));</pre>
+ * 此类所有的集合视图返回的迭代器都支持 fail-fast：如果在迭代器创建之后
+ * map 被结构性修改，且不是通过迭代器自身的 remove 方法修改的，那么
+ * 迭代器会抛出 ConcurrentModificationException 异常。因此，在并发修改
+ * 的情况下，迭代器会快速干净地失败，而不是在未来的某个时间里出现
+ * 未知的风险和行为。
  *
- * <p>The iterators returned by all of this class's "collection view methods"
- * are <i>fail-fast</i>: if the map is structurally modified at any time after
- * the iterator is created, in any way except through the iterator's own
- * <tt>remove</tt> method, the iterator will throw a
- * {@link ConcurrentModificationException}.  Thus, in the face of concurrent
- * modification, the iterator fails quickly and cleanly, rather than risking
- * arbitrary, non-deterministic behavior at an undetermined time in the
- * future.
+ * 注意，迭代器的快速失败行为不能得到保证，一般来说，存在非同步的
+ * 并发修改时，不可能作出任何坚决的保证。快速失败迭代器尽最大努力
+ * 抛出 ConcurrentModificationException。因此，编写依赖于此异常的
+ * 程序的做法是错误的，正确做法是：迭代器的快速失败行为应该仅用于
+ * 检测bug。
  *
- * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
- * as it is, generally speaking, impossible to make any hard guarantees in the
- * presence of unsynchronized concurrent modification.  Fail-fast iterators
- * throw <tt>ConcurrentModificationException</tt> on a best-effort basis.
- * Therefore, it would be wrong to write a program that depended on this
- * exception for its correctness: <i>the fail-fast behavior of iterators
- * should be used only to detect bugs.</i>
- *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此类是 Java Collections Framework 的成员。
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
@@ -227,57 +200,54 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
      */
 
     /**
-     * The default initial capacity - MUST be a power of two.
+     * 默认初始容量，必须是 2 的幂。
+     * 此处为 16
      */
     static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
 
     /**
-     * The maximum capacity, used if a higher value is implicitly specified
-     * by either of the constructors with arguments.
-     * MUST be a power of two <= 1<<30.
+     * 最大容量，如果任何构造函数中指定了一个更大的初始化容量，将会被
+     *  MAXIMUM_CAPACITY 取代。
+     *  此参数必须是 2 的幂，且小于等于 1 << 30。
      */
     static final int MAXIMUM_CAPACITY = 1 << 30;
 
     /**
-     * The load factor used when none specified in constructor.
+     * 默认的加载因子。
      */
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
     /**
-     * The bin count threshold for using a tree rather than list for a
-     * bin.  Bins are converted to trees when adding an element to a
-     * bin with at least this many nodes. The value must be greater
-     * than 2 and should be at least 8 to mesh with assumptions in
-     * tree removal about conversion back to plain bins upon
-     * shrinkage.
+     * 将链表转化为红黑树的临界值。把一个元素添加到至少有
+     * TREEIFY_THRESHOLD 个节点的桶里时，桶中的链表将被转化成
+     * 树形结构。此变量最小为 8。
      */
     static final int TREEIFY_THRESHOLD = 8;
 
     /**
-     * The bin count threshold for untreeifying a (split) bin during a
-     * resize operation. Should be less than TREEIFY_THRESHOLD, and at
-     * most 6 to mesh with shrinkage detection under removal.
+     * 在调整大小时，把树结构恢复成链表时的桶大小临界值。此变量应该小于
+     * TREEIFY_THRESHOLD，最大为 6。
      */
     static final int UNTREEIFY_THRESHOLD = 6;
 
     /**
-     * The smallest table capacity for which bins may be treeified.
-     * (Otherwise the table is resized if too many nodes in a bin.)
-     * Should be at least 4 * TREEIFY_THRESHOLD to avoid conflicts
-     * between resizing and treeification thresholds.
+     * 桶可能被转化成树形结构的最小容量。（在桶里面节点数太多时会调整
+     * 大小。）容量应该至少为 4 * TREEIFY_THRESHOLD 来避免和树形
+     * 结构化之间的冲突。
      */
     static final int MIN_TREEIFY_CAPACITY = 64;
 
     /**
-     * Basic hash bin node, used for most entries.  (See below for
-     * TreeNode subclass, and in LinkedHashMap for its Entry subclass.)
+     * 基本的 hash 节点类型，用于大多数 entry。
      */
     static class Node<K,V> implements Map.Entry<K,V> {
         final int hash;
         final K key;
         V value;
+        // 指向下一个节点
         Node<K,V> next;
 
+        // 构造函数
         Node(int hash, K key, V value, Node<K,V> next) {
             this.hash = hash;
             this.key = key;
@@ -289,16 +259,19 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         public final V getValue()      { return value; }
         public final String toString() { return key + "=" + value; }
 
+        // key 的 hash 值和 value 的 hash 值的异或
         public final int hashCode() {
             return Objects.hashCode(key) ^ Objects.hashCode(value);
         }
 
+        // 设置为指定 value
         public final V setValue(V newValue) {
             V oldValue = value;
             value = newValue;
             return oldValue;
         }
 
+        // 判断指定对象和此 Node 是否相等
         public final boolean equals(Object o) {
             if (o == this)
                 return true;
