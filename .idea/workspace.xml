@@ -18,37 +18,36 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/Collections/HashMap.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="32006">
-              <caret line="1247" lean-forward="true" selection-start-line="1247" selection-end-line="1247" />
+            <state relative-caret-position="589">
+              <caret line="717" column="50" lean-forward="true" selection-start-line="717" selection-start-column="50" selection-end-line="717" selection-end-column="50" />
               <folding>
-                <element signature="e#0#91657#0" expanded="true" />
                 <element signature="imports" expanded="true" />
-                <element signature="e#12882#12883#0" expanded="true" />
-                <element signature="e#12960#12961#0" expanded="true" />
-                <element signature="e#15714#15757#0" expanded="true" />
-                <element signature="e#23660#23661#0" expanded="true" />
-                <element signature="e#23714#23715#0" expanded="true" />
-                <element signature="e#24361#24362#0" expanded="true" />
-                <element signature="e#24426#24427#0" expanded="true" />
-                <element signature="e#31091#31092#0" expanded="true" />
-                <element signature="e#31129#31130#0" expanded="true" />
-                <element signature="e#42179#42180#0" expanded="true" />
-                <element signature="e#42243#42244#0" expanded="true" />
-                <element signature="e#42312#42313#0" expanded="true" />
-                <element signature="e#42388#42389#0" expanded="true" />
+                <element signature="e#11813#11856#0" expanded="true" />
+                <element signature="e#15211#15212#0" expanded="true" />
+                <element signature="e#15269#15270#0" expanded="true" />
+                <element signature="e#15435#15436#0" expanded="true" />
+                <element signature="e#15518#15519#0" expanded="true" />
+                <element signature="e#17225#17226#0" expanded="true" />
+                <element signature="e#17252#17253#0" expanded="true" />
+                <element signature="e#17452#17453#0" expanded="true" />
+                <element signature="e#17484#17485#0" expanded="true" />
+                <element signature="e#19759#19760#0" expanded="true" />
+                <element signature="e#19813#19814#0" expanded="true" />
+                <element signature="e#20460#20461#0" expanded="true" />
+                <element signature="e#20525#20526#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/ToDoList.txt">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="104">
-              <caret line="4" lean-forward="true" selection-start-line="4" selection-end-line="4" />
+              <caret line="4" column="25" selection-start-line="4" selection-start-column="25" selection-end-line="4" selection-end-column="25" />
             </state>
           </provider>
         </entry>
@@ -56,8 +55,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/HashMapNotice.txt">
           <provider selected="true" editor-type-id="text-editor">
-            <state>
-              <caret lean-forward="true" />
+            <state relative-caret-position="572">
+              <caret line="22" column="3" selection-start-line="22" selection-start-column="3" selection-end-line="22" selection-end-column="3" />
             </state>
           </provider>
         </entry>
@@ -72,15 +71,15 @@
       <list>
         <option value="$PROJECT_DIR$/src/Collections/Map.java" />
         <option value="$PROJECT_DIR$/src/Collections/AbstractMap.java" />
+        <option value="$PROJECT_DIR$/src/ToDoList.txt" />
         <option value="$PROJECT_DIR$/src/HashMapNotice.txt" />
         <option value="$PROJECT_DIR$/src/Collections/HashMap.java" />
-        <option value="$PROJECT_DIR$/src/ToDoList.txt" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds">
-    <option name="x" value="776" />
-    <option name="width" value="1151" />
+  <component name="ProjectFrameBounds" extendedState="1">
+    <option name="x" value="883" />
+    <option name="width" value="1044" />
     <option name="height" value="1047" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
@@ -91,6 +90,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -119,14 +119,13 @@
         </subPane>
       </pane>
       <pane id="Scope" />
-      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="aspect.path.notification.shown" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../LeetCode/Exercise" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../../焦炭塔/CokeTowerSystem" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -151,16 +150,18 @@
       <option name="presentableId" value="Default" />
       <updated>1567492582607</updated>
       <workItem from="1567492584083" duration="14321000" />
+      <workItem from="1567559628162" duration="18228000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="25903000" />
+    <option name="totallyTimeSpent" value="44131000" />
   </component>
   <component name="ToolWindowManager">
-    <frame x="776" y="0" width="1151" height="1047" extended-state="0" />
+    <frame x="883" y="0" width="1044" height="1047" extended-state="1" />
+    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.30064163" />
+      <window_info content_ui="combo" id="Project" order="0" weight="0.30539498" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info id="Designer" order="2" />
       <window_info id="UI Designer" order="3" />
@@ -246,41 +247,40 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/ToDoList.txt">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="104">
+          <caret line="4" column="25" selection-start-line="4" selection-start-column="25" selection-end-line="4" selection-end-column="25" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/HashMapNotice.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state>
-          <caret lean-forward="true" />
+        <state relative-caret-position="572">
+          <caret line="22" column="3" selection-start-line="22" selection-start-column="3" selection-end-line="22" selection-end-column="3" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/Collections/HashMap.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="32006">
-          <caret line="1247" lean-forward="true" selection-start-line="1247" selection-end-line="1247" />
+        <state relative-caret-position="589">
+          <caret line="717" column="50" lean-forward="true" selection-start-line="717" selection-start-column="50" selection-end-line="717" selection-end-column="50" />
           <folding>
-            <element signature="e#0#91657#0" expanded="true" />
             <element signature="imports" expanded="true" />
-            <element signature="e#12882#12883#0" expanded="true" />
-            <element signature="e#12960#12961#0" expanded="true" />
-            <element signature="e#15714#15757#0" expanded="true" />
-            <element signature="e#23660#23661#0" expanded="true" />
-            <element signature="e#23714#23715#0" expanded="true" />
-            <element signature="e#24361#24362#0" expanded="true" />
-            <element signature="e#24426#24427#0" expanded="true" />
-            <element signature="e#31091#31092#0" expanded="true" />
-            <element signature="e#31129#31130#0" expanded="true" />
-            <element signature="e#42179#42180#0" expanded="true" />
-            <element signature="e#42243#42244#0" expanded="true" />
-            <element signature="e#42312#42313#0" expanded="true" />
-            <element signature="e#42388#42389#0" expanded="true" />
+            <element signature="e#11813#11856#0" expanded="true" />
+            <element signature="e#15211#15212#0" expanded="true" />
+            <element signature="e#15269#15270#0" expanded="true" />
+            <element signature="e#15435#15436#0" expanded="true" />
+            <element signature="e#15518#15519#0" expanded="true" />
+            <element signature="e#17225#17226#0" expanded="true" />
+            <element signature="e#17252#17253#0" expanded="true" />
+            <element signature="e#17452#17453#0" expanded="true" />
+            <element signature="e#17484#17485#0" expanded="true" />
+            <element signature="e#19759#19760#0" expanded="true" />
+            <element signature="e#19813#19814#0" expanded="true" />
+            <element signature="e#20460#20461#0" expanded="true" />
+            <element signature="e#20525#20526#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/ToDoList.txt">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="104">
-          <caret line="4" lean-forward="true" selection-start-line="4" selection-end-line="4" />
         </state>
       </provider>
     </entry>
