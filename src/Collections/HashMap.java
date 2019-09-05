@@ -686,7 +686,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         // oldThr 记录扩容前的阈值
         int oldThr = threshold;
         int newCap, newThr = 0;
-        // 扩容器前的容量大于 0
+        // 如果扩容器前的容量大于 0，说明老数组中已经存在元素
         if (oldCap > 0) {
             // 如果扩容前的容量大于 MAXIMUM_CAPACITY
             // 将阈值设置为 Integer.MAX_VALUE，无法进行扩容，返回
@@ -695,43 +695,67 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                 threshold = Integer.MAX_VALUE;
                 return oldTab;
             }
-            // 如果 newCap（oldCap 的两倍）小于容量限制（MAXIMUM_CAPACITY）
-            // 且 oldCap 大于默认初始容量（DEFAULT_INITIAL_CAPACITY）
-            // 则临界值变为原来的两倍
+            // 首先将 newCap 变成 oldCap 的两倍。如果 newCap（oldCap 的两倍）
+            // 小于容量限制（MAXIMUM_CAPACITY）且 oldCap 大于默认
+            // 初始容量（DEFAULT_INITIAL_CAPACITY），则临界值变为原来
+            // 的两倍
             else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
                     oldCap >= DEFAULT_INITIAL_CAPACITY)
                 newThr = oldThr << 1; // double threshold
         }
-        // 如果旧容量小于等于 0 且旧的阈值大于 0，将新的容量设置为老数组
-        // 的阈值
+        // 如果旧容量小于等于 0，说明老数组没有任何元素。
+        // 旧的阈值大于 0，将新的容量设置为老数组的阈值。
         else if (oldThr > 0) // initial capacity was placed in threshold
             newCap = oldThr;
-        // 如果旧容量小于等于 0, 且旧的阈值小于 0
+        // 如果旧容量小于等于 0, 且旧的阈值小于 0。运行到这里说明是调用的
+        // 无参构造函数创建的该 map，并且第一次添加元素。
         // 新容量设置成默认初始容量，新的阈值设置成默认初始阈值
         else {               // zero initial threshold signifies using defaults
             newCap = DEFAULT_INITIAL_CAPACITY;
             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
         }
         // 上面的条件中只有旧容量小于等于 0 且旧的阈值大于 0 时，才有
-        // newThr 等于 0
+        // newThr 等于 0，此时 newCap 已经被赋值为 oldThr。
         if (newThr == 0) {
             float ft = (float)newCap * loadFactor;
             newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
                     (int)ft : Integer.MAX_VALUE);
         }
+        // 设置此 map 的阈值为计算出来的新的阈值 newThr
         threshold = newThr;
         @SuppressWarnings({"rawtypes","unchecked"})
+        // 创建新的数组（对于第一次添加元素，这个数组就是第一个数组，对于
+        // 存在 oldTab 的情况，这个数组就是需要扩容到的新数组）
         Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
+        // table 指向新数组
         table = newTab;
+        // 如果 oldTab 不为 null，说明存在元素，需要将元素转移到新数组
         if (oldTab != null) {
+            // 遍历 oldTab
             for (int j = 0; j < oldCap; ++j) {
                 Node<K,V> e;
+                // 如果当前位置有元素，那么需要转移该元素
                 if ((e = oldTab[j]) != null) {
                     oldTab[j] = null;
+                    // 如果元素的 next 属性为 null，说明不存在 hash 冲突
                     if (e.next == null)
+                        // 把元素存储到新数组中，位置需要根据 hash 值和数组长度
+                        // 取模：[hash 值 % 数组长度] = [hash 值 & （数组长度 - 1）]
+                        // 用上述方式取模要求数组长度必须是 2 的 N 次方
                         newTab[e.hash & (newCap - 1)] = e;
+
+                    // 如果 e 有下一个节点，判断其存储结构是链表结构还是红黑树结构
+                    // 数组长度为 16，那么 hash 值为 1（1%16=1）的和 hash 值为
+                    // 17（17%16=1）的两个元素都是会存储在数组的第 2 个位置上
+                    //（对应数组下标为 1 ），当数组扩容为 32（1%32=1）时，hash
+                    // 值为1的还应该存储在新数组的第二个位置上，但是 hash 值为
+                    // 17（17%32=17）的就应该存储在新数组的第18个位置上了。
+                    // 所以数组扩容后，所有元素都需要重新计算在新数组中的位置。
+
+                    // 如果为红黑树结构
                     else if (e instanceof TreeNode)
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
+                    // 否则肯定为链式结构
                     else { // preserve order
                         Node<K,V> loHead = null, loTail = null;
                         Node<K,V> hiHead = null, hiTail = null;
