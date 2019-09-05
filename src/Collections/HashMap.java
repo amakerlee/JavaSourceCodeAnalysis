@@ -757,18 +757,30 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
                     // 否则肯定为链式结构
                     else { // preserve order
+                        // loHead 低位首节点，loTail 低位尾结点
                         Node<K,V> loHead = null, loTail = null;
+                        // hiHead 高位首节点，hiTail 高位尾结点
                         Node<K,V> hiHead = null, hiTail = null;
+                        // 以上的低位指的是新数组的 0 到 oldCap - 1、高位指的
+                        // 是 oldCap 到 newCap - 1
                         Node<K,V> next;
+                        // 对当前桶的所有节点进行遍历
                         do {
                             next = e.next;
+                            // e 的 hash 值和 oldCap 求与操作，值为 0，说明 hash 值
+                            // 小于老数组的长度
                             if ((e.hash & oldCap) == 0) {
+                                // 链表为空，头结点指向该元素
                                 if (loTail == null)
                                     loHead = e;
+                                // 链表不为空，元素添加到链表尾部
                                 else
                                     loTail.next = e;
+                                // 尾结点设置为当前元素
                                 loTail = e;
                             }
+                            // 否则 hash 值大于老数组的长度，此时元素应该放置到
+                            // 高位位置上
                             else {
                                 if (hiTail == null)
                                     hiHead = e;
@@ -777,10 +789,13 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                                 hiTail = e;
                             }
                         } while ((e = next) != null);
+                        // 低位的元素组成的链表还是放在原来的位置
                         if (loTail != null) {
                             loTail.next = null;
                             newTab[j] = loHead;
                         }
+                        // 高位元素组成的链表放置的位置在原有位置上偏移了
+                        // 老数组的长度个位置
                         if (hiTail != null) {
                             hiTail.next = null;
                             newTab[j + oldCap] = hiHead;
