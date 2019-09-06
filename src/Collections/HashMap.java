@@ -231,9 +231,9 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     static final int UNTREEIFY_THRESHOLD = 6;
 
     /**
-     * 桶可能被转化成树形结构的最小容量。（在桶里面节点数太多时会调整
-     * 大小。）容量应该至少为 4 * TREEIFY_THRESHOLD 来避免和树形
-     * 结构化之间的冲突。
+     * 当 table 数组大于此容量是，桶才可能被转化成树形结构的。
+     * （在桶里面节点数太多时会调整大小。）容量应该至少为
+     * 4 * TREEIFY_THRESHOLD 来避免和树形结构化之间的冲突。
      */
     static final int MIN_TREEIFY_CAPACITY = 64;
 
@@ -808,34 +808,47 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     /**
-     * Replaces all linked nodes in bin at index for given hash unless
-     * table is too small, in which case resizes instead.
+     * 把桶里的链式结构变成树结构。
      */
     final void treeifyBin(Node<K,V>[] tab, int hash) {
         int n, index; Node<K,V> e;
+        // 如果元素数组为 null 或者数组长度小于树结构化的最小限制，
+        // 则没有必要进行结构转换
+        // 注意：当一个桶里集中了多个键值对映射，那是因为这些 key 的
+        // hash 值和数组长度取模之后结果相同，而不是因为这些 key 的 hash
+        // 值相同。
+        // 因为 hash 值相同的概率不高，所以可以通过扩容的方式，来使这些
+        // 键值对拆分到多个位置上。
         if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
             resize();
+        // 如果待转化的桶不为 null，则将该桶内的映射转化成树形结构
         else if ((e = tab[index = (n - 1) & hash]) != null) {
+            // 首尾节点
             TreeNode<K,V> hd = null, tl = null;
+            // 先把节点转化成树节点，把单向链表转化成双向链表
             do {
+                // 将该节点转化为树节点
                 TreeNode<K,V> p = replacementTreeNode(e, null);
+                // 如果尾结点为 null，说明还没有根节点
                 if (tl == null)
                     hd = p;
+                // 尾结点不为空
                 else {
                     p.prev = tl;
                     tl.next = p;
                 }
+                // 当前节点设置成尾结点
                 tl = p;
             } while ((e = e.next) != null);
+            // 双向链表替换原来的单向链表，并转化成红黑树
             if ((tab[index] = hd) != null)
                 hd.treeify(tab);
         }
     }
 
     /**
-     * Copies all of the mappings from the specified map to this map.
-     * These mappings will replace any mappings that this map had for
-     * any of the keys currently in the specified map.
+     * 将指定 map 的所有映射复制到此 map 中。这些映射将替代此 map 中
+     * 已经存在的 key 对应的映射。
      *
      * @param m mappings to be stored in this map
      * @throws NullPointerException if the specified map is null
@@ -845,13 +858,12 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     /**
-     * Removes the mapping for the specified key from this map if present.
+     * 删除此 map 中指定 key 对应的映射，如果其存在的话。
      *
      * @param  key key whose mapping is to be removed from the map
-     * @return the previous value associated with <tt>key</tt>, or
-     *         <tt>null</tt> if there was no mapping for <tt>key</tt>.
-     *         (A <tt>null</tt> return can also indicate that the map
-     *         previously associated <tt>null</tt> with <tt>key</tt>.)
+     * @return the previous value associated with key, or null if there was
+     *                no mapping for key. (A null return can also indicate that the
+     *                map previously associated null with key.)
      */
     public V remove(Object key) {
         Node<K,V> e;
@@ -860,49 +872,80 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     /**
-     * Implements Map.remove and related methods.
+     * 实现 Map.remove 和相关方法。
+     * 方法为 final，不可被覆盖
      *
-     * @param hash hash for key
-     * @param key the key
-     * @param value the value to match if matchValue, else ignored
-     * @param matchValue if true only remove if value is equal
-     * @param movable if false do not move other nodes while removing
-     * @return the node, or null if none
+     * @param hash key的hash值，该值是通过hash(key)获取到的
+     * @param key 要删除的键值对的key
+     * @param value 要删除的键值对的value，该值是否作为删除的条件取决
+     *               于matchValue是否为true
+     * @param matchValue 如果为true，则当key对应的键值对的值
+     *                equals(value)为true时才删除；否则不关心value的值
+     * @param movable 删除后是否移动节点，如果为false，则不移动
+     * @return 返回被删除的节点对象，如果没有删除任何节点则返回null
      */
     final Node<K,V> removeNode(int hash, Object key, Object value,
                                boolean matchValue, boolean movable) {
+        // 声明节点数组，当前节点，数组长度，索引值
         Node<K,V>[] tab; Node<K,V> p; int n, index;
+        // 如果节点数组 tab 不为 null，tab 的长度大于 0，当前节点对象
+        //（该节点为树的根节点或链表的首节点）不为 null，则从该节点遍历，
+        // 找到和 key 匹配的对象。
         if ((tab = table) != null && (n = tab.length) > 0 &&
                 (p = tab[index = (n - 1) & hash]) != null) {
             Node<K,V> node = null, e; K k; V v;
+
+            // 如果当前节点的 key 和指定 key 相等（引用相等或者值相等），
+            // 那么当前节点就是要删除的节点
             if (p.hash == hash &&
                     ((k = p.key) == key || (key != null && key.equals(k))))
                 node = p;
+            // 第一个节点没有匹配成功，检查是否有 next 节点
+            // 如果有 next 节点，说明发生了 hash 碰撞，该节点上的数据结构
+            // 可能为链式结构，可能为红黑树
             else if ((e = p.next) != null) {
+                // 当前节点是树节点，那么调用红黑树中 getTreeNode 方法查找
+                // 指定节点
                 if (p instanceof TreeNode)
                     node = ((TreeNode<K,V>)p).getTreeNode(hash, key);
+                // 当前节点是链表节点，从头到尾遍历
                 else {
                     do {
+                        // hash 值相等，或者 key 指向同一个对象，或者 key 的值相等
+                        // 即表示匹配成功
                         if (e.hash == hash &&
                                 ((k = e.key) == key ||
                                         (key != null && key.equals(k)))) {
                             node = e;
                             break;
                         }
+                        // 把当前节点p指向e，这一步是让p存储的永远下一次循环
+                        // 里e的父节点，如果下一次e匹配上了，那么p就是node的
+                        // 父节点
                         p = e;
                     } while ((e = e.next) != null);
                 }
             }
+
+            // 如果 node 不为 null，说明 key 匹配成功
+            // 如果不需要对比 value或者需要对比但 value 也相等
+            // 那么就可以删除该 node 节点
             if (node != null && (!matchValue || (v = node.value) == value ||
                     (value != null && value.equals(v)))) {
+                // 该节点是树节点，调用 TreeNode 的 removeTreeNode 方法删除
                 if (node instanceof TreeNode)
                     ((TreeNode<K,V>)node).removeTreeNode(this, tab, movable);
+                // 如果找到的节点是首节点，将桶指向第二个节点即可
                 else if (node == p)
                     tab[index] = node.next;
+                // 找到的节点是链表的中间节点，由于 p 是 node 的父节点，直接
+                // 将 p.next 指向 node.next 即可
                 else
                     p.next = node.next;
                 ++modCount;
+                // size 减一
                 --size;
+                // 留给子类的操作，此类没有任何实现逻辑
                 afterNodeRemoval(node);
                 return node;
             }
@@ -911,8 +954,8 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     /**
-     * Removes all of the mappings from this map.
-     * The map will be empty after this call returns.
+     * 删除此 map 中所有映射。
+     * 此方法调用后 map 为空。
      */
     public void clear() {
         Node<K,V>[] tab;
@@ -925,17 +968,17 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     /**
-     * Returns <tt>true</tt> if this map maps one or more keys to the
-     * specified value.
+     * 如果 map 中有一个或多个 key 映射到指定 value，则返回 true
      *
      * @param value value whose presence in this map is to be tested
-     * @return <tt>true</tt> if this map maps one or more keys to the
+     * @return true if this map maps one or more keys to the
      *         specified value
      */
     public boolean containsValue(Object value) {
         Node<K,V>[] tab; V v;
         if ((tab = table) != null && size > 0) {
             for (int i = 0; i < tab.length; ++i) {
+                // 遍历当前桶内所有映射
                 for (Node<K,V> e = tab[i]; e != null; e = e.next) {
                     if ((v = e.value) == value ||
                             (value != null && value.equals(v)))
@@ -947,17 +990,12 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     /**
-     * Returns a {@link Set} view of the keys contained in this map.
-     * The set is backed by the map, so changes to the map are
-     * reflected in the set, and vice-versa.  If the map is modified
-     * while an iteration over the set is in progress (except through
-     * the iterator's own <tt>remove</tt> operation), the results of
-     * the iteration are undefined.  The set supports element removal,
-     * which removes the corresponding mapping from the map, via the
-     * <tt>Iterator.remove</tt>, <tt>Set.remove</tt>,
-     * <tt>removeAll</tt>, <tt>retainAll</tt>, and <tt>clear</tt>
-     * operations.  It does not support the <tt>add</tt> or <tt>addAll</tt>
-     * operations.
+     * 返回一个包含 map 中所有 key 的 Set 视图。Set 由 map 支撑，所以
+     * map 中的任何改变都会影响此 set，反之亦然。如果对此 set 进行迭代
+     * 的过程中 map 被改变了（迭代器自身的 remove 操作除外），迭代的
+     * 结果不确定。此 set 支持元素删除，即从 map 中删除对应的映射，通过
+     * Iterator.remove，Set.remove，removeAll，retainAll，和 clear 方法
+     * 均可以实现。此 set 不支持 add 或者 addAll 方法。
      *
      * @return a set view of the keys contained in this map
      */
@@ -998,17 +1036,12 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     /**
-     * Returns a {@link Collection} view of the values contained in this map.
-     * The collection is backed by the map, so changes to the map are
-     * reflected in the collection, and vice-versa.  If the map is
-     * modified while an iteration over the collection is in progress
-     * (except through the iterator's own <tt>remove</tt> operation),
-     * the results of the iteration are undefined.  The collection
-     * supports element removal, which removes the corresponding
-     * mapping from the map, via the <tt>Iterator.remove</tt>,
-     * <tt>Collection.remove</tt>, <tt>removeAll</tt>,
-     * <tt>retainAll</tt> and <tt>clear</tt> operations.  It does not
-     * support the <tt>add</tt> or <tt>addAll</tt> operations.
+     * 返回一个包含 map 中所有 value 的 Collection 视图。集合由 map 支撑，
+     * 所以 map 中的任何改变都会影响此集合，反之亦然。如果对此集合进行
+     * 迭代的过程中 map 被改变了（迭代器自身的 remove 操作除外），迭代的
+     * 结果不确定。此集合支持元素删除，即从 map 中删除对应的映射，通过
+     * Iterator.remove，Collection.remove，removeAll，retainAll，和
+     * clear 方法均可以实现。此 Collection 不支持 add 或者 addAll 方法。
      *
      * @return a view of the values contained in this map
      */
@@ -1046,18 +1079,12 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     /**
-     * Returns a {@link Set} view of the mappings contained in this map.
-     * The set is backed by the map, so changes to the map are
-     * reflected in the set, and vice-versa.  If the map is modified
-     * while an iteration over the set is in progress (except through
-     * the iterator's own <tt>remove</tt> operation, or through the
-     * <tt>setValue</tt> operation on a map entry returned by the
-     * iterator) the results of the iteration are undefined.  The set
-     * supports element removal, which removes the corresponding
-     * mapping from the map, via the <tt>Iterator.remove</tt>,
-     * <tt>Set.remove</tt>, <tt>removeAll</tt>, <tt>retainAll</tt> and
-     * <tt>clear</tt> operations.  It does not support the
-     * <tt>add</tt> or <tt>addAll</tt> operations.
+     * 返回一个包含 map 中所有 entry 的 Set 视图。集合由 map 支撑，所以
+     * map 中的任何改变都会影响此集合，反之亦然。如果对此集合进行迭代
+     * 的过程中 map 被改变了（迭代器自身的 remove 操作除外），迭代的
+     * 结果不确定。此集合支持元素删除，即从 map 中删除对应的映射，通过
+     * Iterator.remove，Set.remove，removeAll，retainAll，和 clear 方法
+     * 均可以实现。此 set 不支持 add 或者 addAll 方法。
      *
      * @return a set view of the mappings contained in this map
      */
@@ -1072,14 +1099,19 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         public final Iterator<Map.Entry<K,V>> iterator() {
             return new EntryIterator();
         }
+        // 是否包含指定对象
         public final boolean contains(Object o) {
+            // 如果该对象不是 Map.Entry 对象，返回 false
             if (!(o instanceof Map.Entry))
                 return false;
             Map.Entry<?,?> e = (Map.Entry<?,?>) o;
             Object key = e.getKey();
+            // 从 map 中搜索指定 entry 的 key 对应的映射
             Node<K,V> candidate = getNode(hash(key), key);
+            // 判断获取到的映射和指定对象是否相等
             return candidate != null && candidate.equals(e);
         }
+        // 删除和指定对象匹配的 entry
         public final boolean remove(Object o) {
             if (o instanceof Map.Entry) {
                 Map.Entry<?,?> e = (Map.Entry<?,?>) o;
@@ -1109,18 +1141,23 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     // Overrides of JDK8 Map extension methods
+    // 重写 JDK8 的 Map 中方法
 
+    // 返回 key 对应的 value，如果没有返回默认值 defaultValue
     @Override
     public V getOrDefault(Object key, V defaultValue) {
         Node<K,V> e;
         return (e = getNode(hash(key), key)) == null ? defaultValue : e.value;
     }
 
+    // 如果指定的键还没有和值相关联（或者被映射为 null），则将它的 value
+    // 设置为指定的值并返回 null，否则返回当前值。
     @Override
     public V putIfAbsent(K key, V value) {
         return putVal(hash(key), key, value, true, true);
     }
 
+    // 删除和指定 key，指定 value 匹配的映射
     @Override
     public boolean remove(Object key, Object value) {
         return removeNode(hash(key), key, value, true, true) != null;
@@ -1371,6 +1408,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
 
     /* ------------------------------------------------------------ */
     // Cloning and serialization
+    // 克隆和序列化
 
     /**
      * Returns a shallow copy of this <tt>HashMap</tt> instance: the keys and
