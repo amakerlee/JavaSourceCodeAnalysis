@@ -1163,9 +1163,12 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         return removeNode(hash(key), key, value, true, true) != null;
     }
 
+    // 对于指定 key 匹配的键值对，用 newValue 代替 oldValue
     @Override
     public boolean replace(K key, V oldValue, V newValue) {
         Node<K,V> e; V v;
+        // 获取指定 key 对应的映射，如果映射存在且其 value 等于指定的 oldValue
+        // 那么将 oldValue 替换成 newValue
         if ((e = getNode(hash(key), key)) != null &&
                 ((v = e.value) == oldValue || (v != null && v.equals(oldValue)))) {
             e.value = newValue;
@@ -1175,6 +1178,8 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         return false;
     }
 
+    // 和上一个方法不同的是，不需要匹配 value，只要找到指定 key 对应的映射，
+    // 无条件替换成指定 value
     @Override
     public V replace(K key, V value) {
         Node<K,V> e;
@@ -1187,24 +1192,41 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         return null;
     }
 
+    /**
+     * 如果指定的 key 没有和对应的 value（或者映射到 null），使用给定的
+     * mapping function 计算它的 value，如果计算出来的 value 不为 null，则
+     * 将其插入到 map 中。
+     *
+     * @param key key with which the specified value is to be associated
+     * @param mappingFunction the function to compute a value
+     * @return value 新的 value
+     */
     @Override
     public V computeIfAbsent(K key,
                              Function<? super K, ? extends V> mappingFunction) {
         if (mappingFunction == null)
             throw new NullPointerException();
+        // key 的 hash 值
         int hash = hash(key);
         Node<K,V>[] tab; Node<K,V> first; int n, i;
         int binCount = 0;
         TreeNode<K,V> t = null;
         Node<K,V> old = null;
+        // 如果 size 大于阈值 threshold，或者 table 为 null，或者 table 的长度
+        // 为 0，那么对 table 进行扩容
         if (size > threshold || (tab = table) == null ||
                 (n = tab.length) == 0)
             n = (tab = resize()).length;
+        // 如果 key 对应的桶不为 null，那么在该桶内寻找指定 key 对应的节点
         if ((first = tab[i = (n - 1) & hash]) != null) {
+            // 如果首节点是树节点，那么调用树节点的 getTreeNode 方法找到指定
+            // key 对应的节点
             if (first instanceof TreeNode)
                 old = (t = (TreeNode<K,V>)first).getTreeNode(hash, key);
+            // 否则肯定是链式结构
             else {
                 Node<K,V> e = first; K k;
+                // 遍历链式结构，一旦找到指定 key 对应的则跳出循环
                 do {
                     if (e.hash == hash &&
                             ((k = e.key) == key || (key != null && key.equals(k)))) {
@@ -1215,21 +1237,30 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                 } while ((e = e.next) != null);
             }
             V oldValue;
+            // 如果找到的 old 节点的 value 值不为 null，操作结束，返回 old 原本
+            // 的 value 值
             if (old != null && (oldValue = old.value) != null) {
                 afterNodeAccess(old);
                 return oldValue;
             }
         }
+        // 根据 mappingFunction 规则和 key 计算出 value
         V v = mappingFunction.apply(key);
+        // 如果计算出来的 value 值为 null，则返回 null
         if (v == null) {
             return null;
+        // 如果 old 节点不为 null，将新的 value 赋值给该节点，并返回新的 value 值
         } else if (old != null) {
             old.value = v;
             afterNodeAccess(old);
             return v;
         }
+        // 如果 old 为 null，但是 t 不为空，说明此桶内为树结构，那么调用树节点
+        // 的 putVal 方法
         else if (t != null)
             t.putTreeVal(this, tab, hash, key, v);
+        // 否则此桶内为链式结构，创建一个链式节点，并将其插入首节点位置，
+        // 插入完成后判断此桶内节点数是否超过阈值，如果超过则转化成树结构
         else {
             tab[i] = newNode(hash, key, v, first);
             if (binCount >= TREEIFY_THRESHOLD - 1)
@@ -1241,15 +1272,28 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         return v;
     }
 
+    /**
+     * 如果 map 中指定的 key 存在对应的 value 且不为 null，使用 function
+     * 计算出新的 value。
+     *
+     * @param key key with which the specified value is to be associated
+     * @param remappingFunction the function to compute a value
+     * @return value 新的 value 值
+     */
     public V computeIfPresent(K key,
                               BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         if (remappingFunction == null)
             throw new NullPointerException();
         Node<K,V> e; V oldValue;
+        // 计算 key 的 hash 值
         int hash = hash(key);
+        // 如果指定 key 对应的节点不为 null 且其 value 不为 null，继续以下操作，
+        // 否则返回 null
         if ((e = getNode(hash, key)) != null &&
                 (oldValue = e.value) != null) {
             V v = remappingFunction.apply(key, oldValue);
+            // 如果计算出来的 value 值不为 null，则将其赋值给指定节点，否则将
+            // 指定节点删除
             if (v != null) {
                 e.value = v;
                 afterNodeAccess(e);
@@ -1261,24 +1305,39 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         return null;
     }
 
+    /**
+     * 利用指定的 key 和它当前的 value（如果当前不存在映射则 value 为 null）
+     * 计算对应的映射。
+     * @param key key with which the specified value is to be associated
+     * @param remappingFunction the function to compute a value
+     * @return
+     */
     @Override
     public V compute(K key,
                      BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
         if (remappingFunction == null)
             throw new NullPointerException();
+        // 计算 key 的 hash 值
         int hash = hash(key);
         Node<K,V>[] tab; Node<K,V> first; int n, i;
         int binCount = 0;
         TreeNode<K,V> t = null;
         Node<K,V> old = null;
+        // 如果指定 key 对应的节点不为 null 且其 value 不为 null，继续以下操作，
+        // 否则返回 null
         if (size > threshold || (tab = table) == null ||
                 (n = tab.length) == 0)
             n = (tab = resize()).length;
+        // 如果 key 对应的桶不为 null，那么在该桶内寻找指定 key 对应的节点
         if ((first = tab[i = (n - 1) & hash]) != null) {
+            // 如果首节点是树节点，那么调用树节点的 getTreeNode 方法找到指定
+            // key 对应的节点
             if (first instanceof TreeNode)
                 old = (t = (TreeNode<K,V>)first).getTreeNode(hash, key);
+            // 否则肯定是链式结构
             else {
                 Node<K,V> e = first; K k;
+                // 遍历链式结构，一旦找到指定 key 对应的则跳出循环
                 do {
                     if (e.hash == hash &&
                             ((k = e.key) == key || (key != null && key.equals(k)))) {
@@ -1289,19 +1348,28 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                 } while ((e = e.next) != null);
             }
         }
+        // 如果 old 节点为 null，那么 oldValue 也为 null，否则为 old 的 value 值
         V oldValue = (old == null) ? null : old.value;
         V v = remappingFunction.apply(key, oldValue);
+        // 如果 old 不为 null
         if (old != null) {
+            // 如果 v 不为 null，将计算出来的 value 值赋值给此节点的 value
             if (v != null) {
                 old.value = v;
                 afterNodeAccess(old);
             }
+            // 如果计算出来的 v 为 null，则删除该节点
             else
                 removeNode(hash, key, null, false, true);
         }
+        // 如果 old 为 null，即原来不存在指定 key 对应的节点，但计算出来的 v
+        // 不为 null，那么将新的节点插入到该桶里面
         else if (v != null) {
+            // 如果是树结构，调用树结构的 putTreeVal 插入
             if (t != null)
                 t.putTreeVal(this, tab, hash, key, v);
+            // 如果是链式结构，将新的节点插入到该桶的首节点位置，然后判断
+            // 是否要转化成树结构
             else {
                 tab[i] = newNode(hash, key, v, first);
                 if (binCount >= TREEIFY_THRESHOLD - 1)
