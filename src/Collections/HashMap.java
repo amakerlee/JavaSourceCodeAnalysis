@@ -1382,6 +1382,11 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         return v;
     }
 
+    /**
+     * 如果指定的 key 没有关联的 value 或者关联的 value 为 null，把它和
+     * 给定的非 null 值关联起来。如果有关联的 value，用给定的 function 的
+     * 返回值替换原来的 value，如果 function 的结果为 null，那么删除此映射。
+     */
     @Override
     public V merge(K key, V value,
                    BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
@@ -1389,17 +1394,23 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
             throw new NullPointerException();
         if (remappingFunction == null)
             throw new NullPointerException();
+        // 计算出 key 的 hash 值
         int hash = hash(key);
         Node<K,V>[] tab; Node<K,V> first; int n, i;
         int binCount = 0;
         TreeNode<K,V> t = null;
         Node<K,V> old = null;
+        // 如果 size 大于阈值，或者 table 为 null，或者 tab 的长度为 0，那么对
+        // table 扩容
         if (size > threshold || (tab = table) == null ||
                 (n = tab.length) == 0)
             n = (tab = resize()).length;
+        // 如果 key 对应的桶不为 null，那么在桶内查找指定的映射
         if ((first = tab[i = (n - 1) & hash]) != null) {
+            // 如果节点为树节点，调用树节点的 getTreeNode 查找
             if (first instanceof TreeNode)
                 old = (t = (TreeNode<K,V>)first).getTreeNode(hash, key);
+            // 否则该桶内为链式结构，遍历链式结构的所有节点，知道找到节点
             else {
                 Node<K,V> e = first; K k;
                 do {
@@ -1412,12 +1423,18 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                 } while ((e = e.next) != null);
             }
         }
+        // 如果存在该节点
         if (old != null) {
             V v;
+            // 如果该节点原先的值不为 null，那么使用 remappingFunction 计算出
+            // 新的 value，如果原先的 value 值为 null，那么将参数里指定的 value
+            // 值赋值给新的 value
             if (old.value != null)
                 v = remappingFunction.apply(old.value, value);
             else
                 v = value;
+            // 如果新的 value 不为 null，那么将该节点的 value 值赋值为新的 value，
+            // 否则删除该节点
             if (v != null) {
                 old.value = v;
                 afterNodeAccess(old);
@@ -1426,6 +1443,10 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                 removeNode(hash, key, null, false, true);
             return v;
         }
+        // 如果不存在该节点，且参数里指定的 value 不为 null，创造新的节点。
+        // 若 t 不为 null，即桶内数据结构为树结构，则调用树节点的 putTreeVal
+        // 方法，桶内为链式结构时，将其插入到链表头部，并在插入完成后判断
+        // 是否将其转化成树结构
         if (value != null) {
             if (t != null)
                 t.putTreeVal(this, tab, hash, key, value);
@@ -1457,6 +1478,9 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         }
     }
 
+    /**
+     * 对于 map 中的每一个 entry，将 value 替换成 BiFunction 返回的值
+     */
     @Override
     public void replaceAll(BiFunction<? super K, ? super V, ? extends V> function) {
         Node<K,V>[] tab;
@@ -1479,8 +1503,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     // 克隆和序列化
 
     /**
-     * Returns a shallow copy of this <tt>HashMap</tt> instance: the keys and
-     * values themselves are not cloned.
+     * 返回一个 HashMap 的浅克隆：key 和 value 对象本身不克隆。
      *
      * @return a shallow copy of this map
      */
@@ -1500,6 +1523,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     // These methods are also used when serializing HashSets
+    // 这些方法在序列化 HashSet 的时候也要使用
     final float loadFactor() { return loadFactor; }
     final int capacity() {
         return (table != null) ? table.length :
@@ -1508,15 +1532,13 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     /**
-     * Save the state of the <tt>HashMap</tt> instance to a stream (i.e.,
-     * serialize it).
+     * 把 HashMap 实例的状态保存在流里面。（例如，对它序列化）
      *
-     * @serialData The <i>capacity</i> of the HashMap (the length of the
-     *             bucket array) is emitted (int), followed by the
-     *             <i>size</i> (an int, the number of key-value
-     *             mappings), followed by the key (Object) and value (Object)
-     *             for each key-value mapping.  The key-value mappings are
-     *             emitted in no particular order.
+     * @serialData The capacity of the HashMap (the length of the bucket
+     *                  array) is emitted (int), followed by the size (an int, the
+     *                  number of key-value mappings), followed by the key
+     *                  (Object) and value (Object) for each key-value mapping.
+     *                  The key-value mappings are emitted in no particular order.
      */
     private void writeObject(java.io.ObjectOutputStream s)
             throws IOException {
@@ -1529,7 +1551,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     /**
-     * Reconstitutes this map from a stream (that is, deserializes it).
+     * 从流数据里重建 HashMap。（即反序列化它）
      * @param s the stream
      * @throws ClassNotFoundException if the class of a serialized object
      *         could not be found
@@ -1582,6 +1604,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
 
     /* ------------------------------------------------------------ */
     // iterators
+    // 迭代器
 
     abstract class HashIterator {
         Node<K,V> next;        // next entry to return
@@ -1900,27 +1923,26 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
 
     /* ------------------------------------------------------------ */
     // LinkedHashMap support
+    // LinkedHashMap 支持
 
 
     /*
-     * The following package-protected methods are designed to be
-     * overridden by LinkedHashMap, but not by any other subclass.
-     * Nearly all other internal methods are also package-protected
-     * but are declared final, so can be used by LinkedHashMap, view
-     * classes, and HashSet.
+     * 接下来的 protected 方法用来被 LinkedHashMap 覆盖，但不会用于其他
+     * 子类。几乎所有其它的内部方法都是 protected 方法，但被定义成 final
+     * 类型，所以可以被 LinkedHashMap，视图类和 HashSet 使用。
      */
 
-    // Create a regular (non-tree) node
+    // 创建单个（非树结构）节点
     Node<K,V> newNode(int hash, K key, V value, Node<K,V> next) {
         return new Node<>(hash, key, value, next);
     }
 
-    // For conversion from TreeNodes to plain nodes
+    // 用于将树节点转化成简单的节点
     Node<K,V> replacementNode(Node<K,V> p, Node<K,V> next) {
         return new Node<>(p.hash, p.key, p.value, next);
     }
 
-    // Create a tree bin node
+    // 创建一个树节点
     TreeNode<K,V> newTreeNode(int hash, K key, V value, Node<K,V> next) {
         return new TreeNode<>(hash, key, value, next);
     }
@@ -1931,7 +1953,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     /**
-     * Reset to initial default state.  Called by clone and readObject.
+     * 重置为初始默认的状态，由 clone 和 readObject 调用
      */
     void reinitialize() {
         table = null;
@@ -1962,12 +1984,11 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
     }
 
     /* ------------------------------------------------------------ */
-    // Tree bins
+    // 树结构的桶
 
     /**
-     * Entry for Tree bins. Extends LinkedHashMap.Entry (which in turn
-     * extends Node) so can be used as extension of either regular or
-     * linked node.
+     * 树结构桶内的 entry。继承自 LinkedHashMap.Entry（此类继承自 Node），
+     * 所以可能用来当成简单节点或链表节点的扩展。
      */
     static final class TreeNode<K,V> extends LinkedHashMap.Entry<K,V> {
         TreeNode<K,V> parent;  // red-black tree links
