@@ -2332,78 +2332,126 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
          */
         final void removeTreeNode(HashMap<K,V> map, Node<K,V>[] tab,
                                   boolean movable) {
-            // 开始链表的处理
+            // 链表处理开始
             int n;
             // table 为 null 或者 table 的长度为 0 直接返回
             if (tab == null || (n = tab.length) == 0)
                 return;
             // 根据 hash 值计算出索引的位置
             int index = (n - 1) & hash;
+            // 索引中第一个节点赋值给 first 和 root
             TreeNode<K,V> first = (TreeNode<K,V>)tab[index], root = first, rl;
+            // succ 指向当前节点下一个节点，pred 指向当前节点的上一个节点
             TreeNode<K,V> succ = (TreeNode<K,V>)next, pred = prev;
+            // 如果 pred 为 null，则将当前节点的下一个节点 next 设置为
+            // 第一个节点
             if (pred == null)
                 tab[index] = first = succ;
+            // 否则将 pred 的 next 设置为当前节点的下一个节点
             else
                 pred.next = succ;
             if (succ != null)
                 succ.prev = pred;
+            // 如果删除完之后 first 为 null，则代表该索引位置已经没有节点，
+            // 则直接返回
             if (first == null)
                 return;
+            // 如果 root 的 parent 不为 null，说明 root 不是根节点，将 root
+            // 赋值为根节点
             if (root.parent != null)
                 root = root.root();
+            // 通过 root 判断此红黑树是否太小，如果是则调用 untreeify 方法
+            // 将其转化成链式结构并将所有节点转化成简单节点
             if (root == null
                     || (movable
                     && (root.right == null
                     || (rl = root.left) == null
                     || rl.left == null))) {
                 tab[index] = first.untreeify(map);  // too small
+                // 若转化成链式结构则不需要再进行下面的红黑树处理
                 return;
             }
+            // 链表处理到此结束
+
+            // 红黑树处理开始
+            // p 指向 this 节点，pl 指向 left 节点，pr 指向 right 节点
+            // （p 为要删除的节点）
             TreeNode<K,V> p = this, pl = left, pr = right, replacement;
+            // 如果其左子节点和右子节点都不为 null
             if (pl != null && pr != null) {
+                // s 指向 p 的右子节点
                 TreeNode<K,V> s = pr, sl;
+                // s 一直向左查找，直到其指向最左的叶子结点
                 while ((sl = s.left) != null) // find successor
                     s = sl;
+                // 首先交换 p 和 s 的颜色（下面的步骤都是为了将 p 和 s 位置互换，
+                // 先交换颜色）
                 boolean c = s.red; s.red = p.red; p.red = c; // swap colors
+                // sr 指向 s 的右子节点
                 TreeNode<K,V> sr = s.right;
+                // pp 指向 p 的父节点
                 TreeNode<K,V> pp = p.parent;
+
+                // 第一次调整开始
+                // 如果 p 的右子节点 pr 为叶子结点，将 p 的父节点设置为 s，
+                // s 的右子节点设置为 p
                 if (s == pr) { // p was s's direct parent
                     p.parent = s;
                     s.right = p;
                 }
                 else {
                     TreeNode<K,V> sp = s.parent;
+                    // 如果 s 的父节点不为 null，将 p 的父节点设置为 s 的父节点 sp
                     if ((p.parent = sp) != null) {
+                        // 如果 s 节点为 左子节点，则将 s 父节点的左子节点设置为 p 节点
                         if (s == sp.left)
                             sp.left = p;
+                        // 否则将 s 父节点的右子节点设置为 p 节点
                         else
                             sp.right = p;
                     }
+                    // s 的右子节点设置为 pr，pr 的父节点设置为 s
                     if ((s.right = pr) != null)
                         pr.parent = s;
                 }
+
+                // 第二次调整
                 p.left = null;
+                // 如果 s 的右子节点不为 null，将 p 的右子节点设置为 s 的右子节点
                 if ((p.right = sr) != null)
                     sr.parent = p;
+                // 如果 p 的左子节点不为 null，将 s 的左子节点设置为 p 的左子节点
                 if ((s.left = pl) != null)
                     pl.parent = s;
+                // 将 s 的父节点设置为 p 的父节点，若父节点为 null，则 s 节点为
+                // 红黑树的根节点
                 if ((s.parent = pp) == null)
                     root = s;
+                // 如果 p 为其父节点 pp 的左子节点，将 pp 的左子节点设置为 s
+                // 否则将 pp 的右子节点设置为 s
                 else if (p == pp.left)
                     pp.left = s;
                 else
                     pp.right = s;
+                //
                 if (sr != null)
                     replacement = sr;
                 else
                     replacement = p;
             }
+            // 如果 p 的左子节点不为 null，右子节点为 null， replacement 设置
+            // 为其左子节点
             else if (pl != null)
                 replacement = pl;
+            // 如果 p 的右子节点不为 null，左子节点为 null， replacement 设置
+            // 为其右子节点
             else if (pr != null)
                 replacement = pr;
+            // 如果其左右子节点都为 null，replacement 直接设置为 p 节点
             else
                 replacement = p;
+
+            // 第三次调整
             if (replacement != p) {
                 TreeNode<K,V> pp = replacement.parent = p.parent;
                 if (pp == null)
@@ -2415,8 +2463,12 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                 p.left = p.right = p.parent = null;
             }
 
+            // 如果 p 节点不为红色则进行红黑树删除平衡调整
+            // 如果 p 是红色则不会破坏红黑树的平衡不需要调整
             TreeNode<K,V> r = p.red ? root : balanceDeletion(root, replacement);
 
+            // 如果 p 等于 replecement 即其左右子节点均为 null，即 p 本身为
+            // 叶节点，则将节点 p 删除即可
             if (replacement == p) {  // detach
                 TreeNode<K,V> pp = p.parent;
                 p.parent = null;
