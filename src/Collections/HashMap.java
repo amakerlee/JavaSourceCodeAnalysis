@@ -2329,6 +2329,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
 
         /**
          * 删除节点
+         * p 是待删除的节点，replacement 是删除 p 后需要来接替 p 位置的节点
          */
         final void removeTreeNode(HashMap<K,V> map, Node<K,V>[] tab,
                                   boolean movable) {
@@ -2433,7 +2434,16 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                     pp.left = s;
                 else
                     pp.right = s;
-                //
+
+                // 为什么 sr 是 replacement 的首选，p 为备选？
+                // 从代码中可以看到 sr 第一次被赋值时，是在 s 节点进行了向左
+                // 穷遍历结束后，因此此时 s 节点是没有左节点的，sr 即为 s 节
+                // 点的右节点。而从上面的三次调整我们知道，p 节点已经跟 s
+                // 节点进行了位置调换，所以此时 sr 其实是 p 节点的右节点，
+                // 并且 p 节点没有左节点，因此要移除 p 节点，只需要将 p 节点
+                // 的右节点 sr 覆盖掉 p 节点即可，因此 sr 是 replacement 的
+                // 首选，如果 sr 为空，则代表 p 节点为叶子节点，此时将 p 节点
+                // 清空即可。
                 if (sr != null)
                     replacement = sr;
                 else
@@ -2452,14 +2462,23 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                 replacement = p;
 
             // 第三次调整
+            // 如果 p 节点不是叶节点（只有当 pl == null 且 pr == null 时，即 p 是
+            // 叶节点时，replacement 才会等于 p）
             if (replacement != p) {
+                // 将 replacement 的父节点设置为 p 的父节点
                 TreeNode<K,V> pp = replacement.parent = p.parent;
+                // 如果 p 的父节点为 null，即 p 没有父节点，那么 p 为 root 节点
                 if (pp == null)
                     root = replacement;
+                // 如果 p 是其父节点的左子节点，则将父节点的左子节点替换成
+                // replacement
                 else if (p == pp.left)
                     pp.left = replacement;
+                // 否则将其右子节点替换成 replacement
                 else
                     pp.right = replacement;
+                // p 节点的位置已经被完整替换成 replacement，将 p 节点清空
+                // 以便 gc
                 p.left = p.right = p.parent = null;
             }
 
@@ -2473,8 +2492,10 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                 TreeNode<K,V> pp = p.parent;
                 p.parent = null;
                 if (pp != null) {
+                    // 如果 p 为其父节点的左子节点，则将左子节点设为 null
                     if (p == pp.left)
                         pp.left = null;
+                    // 如果 p 为其父节点的右子节点，则将右子节点设为 null
                     else if (p == pp.right)
                         pp.right = null;
                 }
@@ -2619,8 +2640,9 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         /**
          * 红黑树的插入平衡算法。当树结构中新插入了一个节点之后，要对树进行
          * 结构调整，以保证该树维持红黑树的特性
-         * root 为当前的根节点，x 为新插入的节点
-         * 返回值为调整后的根节点
+         * @param root 当前的根节点
+         * @param x 为新插入的节点
+         * @return 返回值为调整后的根节点
          */
         static <K,V> TreeNode<K,V> balanceInsertion(TreeNode<K,V> root,
                                                     TreeNode<K,V> x) {
@@ -2715,20 +2737,33 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
             }
         }
 
+        /**
+         * 红黑树的删除平衡算法。当树结构中删除了一个节点之后，要对树进行
+         * 结构调整，以保证该树维持红黑树的特性
+         * @param root 当前的根节点
+         * @param x 为待继承删除节点的 replacement 节点
+         * @return 返回值为调整后的根节点
+         */
         static <K,V> TreeNode<K,V> balanceDeletion(TreeNode<K,V> root,
                                                    TreeNode<K,V> x) {
             for (TreeNode<K,V> xp, xpl, xpr;;) {
+                // x 为 null 或者 x 是 root，直接返回
                 if (x == null || x == root)
                     return root;
+                // x 的父节点为 null，即 x 为根节点，将其染成黑色，然后返回
                 else if ((xp = x.parent) == null) {
                     x.red = false;
                     return x;
                 }
+                // 如果 x 是红色，将其染成黑色，并返回根节点
                 else if (x.red) {
                     x.red = false;
                     return root;
                 }
+                // 若 x 为其父节点的左子节点
                 else if ((xpl = xp.left) == x) {
+                    // 如果 x 的右兄弟节点不为 null 且为红色，将其兄弟节点染成
+                    // 黑色，其父节点染成红色，然后对父节点 xp 左旋转，x 的
                     if ((xpr = xp.right) != null && xpr.red) {
                         xpr.red = false;
                         xp.red = true;
