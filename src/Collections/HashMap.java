@@ -2033,6 +2033,9 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
 
         /**
          * 确保指定的 root 是桶中的第一个节点，即直接位于 table 上。
+         * TreeNode 既是红黑树结构，也是双链表节后，作为红黑树结构时使用的
+         * 属性是 left, right, parent，作为双链表结构时使用的是 prev, next
+         * 换句话说，此方法的实现目标是保证树的根节点一定是双链表的首节点
          */
         static <K,V> void moveRootToFront(Node<K,V>[] tab, TreeNode<K,V> root) {
             int n;
@@ -2043,48 +2046,66 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                 TreeNode<K,V> first = (TreeNode<K,V>)tab[index];
                 // 如果 root 不是第一个节点，那么将它放到第一个节点的位置
                 if (root != first) {
+                    // 定义 root 节点后的第一个节点
                     Node<K,V> rn;
+                    // 把 index 处的元素替换为 root 根节点对象
                     tab[index] = root;
+                    // 定义 root 节点的前一个节点
                     TreeNode<K,V> rp = root.prev;
+                    // 如果后一个节点不为 null，那么后一个节点的 prev 设置为
+                    // root 的前一个节点，即移除 root 节点
                     if ((rn = root.next) != null)
                         ((TreeNode<K,V>)rn).prev = rp;
+                    // 如果 root 的前一个节点不为 null，那么前一个节点的 next
+                    // 设置为 root 的后一个节点，同样是为了完成移除 root 操作
                     if (rp != null)
                         rp.next = rn;
+                    // 如果 table 数组该索引上原来的元素不为 null，那么它的 prev
+                    // 指向 root，即将 root 插入到 first 前面
                     if (first != null)
                         first.prev = root;
                     root.next = first;
                     root.prev = null;
                 }
+                // 检验TreeNode对象是否满足红黑树和双链表的特性
                 assert checkInvariants(root);
             }
         }
 
         /**
-         * Finds the node starting at root p with the given hash and key.
-         * The kc argument caches comparableClassFor(key) upon first use
-         * comparing keys.
+         * 从根节点 p 开始查找指定 hash 值和关键字 key 的结点
+         * 当第一次使用比较器比较关键字时，参数 kc 储存了关键字 key 的比较器类别
          */
         final TreeNode<K,V> find(int h, Object k, Class<?> kc) {
             TreeNode<K,V> p = this;
             do {
                 int ph, dir; K pk;
                 TreeNode<K,V> pl = p.left, pr = p.right, q;
+                // 给定哈希值小于当前节点的哈希值，进入左节点
                 if ((ph = p.hash) > h)
                     p = pl;
+                // 给定哈希值大于当前节点的哈希值，进入右节点
                 else if (ph < h)
                     p = pr;
+                // hash 值和 key 均相等，则找到该节点
                 else if ((pk = p.key) == k || (k != null && k.equals(pk)))
                     return p;
+                // 左子节点为空，进入右子节点
                 else if (pl == null)
                     p = pr;
+                // 右子节点为 null，进入左子节点
                 else if (pr == null)
                     p = pl;
+                // 如果不按哈希值排序，而是按照比较器排序，则通过比较器返回值
+                // 决定进入左右结点
                 else if ((kc != null ||
                         (kc = comparableClassFor(k)) != null) &&
                         (dir = compareComparables(kc, k, pk)) != 0)
                     p = (dir < 0) ? pl : pr;
+                // 如果在右子节点中找到指定节点，直接返回
                 else if ((q = pr.find(h, k, kc)) != null)
                     return q;
+                // 否则进入左子节点
                 else
                     p = pl;
             } while (p != null);
@@ -2092,7 +2113,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         }
 
         /**
-         * Calls find for root node.
+         * 树结构的查找函数
          */
         final TreeNode<K,V> getTreeNode(int h, Object k) {
             return ((parent != null) ? root() : this).find(h, k, null);
@@ -2184,86 +2205,139 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         }
 
         /**
-         * Returns a list of non-TreeNodes replacing those linked from
-         * this node.
+         * 树结构转化为单向链式结构，每一个树节点转化成简单节点
          */
         final Node<K,V> untreeify(HashMap<K,V> map) {
+            // hd 是头部，tl 是尾部
             Node<K,V> hd = null, tl = null;
             for (Node<K,V> q = this; q != null; q = q.next) {
+                // replacementNode 方法用于将树节点转化为简单节点，产生新的
+                // 节点，原来的节点被虚拟机回收
                 Node<K,V> p = map.replacementNode(q, null);
+                // 第一个节点产生时，hd 指向它
                 if (tl == null)
                     hd = p;
+                // 将生成的新节点 p 添加到链表尾部
                 else
                     tl.next = p;
+                // 尾节点向后移动一位
                 tl = p;
             }
             return hd;
         }
 
         /**
-         * Tree version of putVal.
+         * 树结构中的插入操作
+         * 存在 hash 碰撞，且元素数量大于 8 的时候，以红黑树的结构存储元素
+         * @param map 当前节点所在的 HashMap 对象
+         * @param tab 当前 HashMap 对象的元素数组
+         * @param h 指定 key 的 hash 值
+         * @param k 指定 key
+         * @param v 指定 key 要写入的 value
+         * @return TreeNode 指定 key 匹配到的节点对象，针对这个对象修改 value
          */
         final TreeNode<K,V> putTreeVal(HashMap<K,V> map, Node<K,V>[] tab,
                                        int h, K k, V v) {
             Class<?> kc = null;
             boolean searched = false;
+            // 如果此节点的父节点不为 null 那么查找根节点，如果为 null 那么此
+            // 节点即为根节点
             TreeNode<K,V> root = (parent != null) ? root() : this;
+            // 从根节点开始遍历。终止条件在内部
             for (TreeNode<K,V> p = root;;) {
+                // 声明方向 dir，当前节点的 hash 值，当前节点的键对象 pk
                 int dir, ph; K pk;
+                // 如果当前节点的 hash 值大于指定 key 的 hash 值，那么要添加的
+                // 元素应该放置在当前节点左侧
                 if ((ph = p.hash) > h)
                     dir = -1;
+                // 如果当前节点的 hash 值小于指定 key 的 hash 值，那么要添加的
+                // 元素应该放置在当前节点的右侧
                 else if (ph < h)
                     dir = 1;
+                // 如果找到和指定的 key 相等的节点，那么返回该节点，在外层方法
+                // 会对 value 进行写入
                 else if ((pk = p.key) == k || (k != null && k.equals(pk)))
                     return p;
+
+                // 到这一步说明当前节点的 hash 值和指定的 hash 值相等，但是 key
+                // 的 equals 方法返回 false
                 else if ((kc == null &&
                         (kc = comparableClassFor(k)) == null) ||
                         (dir = compareComparables(kc, k, pk)) == 0) {
+
+                    // 走到这里说明：指定key没有实现comparable接口   或者实现了
+                    // comparable接口并且和当前节点的键对象比较之后相等（仅限第一次循环）
+
+                    // searched 标识是否已经遍历过当前节点的左右子节点
+                    // 如果没有遍历过，那么递归进行遍历，看能否匹配到和指定 key
+                    // 相等的键值对
+                    // 找到了匹配的键值对就立刻返回，
                     if (!searched) {
                         TreeNode<K,V> q, ch;
                         searched = true;
+                        // 沿着左右两侧进行遍历
                         if (((ch = p.left) != null &&
                                 (q = ch.find(h, k, kc)) != null) ||
                                 ((ch = p.right) != null &&
                                         (q = ch.find(h, k, kc)) != null))
                             return q;
                     }
+                    // 遍历左右子树之后仍然没找到匹配的节点，再次比较当前节点 key
+                    // 和指定 key 的大小
                     dir = tieBreakOrder(k, pk);
                 }
 
+                // xp 指向 当前节点
                 TreeNode<K,V> xp = p;
+                // dir 小于等于 0 时，插入到左边，那么看当前节点的左子节点是否
+                // 为空，如果为空，就可以把要添加的元素作为当前节点的左子节点，
+                // 如果不为空，还需要下一轮继续比较
+                // dir 大于等于 0 时，插入到右边，那么看当前节点的右子节点是否
+                // 为空，如果为空，就可以把要添加的元素作为当前节点的右子节点，
+                // 如果不为空，还需要下一轮继续比较
+                 // 注意：如果以上两条当中有一个子节点不为空，p已经指向了对应
+                // 的不为空的子节点，开始下一轮的比较
                 if ((p = (dir <= 0) ? p.left : p.right) == null) {
+                    // p 已经指向了其左子节点或者右子节点，且 p 为 null，而 xp 为
+                    // 之前的 p
                     Node<K,V> xpn = xp.next;
+                    // 创建一个新的树节点 x，x 的 next 指向 xp 的 next
                     TreeNode<K,V> x = map.newTreeNode(h, k, v, xpn);
+                    // dir 小于等于 0 时 xp 的左指针指向新创建的节点，dir 大于 0
+                    // 时 xp 的右指针指向新创建的节点
                     if (dir <= 0)
                         xp.left = x;
                     else
                         xp.right = x;
+                    // xp 的 next 指向新创建的 x 节点，即链式结构中，x 插入到 xp
+                    // 和它的下一个节点中间
                     xp.next = x;
+                    // 新创建节点的 parent 和 prev 均设置为当前节点（left 和 right
+                    // 指向 null，因为其为叶节点，没有子节点
                     x.parent = x.prev = xp;
                     if (xpn != null)
                         ((TreeNode<K,V>)xpn).prev = x;
+                    // 调整树的结构使其满足红黑树的规则，以及新的 root 移动到链表
+                    // 最前面
                     moveRootToFront(tab, balanceInsertion(root, x));
+                    // 返回 null，意味着产生了一个新的节点
                     return null;
                 }
             }
         }
 
         /**
-         * Removes the given node, that must be present before this call.
-         * This is messier than typical red-black deletion code because we
-         * cannot swap the contents of an interior node with a leaf
-         * successor that is pinned by "next" pointers that are accessible
-         * independently during traversal. So instead we swap the tree
-         * linkages. If the current tree appears to have too few nodes,
-         * the bin is converted back to a plain bin. (The test triggers
-         * somewhere between 2 and 6 nodes, depending on tree structure).
+         * 删除节点
          */
         final void removeTreeNode(HashMap<K,V> map, Node<K,V>[] tab,
                                   boolean movable) {
+            // 开始链表的处理
             int n;
+            // table 为 null 或者 table 的长度为 0 直接返回
             if (tab == null || (n = tab.length) == 0)
                 return;
+            // 根据 hash 值计算出索引的位置
             int index = (n - 1) & hash;
             TreeNode<K,V> first = (TreeNode<K,V>)tab[index], root = first, rl;
             TreeNode<K,V> succ = (TreeNode<K,V>)next, pred = prev;
