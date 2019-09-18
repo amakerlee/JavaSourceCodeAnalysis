@@ -31,52 +31,36 @@ import java.util.*;
 import sun.misc.SharedSecrets;
 
 /**
- * This class implements the <tt>Set</tt> interface, backed by a hash table
- * (actually a <tt>HashMap</tt> instance).  It makes no guarantees as to the
- * iteration order of the set; in particular, it does not guarantee that the
- * order will remain constant over time.  This class permits the <tt>null</tt>
- * element.
+ * 此类实现了 Set 接口，由一个 hash 表（实际上是一个 HashMap 实例）
+ * 提供支持。此类不保证集合迭代的顺序；特别是，他不保证顺序会永恒不变。
+ * 此类允许 null 元素。
  *
- * <p>This class offers constant time performance for the basic operations
- * (<tt>add</tt>, <tt>remove</tt>, <tt>contains</tt> and <tt>size</tt>),
- * assuming the hash function disperses the elements properly among the
- * buckets.  Iterating over this set requires time proportional to the sum of
- * the <tt>HashSet</tt> instance's size (the number of elements) plus the
- * "capacity" of the backing <tt>HashMap</tt> instance (the number of
- * buckets).  Thus, it's very important not to set the initial capacity too
- * high (or the load factor too low) if iteration performance is important.
+ * 假定 hash 函数将元素均匀地分散到所有的桶里，此类保证基本操作
+ * （add, remove, contains 和 size）在恒定时间内完成。
+ * 遍历这个结合需要的时间和 HashSet 实例的大小（元素的数量）加上
+ * HashMap 实例的容量（桶的数量）的总和成正比。因此如果想要提高遍历
+ * 的性能的话，不要将初始容量设置得太高（或负载因子太低）。
  *
- * <p><strong>Note that this implementation is not synchronized.</strong>
- * If multiple threads access a hash set concurrently, and at least one of
- * the threads modifies the set, it <i>must</i> be synchronized externally.
- * This is typically accomplished by synchronizing on some object that
- * naturally encapsulates the set.
+ * 注意，这个实现不是同步的。如果多个县城同时访问 HashSet，且至少一个
+ * 线程修改了此 Set，那么必须从外部同步该集合。这通常是对一些自然封装
+ * 了集合的对象进行同步来实现。
  *
- * If no such object exists, the set should be "wrapped" using the
- * {@link Collections#synchronizedSet Collections.synchronizedSet}
- * method.  This is best done at creation time, to prevent accidental
- * unsynchronized access to the set:<pre>
- *   Set s = Collections.synchronizedSet(new HashSet(...));</pre>
+ * 如果不存在这样的对象，则应该使用 Collections.synchronizedSet 方法
+ * 包装该对象。这一步最好是在创建时完成，以防止对此 set 的意外异步访问：
+ * Set s = Collections.synchronizedSet(new HashSet(...));
+ * 此类的 iterator 方法返回的迭代器支持 fast-fail：如果在迭代器创建之后
+ * 如果集合在任何时候被修改了，除了通过迭代器自身的 remove 方法，
+ * 迭代器将抛出 ConcurrentModificationException 异常。因此，在面对并发
+ * 修改的时候，迭代器会快速干净地失败，而不是在将来某个不确定的时间
+ * 出现不确定的行为。
  *
- * <p>The iterators returned by this class's <tt>iterator</tt> method are
- * <i>fail-fast</i>: if the set is modified at any time after the iterator is
- * created, in any way except through the iterator's own <tt>remove</tt>
- * method, the Iterator throws a {@link ConcurrentModificationException}.
- * Thus, in the face of concurrent modification, the iterator fails quickly
- * and cleanly, rather than risking arbitrary, non-deterministic behavior at
- * an undetermined time in the future.
+ * 注意不能保证迭代器的 fast-fail 行为完全正确，通常来说，在存在异步并发
+ * 的情况下，不可能做出任何严格的保证。支持 fast-fail 的迭代器会尽最大
+ * 努力抛出 ConcurrentModificationException 异常。因此，编写一个依赖
+ * 此异常来判断其正确性的程序是错误的：迭代器的 fast-fail 机制应该只用于
+ * 检测 bug。
  *
- * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
- * as it is, generally speaking, impossible to make any hard guarantees in the
- * presence of unsynchronized concurrent modification.  Fail-fast iterators
- * throw <tt>ConcurrentModificationException</tt> on a best-effort basis.
- * Therefore, it would be wrong to write a program that depended on this
- * exception for its correctness: <i>the fail-fast behavior of iterators
- * should be used only to detect bugs.</i>
- *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此类是 Java Collections Framework 的成员。
  *
  * @param <E> the type of elements maintained by this set
  *
@@ -95,24 +79,23 @@ public class HashSet<E>
 {
     static final long serialVersionUID = -5024744406713321676L;
 
+    // 基于 HashMap 存放数据，map 的 key 就是 HashSet 要存放的数据
     private transient HashMap<E,Object> map;
 
     // Dummy value to associate with an Object in the backing Map
     private static final Object PRESENT = new Object();
 
     /**
-     * Constructs a new, empty set; the backing <tt>HashMap</tt> instance has
-     * default initial capacity (16) and load factor (0.75).
+     * 构造一个空集合；HashMap 实例的容量为默认容量（16），加载因子为
+     * 默认加载因子（0.75）
      */
     public HashSet() {
         map = new HashMap<>();
     }
 
     /**
-     * Constructs a new set containing the elements in the specified
-     * collection.  The <tt>HashMap</tt> is created with default load factor
-     * (0.75) and an initial capacity sufficient to contain the elements in
-     * the specified collection.
+     * 构造一个包含指定集合所有元素的新的 set。HashMap 实例的初始容量
+     * 足以容纳指定集合的所有元素，加载因子为默认加载因子（0.75）
      *
      * @param c the collection whose elements are to be placed into this set
      * @throws NullPointerException if the specified collection is null
@@ -123,8 +106,8 @@ public class HashSet<E>
     }
 
     /**
-     * Constructs a new, empty set; the backing <tt>HashMap</tt> instance has
-     * the specified initial capacity and the specified load factor.
+     * 构造一个空集合；HashMap 实例的初始容量为指定参数 initialCapacity，
+     * 加载因子为指定参数 loadFactor
      *
      * @param      initialCapacity   the initial capacity of the hash map
      * @param      loadFactor        the load factor of the hash map
@@ -136,8 +119,8 @@ public class HashSet<E>
     }
 
     /**
-     * Constructs a new, empty set; the backing <tt>HashMap</tt> instance has
-     * the specified initial capacity and default load factor (0.75).
+     * 构造一个空集合；HashMap 实例的初始容量为指定参数 initialCapacity，
+     * 加载因子为默认加载因子（0.75）
      *
      * @param      initialCapacity   the initial capacity of the hash table
      * @throws     IllegalArgumentException if the initial capacity is less
@@ -148,10 +131,12 @@ public class HashSet<E>
     }
 
     /**
-     * Constructs a new, empty linked hash set.  (This package private
-     * constructor is only used by LinkedHashSet.) The backing
-     * HashMap instance is a LinkedHashMap with the specified initial
-     * capacity and the specified load factor.
+     * 构造一个空的 linkedHashSet。（这个只有包权限的构造方法只用于
+     * LinkedHashSet。)支撑此集合的 HashMap 实例是有指定初始容量和
+     * 指定加载因子的 LinkedHashMap。
+     *
+     * @August 包内的任何类都可以访问，包外的任何其他类都不能访问
+     * （包括包外继承了此类的子类）
      *
      * @param      initialCapacity   the initial capacity of the hash map
      * @param      loadFactor        the load factor of the hash map
@@ -165,8 +150,7 @@ public class HashSet<E>
     }
 
     /**
-     * Returns an iterator over the elements in this set.  The elements
-     * are returned in no particular order.
+     * 返回 set 的一个迭代器。迭代器返回的元素没有特定顺序。
      *
      * @return an Iterator over the elements in this set
      * @see ConcurrentModificationException
@@ -176,7 +160,7 @@ public class HashSet<E>
     }
 
     /**
-     * Returns the number of elements in this set (its cardinality).
+     * 返回集合中元素的数量
      *
      * @return the number of elements in this set (its cardinality)
      */
@@ -185,37 +169,30 @@ public class HashSet<E>
     }
 
     /**
-     * Returns <tt>true</tt> if this set contains no elements.
+     * 如果集合不包含任何元素返回 true
      *
-     * @return <tt>true</tt> if this set contains no elements
+     * @return true if this set contains no elements
      */
     public boolean isEmpty() {
         return map.isEmpty();
     }
 
     /**
-     * Returns <tt>true</tt> if this set contains the specified element.
-     * More formally, returns <tt>true</tt> if and only if this set
-     * contains an element <tt>e</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
+     * 如果集合包含指定的元素则返回 true
      *
      * @param o element whose presence in this set is to be tested
-     * @return <tt>true</tt> if this set contains the specified element
+     * @return true if this set contains the specified element
      */
     public boolean contains(Object o) {
         return map.containsKey(o);
     }
 
     /**
-     * Adds the specified element to this set if it is not already present.
-     * More formally, adds the specified element <tt>e</tt> to this set if
-     * this set contains no element <tt>e2</tt> such that
-     * <tt>(e==null&nbsp;?&nbsp;e2==null&nbsp;:&nbsp;e.equals(e2))</tt>.
-     * If this set already contains the element, the call leaves the set
-     * unchanged and returns <tt>false</tt>.
+     * 将指定元素添加到集合里，如果它在集合中并不存在的话。
+     * 如果集合已经包含该元素，那么集合不作出任何改变，并返回 false
      *
      * @param e element to be added to this set
-     * @return <tt>true</tt> if this set did not already contain the specified
+     * @return true if this set did not already contain the specified
      * element
      */
     public boolean add(E e) {
@@ -223,32 +200,26 @@ public class HashSet<E>
     }
 
     /**
-     * Removes the specified element from this set if it is present.
-     * More formally, removes an element <tt>e</tt> such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>,
-     * if this set contains such an element.  Returns <tt>true</tt> if
-     * this set contained the element (or equivalently, if this set
-     * changed as a result of the call).  (This set will not contain the
-     * element once the call returns.)
+     * 从集合中删除指定元素，如果其存在的话。如果集合包含该元素，则返回
+     * true，调用此方法后，集合不会再包含该元素。
      *
      * @param o object to be removed from this set, if present
-     * @return <tt>true</tt> if the set contained the specified element
+     * @return true if the set contained the specified element
      */
     public boolean remove(Object o) {
         return map.remove(o)==PRESENT;
     }
 
     /**
-     * Removes all of the elements from this set.
-     * The set will be empty after this call returns.
+     * 从集合中删除所有元素。
+     * 此方法调用后集合为空。
      */
     public void clear() {
         map.clear();
     }
 
     /**
-     * Returns a shallow copy of this <tt>HashSet</tt> instance: the elements
-     * themselves are not cloned.
+     * 返回 HashSet 的一个浅拷贝：集合里的元素本身没有拷贝。
      *
      * @return a shallow copy of this set
      */
@@ -264,8 +235,7 @@ public class HashSet<E>
     }
 
     /**
-     * Save the state of this <tt>HashSet</tt> instance to a stream (that is,
-     * serialize it).
+     * 保存 HashSet 实例到流里（即序列化）
      *
      * @serialData The capacity of the backing <tt>HashMap</tt> instance
      *             (int), and its load factor (float) are emitted, followed by
@@ -291,8 +261,7 @@ public class HashSet<E>
     }
 
     /**
-     * Reconstitute the <tt>HashSet</tt> instance from a stream (that is,
-     * deserialize it).
+     * 反序列化。
      */
     private void readObject(java.io.ObjectInputStream s)
             throws java.io.IOException, ClassNotFoundException {
