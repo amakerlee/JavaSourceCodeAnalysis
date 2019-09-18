@@ -2763,13 +2763,16 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                 // 若 x 为其父节点的左子节点
                 else if ((xpl = xp.left) == x) {
                     // 如果 x 的右兄弟节点不为 null 且为红色，将其兄弟节点染成
-                    // 黑色，其父节点染成红色，然后对父节点 xp 左旋转，x 的
+                    // 黑色，其父节点染成红色，然后对父节点 xp 左旋转，xp
+                    // 赋值为 x 的父节点，xpr 赋值为 x 的右兄弟节点
                     if ((xpr = xp.right) != null && xpr.red) {
                         xpr.red = false;
                         xp.red = true;
                         root = rotateLeft(root, xp);
                         xpr = (xp = x.parent) == null ? null : xp.right;
                     }
+                    // 如果 xpr 为 null，则继续向上调整，将 x 的父节点作为新的
+                    // x 继续循环
                     if (xpr == null)
                         x = xp;
                     else {
