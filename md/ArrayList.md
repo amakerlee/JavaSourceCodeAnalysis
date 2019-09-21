@@ -128,7 +128,7 @@ ensureCapacityInternal 函数和 ensureExplicitCapacity 函数是扩容的入口
     }
 ```
 
-***Set 方法***
+***set 方法***
 
 用指定元素替换列表中某一位置的元素。
 
