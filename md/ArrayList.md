@@ -1,4 +1,4 @@
-<center> ArrayList </center>
+### ArrayList
 
 ***
 > 继承结构及完整源码解析
