@@ -407,7 +407,6 @@ public class ArrayList<E> extends AbstractList<E>
 
     /**
      * 返回列表中指定位置的元素
-     * Returns the element at the specified position in this list.
      *
      * @param  index index of the element to return
      * @return the element at the specified position in this list
@@ -491,7 +490,7 @@ public class ArrayList<E> extends AbstractList<E>
     }
 
     /**
-     * 删除列表中第一次出现的指定元素，如果它存在的话。如果钙元素不存在，
+     * 删除列表中第一次出现的指定元素，如果它存在的话。如果该元素不存在，
      * 不作任何变化。更正式地说，删除满足条件
      * (o==null ? get(i)==null : o.equals(get(i))) 的索引值最小的元素。如果操作
      * 成功则返回 true。
