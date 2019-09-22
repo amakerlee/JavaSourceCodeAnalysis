@@ -5,7 +5,7 @@
 
 [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [List](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/List.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java) | [AbstractList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractList.java) | [ArrayList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/ArrayList.java)
 
-<img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ArrayList.png" width=100% />
+<img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ArrayList.png" width=50% />
 
 ***
 > 类属性
@@ -265,9 +265,14 @@ ArrayList 提供两种删除方法，一种是删除指定索引处的元素，�
     }
 ```
 
+***
 > ArrayList 小结
 
-1. indexOf 和 lastIndexOf 是从头开始往后遍历或者从尾开始往前遍历到指定的索引位置的过程。
-2. 由于 ArrayList 中的元素存储在数组里，即 ArrayList 的位置访问操作为数组的位置访问操作，所以 ArrayList 查找效率较高，但是插入删除效率低。
-3. ArrayList 插入删除等基本方法均用到 Arrays.copy() 或 System.arraycopy 函数来进行批量数组元素的复制。
-4. ArrayList 每次增加元素的时候，都需要调用 ensureCapacity 方法来确保足够的容量。在能够实现确定元素数量的情况下首选 ArrayList，否则使用 LinkedList。
+1. 由于 ArrayList 中的元素存储在数组里，即 ArrayList 的位置访问操作为数组的位置访问操作，所以 ArrayList 查找效率较高，但是插入删除效率低，因为插入删除操作会移动数组指定位置的前方或后方大量的元素。
+2. ArrayList 插入删除等基本方法均用到 Arrays.copy() 或 System.arraycopy 函数进行批量数组元素的复制。
+3. ArrayList 每次增加元素的时候，都需要调用 ensureCapacity 方法确保足够的容量。在能够实现确定元素数量的情况下首选 ArrayList，否则使用 LinkedList。
+
+> 随机访问数组结构（如数组）在内存中的分布
+
+其实数组在内存中是一段连续的空间，数组名指向了这个空间的起始处地址。a[1] 表示相对于起始处地址偏移量为 1 的那个元素，以此类推。由于数组在内存中是一段连续的空间，不管访问哪个元素都是用起始位置加上偏移量获取地址，然后取数据。这就是它支持随机访问的原因，且不管数组的长度是多长，都是同样的两步就能完成，所以数组的位置访问操作在常量的时间内完成，即按索引访问数组元素的时间复杂度就是 O(1)。
+ArrayList是对数组的包装，因为数组在内存中分配时必须指定长度，且一旦分配好后便无法再增加长度。在 ArrayList 的视线中，当底层数组填满后，它会再分配一个更大的新的数组，把原数组里的元素拷贝过来，然后把原数组抛弃掉。使用新的数组作为底层数组来继续存储。
