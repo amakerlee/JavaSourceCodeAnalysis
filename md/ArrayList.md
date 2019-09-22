@@ -82,7 +82,7 @@ ensureCapacityInternal 函数和 ensureExplicitCapacity 函数是扩容的入口
 
 在 grow 函数中，增大容量确保可以容纳参数中指定最小容量的元素。首先计算出新的容量。新的容量首先设置为原来的 1.5 倍，如果新的容量仍然小于指定的最小容量，那么直接扩容到指定的最小容量。如果新的容量比允许的最大容量还要大，调用 hugeCapacity 函数进行判断。计算出新的容量之后，对元素数组进行扩容。
 
-***ArrayList 每次扩容为原来的 1.5 倍？***
+**ArrayList 每次扩容为原来的 1.5 倍？**
 
 实际上并不是每一次都准确地将容量扩展成原来的 1.5 倍，例如当 1.5 倍还不能满足最小容量的要求时，直接将容量扩展为指定的最小容量；例如计算出来的新的容量大于最大容量时，将新的容量设置为 Integer.MAX_VALUE 或者 Integer.MAX_VALUE - 8。
 
@@ -108,7 +108,7 @@ ensureCapacityInternal 函数和 ensureExplicitCapacity 函数是扩容的入口
     }
 ```
 
-***get 方法***
+**get 方法**
 
 返回 ArrayList 中指定索引位置的元素。
 
@@ -128,7 +128,7 @@ ensureCapacityInternal 函数和 ensureExplicitCapacity 函数是扩容的入口
     }
 ```
 
-***set 方法***
+**set 方法**
 
 用指定元素替换列表中某一位置的元素。
 
@@ -147,7 +147,7 @@ ensureCapacityInternal 函数和 ensureExplicitCapacity 函数是扩容的入口
     }
 ```
 
-***remove 方法***
+**remove 方法**
 
 ArrayList 提供两种删除方法，一种是删除指定索引处的元素，一种是删除和指定对象相同的元素。
 
@@ -207,7 +207,7 @@ ArrayList 提供两种删除方法，一种是删除指定索引处的元素，�
     }
 ```
 
-***removeAll 和 retailAll***
+**removeAll 和 retailAll**
 ```java
     /**
      * 移除列表中和指定集合相同的元素。
