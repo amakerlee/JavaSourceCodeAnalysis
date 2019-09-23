@@ -100,20 +100,25 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     // ******  Array allocation and resizing utilities ******
     // 数组空间分配和再分配工具
 
-    // 计算容量，大于 numElement 的最接近 2 的整数次方的数
+    // 计算容量，大于 numElement 且最接近 2 的整数次方的最小的数
     // 比如，3 算出来是 8，9 算出来是 16，33 算出来是 64
     private static int calculateSize(int numElements) {
         int initialCapacity = MIN_INITIAL_CAPACITY;
-        // Find the best power of two to hold elements.
-        // Tests "<=" because arrays aren't kept full.
         if (numElements >= initialCapacity) {
+            // 假设初始容量为 1010010
             initialCapacity = numElements;
             initialCapacity |= (initialCapacity >>>  1);
+            // 1111011
             initialCapacity |= (initialCapacity >>>  2);
+            // 1111111
             initialCapacity |= (initialCapacity >>>  4);
+            // 1111111
             initialCapacity |= (initialCapacity >>>  8);
+            // 1111111
             initialCapacity |= (initialCapacity >>> 16);
+            // 1111111
             initialCapacity++;
+            // 10000000
 
             if (initialCapacity < 0)   // Too many elements, must back off
                 initialCapacity >>>= 1;// Good luck allocating 2 ^ 30 elements
@@ -131,8 +136,8 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * 将队列容量设置为当前的两倍，当队列满时调用。例如 head 和 tail
-     * 缠绕在一起以致相等。
+     * 将队列容量设置为当前的两倍，当队列满时调用，即 head 和 tail
+     * 相遇的时候。
      */
     private void doubleCapacity() {
         // assert 如果表达式为 true 则继续执行，如果为 false 抛出

@@ -20,62 +20,62 @@
 
 #### Stack
 
-* [Stack](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Stack.java)
+* [Stack 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Stack.md)
 
-    [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [List](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/List.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java) | [AbstractList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractList.java) | [Vector](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Vector.java)
+    [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [List](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/List.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java) | [AbstractList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractList.java) | [Vector](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Vector.java) | [Stack](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Stack.java)
 
     <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/Stack.png" width=60% />
 
 
 #### Queue
 
-* [ArrayDeque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/ArrayDeque.java)
+* [ArrayDeque 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/ArrayDeque.md)
 
-    [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Queue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Queue.java) | [Deque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Deque.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)
+    [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Queue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Queue.java) | [Deque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Deque.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java) | [ArrayDeque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/ArrayDeque.java)
 
     <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ArrayDeque.png" width=50% />
 
 
-* [PriorityQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/PriorityQueue.java)
+* [PriorityQueue 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/PriorityQueue.md)
 
-    [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Queue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Queue.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)  | [AbstractQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractQueue.java)
+    [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Queue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Queue.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)  | [AbstractQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractQueue.java) | [PriorityQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/PriorityQueue.java)
 
     <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/PriorityQueue.png" width=50% />
 
 
 #### Set
 
-* [HashSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/HashSet.java)
+* [HashSet 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/HashSet.md)
 
-    [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Set](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Set.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)  | [AbstractSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractSet.java)
+    [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Set](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Set.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)  | [AbstractSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractSet.java) | [HashSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/HashSet.java)
 
     <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/HashSet.png" width=50% />
 
 
-* [TreeSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/TreeSet.java)
+* [TreeSet 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/TreeSet.md)
 
-    [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Set](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Set.java) | [SortedSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/SortedSet.java) | [NavigableSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/NavigableSet.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)  | [AbstractSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractSet.java)
+    [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Set](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Set.java) | [SortedSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/SortedSet.java) | [NavigableSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/NavigableSet.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)  | [AbstractSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractSet.java) | [TreeSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/TreeSet.java)
 
     <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/TreeSet.png" width=70% />
 
 
 #### Map
 
-* [TreeMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/ArrayList.java)
+* [TreeMap 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/TreeMap.md)
 
-* [HashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/HashMap.java)
+* [HashMap 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/HashMap.md)
 
-    [Map](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Map.java) | [AbstractMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractMap.java)
+    [Map](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Map.java) | [AbstractMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractMap.java) | [HashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/HashMap.java)
 
     <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/HashMap.png" width=30% />
 
 
-* [WeakHashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/ArrayList.java)
+* [WeakHashMap 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/WeakHashMap.md)
 
 
 #### HashTable
 
-* [HashTable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/ArrayList.java)
+* [HashTable 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/HashTable.md)
 
 
 ****
