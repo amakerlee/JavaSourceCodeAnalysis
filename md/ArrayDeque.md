@@ -195,7 +195,7 @@ copyElements 函数用于将支撑数组中的元素按顺序复制到指定数�
 | 方法 | 作用 |
 | - | - |
 | void addFirst | 在队列前插入指定元素 |
-| void addLast |把指定元素添加到队列末尾 |
+| void addLast | 把指定元素添加到队列末尾 |
 | boolean offerFirst | 指定元素插入到队列开头 |
 | boolean offerLast | 指定元素添加到队列末尾 |
 | E removeFirst | 删除第一个元素并返回该元素 |
@@ -272,12 +272,26 @@ copyElements 函数用于将支撑数组中的元素按顺序复制到指定数�
 ***
 > ArrayDeque 作为队列比 LinkedList 要好，作为栈比 Stack 要好?
 
+由于 ArrayDeque 使用的是循环数组，在实际应用中，相比于 Stack，减少了频繁的扩容操作。相比于 LinkedList， 减少了频繁的节点内存分配操作。ArrayDeque 与这两个类的对比如下所示。
 
+测试 ArrayDeque 和 LinkedList 性能。对于两类对象，分别调用 addFirst 插入 n 次、调用 removeFirst 删除 n 次、插入（addFirst），查询（getFirst），删除（removeFirst）n 次，测试这三种情况下两个类对象的性能表现：
 
+<img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ArrayDequeAnalysis1.png" width=50% />
 
+<img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ArrayDequeAnalysis2.png" width=50% />
 
+<img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ArrayDequeAnalysis3.png" width=50% />
 
+容易看出，在数据量较大的时候，ArrayDeque 性能表现均优于 LinkedList。
 
+双端链表 ArrayDeque 的底层数据结构是循环数组，添加或删除的时候只需要在已分配数组空间里添加或删除（扩容时还需要新分配空间和复制），LinkedList 底层数据结构是节点类，每次添加都需要新分配内存空间。
 
+同样的，测试  ArrayDeque 和 Stack 性能：
 
+<img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ArrayDequeAnalysis4.png" width=50% />
 
+<img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ArrayDequeAnalysis5.png" width=50% />
+
+<img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ArrayDequeAnalysis6.png" width=50% />
+
+Stack 类继承自 Vector 类，函数的实现基本与 Vector 相同，Vector 底层数据结构与 ArrayDeque 均为数组，ArrayDeque 为循环数组。ArrayDeque 在数据量大的时候，插入及删除操作的性能均优于 Stack。
