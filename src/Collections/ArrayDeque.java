@@ -209,9 +209,6 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         addAll(c);
     }
 
-    // The main insertion and extraction methods are addFirst,
-    // addLast, pollFirst, pollLast. The other methods are defined in
-    // terms of these.
     // 最核心的插入和提取方法是 addFirst，addLast，pollFirst，pollLast。
     // 其他方法根据这些来定义。
 
@@ -396,7 +393,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
     }
 
     /**
-     * 删除队列中指定元素的第一个出现项（从头到尾遍历）。
+     * 删除队列中指定元素的最后一个出现项（从尾到头遍历）。
      * 如果队列不包含该元素，不作出任何改变。
      * 如果队列包含指定元素返回 true。
      *

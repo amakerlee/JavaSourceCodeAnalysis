@@ -128,9 +128,149 @@ copyElements 函数用于将支撑数组中的元素按顺序复制到指定数�
 
 **插入与删除的核心方法**
 
-```java
+最核心的插入和提取方法是 addFirst，addLast，pollFirst，pollLast，其他方法根据这些来定义。
 
+```java
+    /**
+     * 在队列前插入指定元素。
+     */
+    public void addFirst(E e) {
+        if (e == null)
+            throw new NullPointerException();
+        // 注意：
+        // 将 head 减 1，如果 head 为 0 ，运算之后指向数组末尾，防止数组
+        // 到头了边界溢出，如果到头了就从末尾再往前。
+        // 由于数组长度为 2 的幂，减 1 之后，之前为 1 的位置之前的位置为 0，
+        // 之后的位置全为 1，所以和 head - 1 进行与运算后不 改变 head 的值。
+        // 如果 head 等于 0，减 1 之后为 -1，二进制表示每一位均为 1 ，进行
+        // 与运算之后 head 指向数组末尾。
+        elements[head = (head - 1) & (elements.length - 1)] = e;
+        if (head == tail)
+            doubleCapacity();
+    }
+
+    /**
+     * 把指定元素添加到队列末尾。
+     */
+    public void addLast(E e) {
+        if (e == null)
+            throw new NullPointerException();
+        // tail指向第一个没有元素的位置
+        elements[tail] = e;
+        // tail + 1 一旦大于 elements.length - 1，tail 马上变成 0
+        if ( (tail = (tail + 1) & (elements.length - 1)) == head)
+            doubleCapacity();
+    }
+    
+    // 删除第一个元素。（将该元素设置为 null）
+    // 元素为空返回 null。
+    public E pollFirst() {
+        int h = head;
+        @SuppressWarnings("unchecked")
+        E result = (E) elements[h];
+        // Element is null if deque empty
+        if (result == null)
+            return null;
+        elements[h] = null;     // Must null out slot
+        head = (h + 1) & (elements.length - 1);
+        return result;
+    }
+
+    // 删除最后一个元素。（将该元素设置为 null）
+    // 元素为空返回 null。
+    public E pollLast() {
+        int t = (tail - 1) & (elements.length - 1);
+        @SuppressWarnings("unchecked")
+        E result = (E) elements[t];
+        if (result == null)
+            return null;
+        elements[t] = null;
+        tail = t;
+        return result;
+    }
 ```
+
+双端队列中与插入删除有关的方法主要有：
+
+| 方法 | 作用 |
+| - | - |
+| void addFirst | 在队列前插入指定元素 |
+| void addLast |把指定元素添加到队列末尾 |
+| boolean offerFirst | 指定元素插入到队列开头 |
+| boolean offerLast | 指定元素添加到队列末尾 |
+| E removeFirst | 删除第一个元素并返回该元素 |
+| E removeLast | 删除最后一个元素并返回该元素 |
+| E pollFirst | 删除第一个元素 |
+| E pollLast | 删除最后一个元素 |
+| E getFirst | 返回队列的第一个元素 |
+| E getLast | 返回队列的最后一个元素 |
+| E peekFirst | 返回队列的第一个元素 |
+| E peekLast | 返回队列的最后一个元素 |
+
+**delete 方法删除指定位置元素**
+
+此方法中使用 front 记录指定位置之前的元素个数，back 记录指定位置之后的元素个数，比较这两个值确定移动前面的元素还是移动后面的元素效率较高。由于底层数据结构使用循环数组，分别讨论指定位置位于 head 之前或者之后，指定位置位于 tail 之前或者之后的不同情况，并使用 System.arraycopy函数执行复制操作。
+
+```java
+    /**
+     * 删除指定位置的元素，根据需要调整 head 和 tail。这可能导致数组中
+     * 的元素向后或向前移动。
+     *
+     * 这个方法被称为 delete 而不是 remove，是为了强调它的语义和
+     * remove 不同。
+     *
+     * @return true if elements moved backwards
+     */
+    private boolean delete(int i) {
+        checkInvariants();
+        final Object[] elements = this.elements;
+        final int mask = elements.length - 1;
+        final int h = head;
+        final int t = tail;
+
+        // 索引 i 前面的元素个数
+        final int front = (i - h) & mask;
+        // 索引 i 后面的元素个数
+        final int back  = (t - i) & mask;
+
+        // (t - h) & mask 表示数组中已经插入的元素个数，如果此表达式成立则
+        // 抛出 ConcurrentModificationException 异常
+        // Invariant: head <= i < tail mod circularity
+        if (front >= ((t - h) & mask))
+            throw new ConcurrentModificationException();
+
+        // Optimize for least element motion
+        // 判断索引 i 位于队列的前半部分还是后半部分。从而决定移动的方向，
+        // 保证需要移动的元素个数最少
+        // 若 front 小于 back，将目标元素之前的元素往后移动
+        if (front < back) {
+            if (h <= i) {
+                System.arraycopy(elements, h, elements, h + 1, front);
+            } else { // Wrap around
+                System.arraycopy(elements, 0, elements, 1, i);
+                elements[0] = elements[mask];
+                System.arraycopy(elements, h, elements, h + 1, mask - h);
+            }
+            elements[h] = null;
+            head = (h + 1) & mask;
+            return false;
+        } else { // 若 front 大于等于 back，将目标元素之后的元素向前移动
+            if (i < t) { // Copy the null tail as well
+                System.arraycopy(elements, i + 1, elements, i, back);
+                tail = t - 1;
+            } else { // Wrap around
+                System.arraycopy(elements, i + 1, elements, i, mask - i);
+                elements[mask] = elements[0];
+                System.arraycopy(elements, 1, elements, 0, t);
+                tail = (t - 1) & mask;
+            }
+            return true;
+        }
+    }
+```
+
+***
+> ArrayDeque 作为队列比 LinkedList 要好，作为栈比 Stack 要好?
 
 
 
