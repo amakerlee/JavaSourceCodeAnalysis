@@ -351,3 +351,11 @@ ArrayList 的空间浪费主要体现在在 list 列表的结尾预留一定的�
 对于随机访问 get 和 set， ArrayList 优于 LinkedList， 因为 ArrayList 中的数组支持随机访问。
 
 对于新增和删除操作 add 和 remove， LinedList 比较占优势， 因为 ArrayList 要移动数组中的大量数据。
+
+> ArrayList 和 LinkedList 时间消耗
+
+对 ArrayList 和 LinkedList 分别进行 n 次添加，删除，查询操作，实验结果如下所示：
+
+<img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/LinkedListAnalysis.png" width=50% />
+
+实验结果与上述分析完全吻合。LinkedList 在查询时的性能，远远不如 ArrayList。而对于插入而言，如果是在指定节点处插入，那么 LinkedList 性能较好，如果是在指定索引处插入，LinkedList 首先要遍历链表找到指定索引处的节点，所以这种情况下的插入性能并不一定优于 ArrayList。值得注意的是，在 n 较大时，LinkedList 重复执行在列表尾部添加元素这一操作时，时间消耗超过了 ArrayList，可能是因为 LinkedList 频繁的 new 操作，在一定程度上影响了其添加新节点的性能。
