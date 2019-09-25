@@ -264,7 +264,6 @@ public class PriorityQueue<E> extends AbstractQueue<E>
 
     /**
      * 增加数组容量
-     * Increases the capacity of the array.
      *
      * @param minCapacity the desired minimum capacity
      */
@@ -534,13 +533,17 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     public E poll() {
         if (size == 0)
             return null;
+        // s 指向最后一个元素，同时 size 减一
         int s = --size;
         modCount++;
         E result = (E) queue[0];
         E x = (E) queue[s];
+        // 删除数组尾部元素
         queue[s] = null;
+        // 在数组索引为 0 的位置插入 x（删除堆顶元素），然后向下调整堆结构
         if (s != 0)
             siftDown(0, x);
+        // 返回堆顶元素
         return result;
     }
 
@@ -569,10 +572,10 @@ public class PriorityQueue<E> extends AbstractQueue<E>
         else {
             E moved = (E) queue[s];
             queue[s] = null;
-            // 将位置 i 的元素替换成 moved，即原来的最后一个元素，然后判断
-            // 是否下沉
+            // 将位置 i 的元素替换成 moved，即原来的最后一个元素，然后进行
+            // 向下调整操作
             siftDown(i, moved);
-            // 如果没有上移，说明可能它的位置在下面，接着判断是否上移
+            // 如果没有向下调整，说明可能它的位置在上面，接着向上调整
             if (queue[i] == moved) {
                 siftUp(i, moved);
                 if (queue[i] != moved)
