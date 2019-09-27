@@ -289,7 +289,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
 
     /**
      * 计算 key 的 hash 值，计算key.hashCode()，并将（XORs）的散列值
-     * 由高向低扩展（将 key 的 hash 值得高 16 位和低 16 位XOR）。
+     * 由高向低扩展（将 key 的 hash 值的高 16 位和低 16 位XOR）。
      * 由于该表使用了2的幂掩码，因此仅在当前掩码之上以位为单位变化的
      * 散列集总是会发生冲突。（已知的例子包括在小表中保存连续整数的
      * 浮点 key。）因此，我们应用一个转换，将更高位的影响向下传播。
