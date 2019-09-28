@@ -686,6 +686,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         // oldThr 记录扩容前的阈值
         int oldThr = threshold;
         int newCap, newThr = 0;
+
         // 如果扩容器前的容量大于 0，说明老数组中已经存在元素
         if (oldCap > 0) {
             // 如果扩容前的容量大于 MAXIMUM_CAPACITY
@@ -714,6 +715,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
             newCap = DEFAULT_INITIAL_CAPACITY;
             newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
         }
+
         // 上面的条件中只有旧容量小于等于 0 且旧的阈值大于 0 时，才有
         // newThr 等于 0，此时 newCap 已经被赋值为 oldThr。
         if (newThr == 0) {
@@ -723,6 +725,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         }
         // 设置此 map 的阈值为计算出来的新的阈值 newThr
         threshold = newThr;
+
         @SuppressWarnings({"rawtypes","unchecked"})
         // 创建新的数组（对于第一次添加元素，这个数组就是第一个数组，对于
         // 存在 oldTab 的情况，这个数组就是需要扩容到的新数组）
