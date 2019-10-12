@@ -2690,7 +2690,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                             xpp = (xp = x.parent) == null ? null : xp.parent;
                         }
 
-                        // 如果父节点不为 null
+                        // 如果父节点不为 null（当前节点为父节点的左子节点）
                         if (xp != null) {
                             // 将父节点置为黑色
                             xp.red = false;

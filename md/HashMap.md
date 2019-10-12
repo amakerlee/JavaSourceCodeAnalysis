@@ -773,6 +773,10 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
 
 **getTreeNode（查找）**
 
+红黑树是一棵黑色平衡的二叉查找树，所以红黑树的查找和二叉查找树的方法完全一样。如果当前结点 key 等于查找 key，那么该 key 为要查找的节点，返回该节点；如果当前结点 key 大于查找 key，那么要查找的节点只可能在右子树中，继续在右子树中查找；如果当前结点 key 小于查找 key，那么要查找的节点只可能在左子树中，继续在左子树中查找。
+
+由于红黑树总保持黑色完美平衡，所以它的查找最坏时间复杂度为 O(2lgN)。
+
 ```java
         /**
          * 树结构的查找函数
@@ -822,9 +826,17 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
         }
 ```
 
-**putTreeVal（插入）**
+** putTreeVal（插入）**
 
-在红黑树的插入操作中，新插入的节点，在调整之前均为红色。
+首先必须注意，在红黑树的插入操作中，新插入的节点，在调整之前均为红色。
+
+插入操作可以分解成两个部分，查找和自平衡。其中查找操作和 getTreeNode 方法的思路基本一致，使用循环从上往下查找，直到找到要插入的位置为止，这一步骤主要在 putTreeVal 函数中完成。找到后在该函数中创建一个新的 TreeNode 节点，并完成双链表的连接。为了让插入之后的树满足红黑树的性质，接着调用 balanceInsertion 函数完成插入新节点之后的自平衡。最后调用 moveRootToFront 确保 root 是直接保存在桶内的第一个节点。
+
+其中插入新节点之后自平衡的情况如下图所示（引用自《[30张图带你彻底理解红黑树](https://www.jianshu.com/p/e136ec79235c)》）
+
+<img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/HashMap_putTreeVal.png" width=100% />
+
+其中 I 表示插入节点，P 表示插入节点的父节点，PP 表示插入节点的祖先节点，S 表示插入节点的叔叔节点。
 
 ```java
         /**
@@ -924,6 +936,106 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
                     moveRootToFront(tab, balanceInsertion(root, x));
                     // 返回 null，意味着产生了一个新的节点
                     return null;
+                }
+            }
+        }
+        
+        /**
+         * 红黑树的插入平衡算法。当树结构中新插入了一个节点之后，要对树进行
+         * 结构调整，以保证该树维持红黑树的特性
+         * @param root 当前的根节点
+         * @param x 为新插入的节点
+         * @return 返回值为调整后的根节点
+         */
+        static <K,V> TreeNode<K,V> balanceInsertion(TreeNode<K,V> root,
+                                                    TreeNode<K,V> x) {
+            // 新插入的节点标记为红色
+            x.red = true;
+            // xp: 当前节点的父节点
+            // xpp: 当前节点的爷爷节点
+            // xppl: 当前节点的左叔叔节点
+            // xppr: 当前节点的右叔叔节点
+            for (TreeNode<K,V> xp, xpp, xppl, xppr;;) {
+                // 如果父节点为 null，那么当前节点就是根节点，直接把当前节点
+                // 标记为黑色，并返回当前节点
+                if ((xp = x.parent) == null) {
+                    x.red = false;
+                    return x;
+                }
+                // 父节点为黑色，或者爷爷为 null，不需要进行调整，直接返回 root
+                else if (!xp.red || (xpp = xp.parent) == null)
+                    return root;
+
+                // 进入到这里，父节点为红色，插入的节点也为红色，需要进行调整
+                // 如果父节点是爷爷节点的左子节点
+                if (xp == (xppl = xpp.left)) {
+                    // 如果右叔叔节点不为 null 且为红色
+                    if ((xppr = xpp.right) != null && xppr.red) {
+                        // 右叔叔节点置为黑色
+                        xppr.red = false;
+                        // 父节点置为黑色
+                        xp.red = false;
+                        // 爷爷节点置为红色
+                        xpp.red = true;
+                        // 把爷爷节点当做处理的起始节点
+                        x = xpp;
+                    }
+                    // 如果右叔叔节点为 null 或者为黑色
+                    else {
+                        // 如果当前节点是父节点的右孩子
+                        if (x == xp.right) {
+                            // 父节点左旋
+                            root = rotateLeft(root, x = xp);
+                            // 获取爷爷节点
+                            xpp = (xp = x.parent) == null ? null : xp.parent;
+                        }
+
+                        // 如果父节点不为 null
+                        if (xp != null) {
+                            // 将父节点置为黑色
+                            xp.red = false;
+                            // 如果爷爷节点不为 null
+                            if (xpp != null) {
+                                // 将爷爷节点置为红色，并且爷爷节点右旋
+                                xpp.red = true;
+                                root = rotateRight(root, xpp);
+                            }
+                        }
+                    }
+                }
+                // 如果父节点是爷爷节点的右子节点
+                else {
+                    // 如果左叔叔节点不为 null 且为红色
+                    if (xppl != null && xppl.red) {
+                        // 左叔叔节点置为黑色，父节点置为黑色，爷爷节点置为红色
+                        xppl.red = false;
+                        xp.red = false;
+                        xpp.red = true;
+                        // 下一轮循环中，将爷爷节点作为处理的起始节点
+                        x = xpp;
+                    }
+                    // 如果左叔叔节点为 null 或者是黑色
+                    else {
+                        // 如果当前节点是左子节点
+                        if (x == xp.left) {
+                            // 针对父节点做右旋操作
+                            root = rotateRight(root, x = xp);
+                            // 获取爷爷节点
+                            xpp = (xp = x.parent) == null ? null : xp.parent;
+                        }
+
+                        // 如果父节点不为 null
+                        if (xp != null) {
+                            // 父节点置为黑色
+                            xp.red = false;
+                            // 如果爷爷节点不为空
+                            if (xpp != null) {
+                                // 将爷爷节点置为红色，针对爷爷节点做左旋
+                                xpp.red = true;
+                                root = rotateLeft(root, xpp);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -1108,196 +1220,7 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
             if (movable)
                 moveRootToFront(tab, r);
         }
-```
-
-**rotateLeft（左旋）**
-
-```java
-        /**
-         * 节点左旋
-         * @param root 根节点
-         * @param p 要左旋的节点
-         * @return root 红黑树的根节点
-         */
-        static <K,V> TreeNode<K,V> rotateLeft(TreeNode<K,V> root,
-                                              TreeNode<K,V> p) {
-            TreeNode<K,V> r, pp, rl;
-            // 要左旋的节点不为 null 且其右子节点不为 null
-            if (p != null && (r = p.right) != null) {
-                // 右子节点的左子节点赋值给要旋转节点 p 的右子节点，并将 rl 指向
-                // 该节点
-                if ((rl = p.right = r.left) != null)
-                    // rl 的父节点指向要旋转的节点 p
-                    rl.parent = p;
-                // 将原先 p 的右子节点 r 的 parent 设置成要旋转的节点 p 的
-                // parent，即 p 的父节点变成了 r 的父节点 pp
-                // 如果此时 pp 为 null，说明 r 已经是顶层的根节点了，应该设置为
-                // root并且标为黑色
-                if ((pp = r.parent = p.parent) == null)
-                    (root = r).red = false;
-                // 如果要旋转的节点 p 是 pp 的左子节点，那么将 pp 的左子节点赋值
-                // 为 r，p 已经不再是 pp 的子节点了
-                else if (pp.left == p)
-                    pp.left = r;
-                // 要旋转的节点 p 是 pp 的右子节点
-                else
-                    pp.right = r;
-                // 以下两步执行完成后，p 正式变成 r 的左子节点
-                r.left = p;
-                p.parent = r;
-            }
-            // 返回根节点
-            return root;
-        }
-```
-
-**rotateRight（右旋）**
-
-```java
-        /**
-         * 节点右旋
-         * @param root 根节点
-         * @param p 要右旋的节点
-         * @return root 红黑树的根节点
-         */
-        static <K,V> TreeNode<K,V> rotateRight(TreeNode<K,V> root,
-                                               TreeNode<K,V> p) {
-            TreeNode<K,V> l, pp, lr;
-            // 要右旋的节点 p 不为 null 且其左子节点 l 不为 null
-            if (p != null && (l = p.left) != null) {
-                // l 的右子节点设置为 p 的左子节点，并将 lr 指向该节点，如果 lr
-                // 不为 null，那么 lr 的父节点设置为 p，此时 lr 和 l 再没有关系
-                if ((lr = p.left = l.right) != null)
-                    lr.parent = p;
-                // 将 l 的父节点设置成 p 的父节点，此时 l 和 p 的父节点开始有了
-                // 父子关系，p 的父节点 pp 变成了 l 的父节点
-                // 如果此时 pp 为 null，说明 l 已经是顶层的根节点了，应该设置为
-                // root并且标为黑色
-                if ((pp = l.parent = p.parent) == null)
-                    (root = l).red = false;
-                // 如果p 是 pp 的右子节点，那么将 pp 的右子节点赋值为 l，p 已经
-                // 不再是 pp 的子节点了
-                else if (pp.right == p)
-                    pp.right = l;
-                // 要旋转的节点 p 是 pp 的左子节点
-                else
-                    pp.left = l;
-                // 以下两步执行完成后，p 正式变成 r 的右子节点
-                l.right = p;
-                p.parent = l;
-            }
-            // 返回根节点
-            return root;
-        }
-```
-
-**balanceInsertion（插入平衡）**
-
-```java
-        /**
-         * 红黑树的插入平衡算法。当树结构中新插入了一个节点之后，要对树进行
-         * 结构调整，以保证该树维持红黑树的特性
-         * @param root 当前的根节点
-         * @param x 为新插入的节点
-         * @return 返回值为调整后的根节点
-         */
-        static <K,V> TreeNode<K,V> balanceInsertion(TreeNode<K,V> root,
-                                                    TreeNode<K,V> x) {
-            // 新插入的节点标记为红色
-            x.red = true;
-            // xp: 当前节点的父节点
-            // xpp: 当前节点的爷爷节点
-            // xppl: 当前节点的左叔叔节点
-            // xppr: 当前节点的右叔叔节点
-            for (TreeNode<K,V> xp, xpp, xppl, xppr;;) {
-                // 如果父节点为 null，那么当前节点就是根节点，直接把当前节点
-                // 标记为黑色，并返回当前节点
-                if ((xp = x.parent) == null) {
-                    x.red = false;
-                    return x;
-                }
-                // 父节点为黑色，或者爷爷为 null，不需要进行调整，直接返回 root
-                else if (!xp.red || (xpp = xp.parent) == null)
-                    return root;
-
-                // 进入到这里，父节点为红色，插入的节点也为红色，需要进行调整
-                // 如果父节点是爷爷节点的左子节点
-                if (xp == (xppl = xpp.left)) {
-                    // 如果右叔叔节点不为 null 且为红色
-                    if ((xppr = xpp.right) != null && xppr.red) {
-                        // 右叔叔节点置为黑色
-                        xppr.red = false;
-                        // 父节点置为黑色
-                        xp.red = false;
-                        // 爷爷节点置为红色
-                        xpp.red = true;
-                        // 把爷爷节点当做处理的起始节点
-                        x = xpp;
-                    }
-                    // 如果右叔叔节点为 null 或者为黑色
-                    else {
-                        // 如果当前节点是父节点的右孩子
-                        if (x == xp.right) {
-                            // 父节点左旋
-                            root = rotateLeft(root, x = xp);
-                            // 获取爷爷节点
-                            xpp = (xp = x.parent) == null ? null : xp.parent;
-                        }
-
-                        // 如果父节点不为 null
-                        if (xp != null) {
-                            // 将父节点置为黑色
-                            xp.red = false;
-                            // 如果爷爷节点不为 null
-                            if (xpp != null) {
-                                // 将爷爷节点置为红色，并且爷爷节点右旋
-                                xpp.red = true;
-                                root = rotateRight(root, xpp);
-                            }
-                        }
-                    }
-                }
-                // 如果父节点是爷爷节点的右子节点
-                else {
-                    // 如果左叔叔节点不为 null 且为红色
-                    if (xppl != null && xppl.red) {
-                        // 左叔叔节点置为黑色，父节点置为黑色，爷爷节点置为红色
-                        xppl.red = false;
-                        xp.red = false;
-                        xpp.red = true;
-                        // 下一轮循环中，将爷爷节点作为处理的起始节点
-                        x = xpp;
-                    }
-                    // 如果左叔叔节点为 null 或者是黑色
-                    else {
-                        // 如果当前节点是左子节点
-                        if (x == xp.left) {
-                            // 针对父节点做右旋操作
-                            root = rotateRight(root, x = xp);
-                            // 获取爷爷节点
-                            xpp = (xp = x.parent) == null ? null : xp.parent;
-                        }
-
-                        // 如果父节点不为 null
-                        if (xp != null) {
-                            // 父节点置为黑色
-                            xp.red = false;
-                            // 如果爷爷节点不为空
-                            if (xpp != null) {
-                                // 将爷爷节点置为红色，针对爷爷节点做左旋
-                                xpp.red = true;
-                                root = rotateLeft(root, xpp);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-```
-
-**balanceDeletion（删除平衡）**
-
-```java
+        
         /**
          * 红黑树的删除平衡算法。当树结构中删除了一个节点之后，要对树进行
          * 结构调整，以保证该树维持红黑树的特性
@@ -1405,6 +1328,93 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
                 }
             }
         }
+```
+
+**rotateLeft（左旋）**
+
+```java
+        /**
+         * 节点左旋
+         * @param root 根节点
+         * @param p 要左旋的节点
+         * @return root 红黑树的根节点
+         */
+        static <K,V> TreeNode<K,V> rotateLeft(TreeNode<K,V> root,
+                                              TreeNode<K,V> p) {
+            TreeNode<K,V> r, pp, rl;
+            // 要左旋的节点不为 null 且其右子节点不为 null
+            if (p != null && (r = p.right) != null) {
+                // 右子节点的左子节点赋值给要旋转节点 p 的右子节点，并将 rl 指向
+                // 该节点
+                if ((rl = p.right = r.left) != null)
+                    // rl 的父节点指向要旋转的节点 p
+                    rl.parent = p;
+                // 将原先 p 的右子节点 r 的 parent 设置成要旋转的节点 p 的
+                // parent，即 p 的父节点变成了 r 的父节点 pp
+                // 如果此时 pp 为 null，说明 r 已经是顶层的根节点了，应该设置为
+                // root并且标为黑色
+                if ((pp = r.parent = p.parent) == null)
+                    (root = r).red = false;
+                // 如果要旋转的节点 p 是 pp 的左子节点，那么将 pp 的左子节点赋值
+                // 为 r，p 已经不再是 pp 的子节点了
+                else if (pp.left == p)
+                    pp.left = r;
+                // 要旋转的节点 p 是 pp 的右子节点
+                else
+                    pp.right = r;
+                // 以下两步执行完成后，p 正式变成 r 的左子节点
+                r.left = p;
+                p.parent = r;
+            }
+            // 返回根节点
+            return root;
+        }
+```
+
+**rotateRight（右旋）**
+
+```java
+        /**
+         * 节点右旋
+         * @param root 根节点
+         * @param p 要右旋的节点
+         * @return root 红黑树的根节点
+         */
+        static <K,V> TreeNode<K,V> rotateRight(TreeNode<K,V> root,
+                                               TreeNode<K,V> p) {
+            TreeNode<K,V> l, pp, lr;
+            // 要右旋的节点 p 不为 null 且其左子节点 l 不为 null
+            if (p != null && (l = p.left) != null) {
+                // l 的右子节点设置为 p 的左子节点，并将 lr 指向该节点，如果 lr
+                // 不为 null，那么 lr 的父节点设置为 p，此时 lr 和 l 再没有关系
+                if ((lr = p.left = l.right) != null)
+                    lr.parent = p;
+                // 将 l 的父节点设置成 p 的父节点，此时 l 和 p 的父节点开始有了
+                // 父子关系，p 的父节点 pp 变成了 l 的父节点
+                // 如果此时 pp 为 null，说明 l 已经是顶层的根节点了，应该设置为
+                // root并且标为黑色
+                if ((pp = l.parent = p.parent) == null)
+                    (root = l).red = false;
+                // 如果p 是 pp 的右子节点，那么将 pp 的右子节点赋值为 l，p 已经
+                // 不再是 pp 的子节点了
+                else if (pp.right == p)
+                    pp.right = l;
+                // 要旋转的节点 p 是 pp 的左子节点
+                else
+                    pp.left = l;
+                // 以下两步执行完成后，p 正式变成 r 的右子节点
+                l.right = p;
+                p.parent = l;
+            }
+            // 返回根节点
+            return root;
+        }
+```
+
+**balanceDeletion（删除平衡）**
+
+```java
+
 ```
 
 
