@@ -1043,6 +1043,22 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
 
 **removeTreeNode（删除）**
 
+删除操作也可以分解成两个部分，一是查找，二是删除后自平衡。查找时如果不存在目标节点则忽略此操作。当存在目标节点时，删除后就得做自平衡处理了。删除了节点后我们还需要找节点来替代删除节点的位置，不然子树跟父辈节点断开了，除非删除节点刚好没子节点，那么就不需要替代。删除节点后找替代节点有 3 种情景：
+    
+    情景 1：若删除节点无子节点，直接删除
+    情景 2：若删除节点只有一个子节点，用子节点替换删除节点
+    情景 3：若删除节点有两个子节点，用后继节点（大于删除节点的最小节点）替换删除节点
+
+删除结点被替代后，在不考虑结点的键值的情况下，对于树来说，可以认为删除的是替代结点。
+
+删除替代节点之后自平衡的所有情景如下图所示（引用自《[30张图带你彻底理解红黑树](https://www.jianshu.com/p/e136ec79235c)》）
+
+<img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/HashMap_removeTreeNode.png" width=100% />
+
+图中 R 表示替代节点，P 表示替代节点的父节点，S 表示替代节点的兄弟节点，SL 表示兄弟节点的左子节点，SR 表示兄弟节点的右子节点。
+
+R 是即将被替换到删除结点的位置的替代结点，在删除前，它还在原来所在位置参与树的子平衡，平衡后再替换到删除结点的位置，才算删除完成。
+
 ```java
         /**
          * 删除节点
@@ -1103,14 +1119,13 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
                 while ((sl = s.left) != null) // find successor
                     s = sl;
                 // 首先交换 p 和 s 的颜色（下面的步骤都是为了将 p 和 s 位置互换，
-                // 先交换颜色）
+                // 先交换颜色） 
                 boolean c = s.red; s.red = p.red; p.red = c; // swap colors
                 // sr 指向 s 的右子节点
                 TreeNode<K,V> sr = s.right;
                 // pp 指向 p 的父节点
                 TreeNode<K,V> pp = p.parent;
-
-                // 第一次调整开始
+                
                 // 如果 p 的右子节点 pr 为叶子结点，将 p 的父节点设置为 s，
                 // s 的右子节点设置为 p
                 if (s == pr) { // p was s's direct parent
@@ -1132,8 +1147,7 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
                     if ((s.right = pr) != null)
                         pr.parent = s;
                 }
-
-                // 第二次调整
+                
                 p.left = null;
                 // 如果 s 的右子节点不为 null，将 p 的右子节点设置为 s 的右子节点
                 if ((p.right = sr) != null)
@@ -1151,11 +1165,13 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
                     pp.left = s;
                 else
                     pp.right = s;
+                // 到这里完成了节点 P 和节点 S 的交换（不是 key 和 value 的交换，
+                // 而是整个对象位置的交换） 
 
                 // 为什么 sr 是 replacement 的首选，p 为备选？
                 // 从代码中可以看到 sr 第一次被赋值时，是在 s 节点进行了向左
                 // 穷遍历结束后，因此此时 s 节点是没有左节点的，sr 即为 s 节
-                // 点的右节点。而从上面的三次调整我们知道，p 节点已经跟 s
+                // 点的右节点。而从上面的调整我们知道，p 节点已经跟 s
                 // 节点进行了位置调换，所以此时 sr 其实是 p 节点的右节点，
                 // 并且 p 节点没有左节点，因此要移除 p 节点，只需要将 p 节点
                 // 的右节点 sr 覆盖掉 p 节点即可，因此 sr 是 replacement 的
@@ -1166,6 +1182,7 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
                 else
                     replacement = p;
             }
+            
             // 如果 p 的左子节点不为 null，右子节点为 null， replacement 设置
             // 为其左子节点
             else if (pl != null)
@@ -1177,8 +1194,7 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
             // 如果其左右子节点都为 null，replacement 直接设置为 p 节点
             else
                 replacement = p;
-
-            // 第三次调整
+            
             // 如果 p 节点不是叶节点（只有当 pl == null 且 pr == null 时，即 p 是
             // 叶节点时，replacement 才会等于 p）
             if (replacement != p) {
@@ -1198,13 +1214,15 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
                 // 以便 gc
                 p.left = p.right = p.parent = null;
             }
+            // 此时完成 p 节点的删除，replacement 代替了 p 节点，而 p节点会
+            // 被虚拟机自动垃圾回收，接下来需要进行的是红黑树的自平衡
 
             // 如果 p 节点不为红色则进行红黑树删除平衡调整
             // 如果 p 是红色则不会破坏红黑树的平衡不需要调整
             TreeNode<K,V> r = p.red ? root : balanceDeletion(root, replacement);
 
             // 如果 p 等于 replecement 即其左右子节点均为 null，即 p 本身为
-            // 叶节点，则将节点 p 删除即可
+            // 叶节点，则将节点 p 删除即可。删除叶节点不影响平衡。
             if (replacement == p) {  // detach
                 TreeNode<K,V> pp = p.parent;
                 p.parent = null;
@@ -1244,11 +1262,12 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
                     x.red = false;
                     return root;
                 }
+                // x 为黑色节点
                 // 若 x 为其父节点的左子节点
                 else if ((xpl = xp.left) == x) {
                     // 如果 x 的右兄弟节点不为 null 且为红色，将其兄弟节点染成
-                    // 黑色，其父节点染成红色，然后对父节点 xp 左旋转，xp
-                    // 赋值为 x 的父节点，xpr 赋值为 x 的右兄弟节点
+                    // 黑色，其父节点染成红色，然后对父节点 xp 左旋转。
+                    // xp赋值为 x 的父节点，xpr 赋值为 x 的右兄弟节点
                     if ((xpr = xp.right) != null && xpr.red) {
                         xpr.red = false;
                         xp.red = true;
@@ -1256,17 +1275,19 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
                         xpr = (xp = x.parent) == null ? null : xp.right;
                     }
                     // 如果 xpr 为 null，则继续向上调整，将 x 的父节点作为新的
-                    // x 继续循环
+                    // x 继续循环。否则进入替换节点的兄弟节点为黑色节点的情况。
                     if (xpr == null)
                         x = xp;
                     else {
                         TreeNode<K,V> sl = xpr.left, sr = xpr.right;
+                        // 图中 2.1.2.3 情况
                         if ((sr == null || !sr.red) &&
                                 (sl == null || !sl.red)) {
                             xpr.red = true;
                             x = xp;
                         }
                         else {
+                            // 图中 2.1.2.2 情况
                             if (sr == null || !sr.red) {
                                 if (sl != null)
                                     sl.red = false;
@@ -1275,11 +1296,13 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
                                 xpr = (xp = x.parent) == null ?
                                         null : xp.right;
                             }
+                            // 图中 2.1.2.1 情况
                             if (xpr != null) {
                                 xpr.red = (xp == null) ? false : xp.red;
                                 if ((sr = xpr.right) != null)
                                     sr.red = false;
                             }
+                            // 对 xp 进行左旋
                             if (xp != null) {
                                 xp.red = false;
                                 root = rotateLeft(root, xp);
@@ -1410,13 +1433,6 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
             return root;
         }
 ```
-
-**balanceDeletion（删除平衡）**
-
-```java
-
-```
-
 
 **treeify**
 
@@ -1557,97 +1573,6 @@ table 没有达到转化成树结构的容量时，进行扩容操作。否则�
                 }
                 // 检验TreeNode对象是否满足红黑树和双链表的特性
                 assert checkInvariants(root);
-            }
-        }
-```
-
-**checkInvariants**
-
-```java
-        /**
-         * 从 root 开始递归检查是否满足红黑树的性质，仅在检查 root 是否
-         * 落在 table 上时调用
-         */
-        static <K,V> boolean checkInvariants(TreeNode<K,V> t) {
-            TreeNode<K,V> tp = t.parent, tl = t.left, tr = t.right,
-                    tb = t.prev, tn = (TreeNode<K,V>)t.next;
-            if (tb != null && tb.next != t)
-                return false;
-            if (tn != null && tn.prev != t)
-                return false;
-            if (tp != null && t != tp.left && t != tp.right)
-                return false;
-            if (tl != null && (tl.parent != t || tl.hash > t.hash))
-                return false;
-            if (tr != null && (tr.parent != t || tr.hash < t.hash))
-                return false;
-            if (t.red && tl != null && tl.red && tr != null && tr.red)
-                return false;
-            if (tl != null && !checkInvariants(tl))
-                return false;
-            if (tr != null && !checkInvariants(tr))
-                return false;
-            return true;
-        }
-```
-
-**split**
-
-```java
-        /**
-         * Splits nodes in a tree bin into lower and upper tree bins,
-         * or untreeifies if now too small. Called only from resize;
-         * see above discussion about split bits and indices.
-         *
-         * @param map the map
-         * @param tab the table for recording bin heads
-         * @param index the index of the table being split
-         * @param bit the bit of hash to split on
-         */
-        final void split(HashMap<K,V> map, Node<K,V>[] tab, int index, int bit) {
-            TreeNode<K,V> b = this;
-            // Relink into lo and hi lists, preserving order
-            TreeNode<K,V> loHead = null, loTail = null;
-            TreeNode<K,V> hiHead = null, hiTail = null;
-            int lc = 0, hc = 0;
-            for (TreeNode<K,V> e = b, next; e != null; e = next) {
-                next = (TreeNode<K,V>)e.next;
-                e.next = null;
-                if ((e.hash & bit) == 0) {
-                    if ((e.prev = loTail) == null)
-                        loHead = e;
-                    else
-                        loTail.next = e;
-                    loTail = e;
-                    ++lc;
-                }
-                else {
-                    if ((e.prev = hiTail) == null)
-                        hiHead = e;
-                    else
-                        hiTail.next = e;
-                    hiTail = e;
-                    ++hc;
-                }
-            }
-
-            if (loHead != null) {
-                if (lc <= UNTREEIFY_THRESHOLD)
-                    tab[index] = loHead.untreeify(map);
-                else {
-                    tab[index] = loHead;
-                    if (hiHead != null) // (else is already treeified)
-                        loHead.treeify(tab);
-                }
-            }
-            if (hiHead != null) {
-                if (hc <= UNTREEIFY_THRESHOLD)
-                    tab[index + bit] = hiHead.untreeify(map);
-                else {
-                    tab[index + bit] = hiHead;
-                    if (loHead != null)
-                        hiHead.treeify(tab);
-                }
             }
         }
 ```

@@ -2396,7 +2396,6 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                 // pp 指向 p 的父节点
                 TreeNode<K,V> pp = p.parent;
 
-                // 第一次调整开始
                 // 如果 p 的右子节点 pr 为叶子结点，将 p 的父节点设置为 s，
                 // s 的右子节点设置为 p
                 if (s == pr) { // p was s's direct parent
@@ -2419,7 +2418,6 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                         pr.parent = s;
                 }
 
-                // 第二次调整
                 p.left = null;
                 // 如果 s 的右子节点不为 null，将 p 的右子节点设置为 s 的右子节点
                 if ((p.right = sr) != null)
@@ -2437,11 +2435,13 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                     pp.left = s;
                 else
                     pp.right = s;
+                // 到这里完成了节点 P 和节点 S 的交换（不是 key 和 value 的交换，
+                // 而是整个对象位置的交换）
 
                 // 为什么 sr 是 replacement 的首选，p 为备选？
                 // 从代码中可以看到 sr 第一次被赋值时，是在 s 节点进行了向左
                 // 穷遍历结束后，因此此时 s 节点是没有左节点的，sr 即为 s 节
-                // 点的右节点。而从上面的三次调整我们知道，p 节点已经跟 s
+                // 点的右节点。而从上面的调整我们知道，p 节点已经跟 s
                 // 节点进行了位置调换，所以此时 sr 其实是 p 节点的右节点，
                 // 并且 p 节点没有左节点，因此要移除 p 节点，只需要将 p 节点
                 // 的右节点 sr 覆盖掉 p 节点即可，因此 sr 是 replacement 的
@@ -2452,6 +2452,7 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                 else
                     replacement = p;
             }
+
             // 如果 p 的左子节点不为 null，右子节点为 null， replacement 设置
             // 为其左子节点
             else if (pl != null)
@@ -2464,7 +2465,6 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
             else
                 replacement = p;
 
-            // 第三次调整
             // 如果 p 节点不是叶节点（只有当 pl == null 且 pr == null 时，即 p 是
             // 叶节点时，replacement 才会等于 p）
             if (replacement != p) {
@@ -2484,6 +2484,8 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                 // 以便 gc
                 p.left = p.right = p.parent = null;
             }
+            // 此时完成 p 节点的删除，p节点会自动被垃圾回收，接下来需要进行
+            // 红黑树的自平衡
 
             // 如果 p 节点不为红色则进行红黑树删除平衡调整
             // 如果 p 是红色则不会破坏红黑树的平衡不需要调整
@@ -2508,9 +2510,8 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
         }
 
         /**
-         * Splits nodes in a tree bin into lower and upper tree bins,
-         * or untreeifies if now too small. Called only from resize;
-         * see above discussion about split bits and indices.
+         * 把桶内的节点分到低位桶和高位桶内，如果桶内数量太少，将树结构变成
+         * 链式结构。此方法只在 resize 方法中调用。
          *
          * @param map the map
          * @param tab the table for recording bin heads
@@ -2763,11 +2764,12 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                     x.red = false;
                     return root;
                 }
+                // x 为黑色节点
                 // 若 x 为其父节点的左子节点
                 else if ((xpl = xp.left) == x) {
                     // 如果 x 的右兄弟节点不为 null 且为红色，将其兄弟节点染成
-                    // 黑色，其父节点染成红色，然后对父节点 xp 左旋转，xp
-                    // 赋值为 x 的父节点，xpr 赋值为 x 的右兄弟节点
+                    // 黑色，其父节点染成红色，然后对父节点 xp 左旋转。
+                    // xp赋值为 x 的父节点，xpr 赋值为 x 的右兄弟节点
                     if ((xpr = xp.right) != null && xpr.red) {
                         xpr.red = false;
                         xp.red = true;
@@ -2775,17 +2777,19 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                         xpr = (xp = x.parent) == null ? null : xp.right;
                     }
                     // 如果 xpr 为 null，则继续向上调整，将 x 的父节点作为新的
-                    // x 继续循环
+                    // x 继续循环。否则进入替换节点的兄弟节点为黑色节点的情况。
                     if (xpr == null)
                         x = xp;
                     else {
                         TreeNode<K,V> sl = xpr.left, sr = xpr.right;
+                        // 图中 2.1.2.3 情况
                         if ((sr == null || !sr.red) &&
                                 (sl == null || !sl.red)) {
                             xpr.red = true;
                             x = xp;
                         }
                         else {
+                            // 图中 2.1.2.2 情况
                             if (sr == null || !sr.red) {
                                 if (sl != null)
                                     sl.red = false;
@@ -2794,11 +2798,13 @@ public class HashMap<K,V> extends java.util.AbstractMap<K,V>
                                 xpr = (xp = x.parent) == null ?
                                         null : xp.right;
                             }
+                            // 图中 2.1.2.1 情况
                             if (xpr != null) {
                                 xpr.red = (xp == null) ? false : xp.red;
                                 if ((sr = xpr.right) != null)
                                     sr.red = false;
                             }
+                            // 对 xp 进行左旋
                             if (xp != null) {
                                 xp.red = false;
                                 root = rotateLeft(root, xp);
