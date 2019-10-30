@@ -42,28 +42,18 @@ import java.util.NavigableSet;
 import java.util.SortedMap;
 
 /**
- * A {@link java.util.SortedMap} extended with navigation methods returning the
- * closest matches for given search targets. Methods
- * {@code lowerEntry}, {@code floorEntry}, {@code ceilingEntry},
- * and {@code higherEntry} return {@code Map.Entry} objects
- * associated with keys respectively less than, less than or equal,
- * greater than or equal, and greater than a given key, returning
- * {@code null} if there is no such key.  Similarly, methods
- * {@code lowerKey}, {@code floorKey}, {@code ceilingKey}, and
- * {@code higherKey} return only the associated keys. All of these
- * methods are designed for locating, not traversing entries.
+ * 扩展了 SortedMap 的接口，包括为给性检索目标返回最接近的匹配的方法。
+ * lowerEntry, floorEntry, ceilingEntry 和 higherEntry 分别返回小于，小于或等于，
+ * 大于或等于，大于指定 key 的 entry，如果没有这样的 key 则返回 null。
+ * 同样的， lowerKey, floorKey, ceilingKey 和 higherKey 只返回相关的 key。
+ * 所有的这些方法都是为定位设计，而非遍历。
  *
- * <p>A {@code NavigableMap} may be accessed and traversed in either
- * ascending or descending key order.  The {@code descendingMap}
- * method returns a view of the map with the senses of all relational
- * and directional methods inverted. The performance of ascending
- * operations and views is likely to be faster than that of descending
- * ones.  Methods {@code subMap}, {@code headMap},
- * and {@code tailMap} differ from the like-named {@code
- * SortedMap} methods in accepting additional arguments describing
- * whether lower and upper bounds are inclusive versus exclusive.
- * Submaps of any {@code NavigableMap} must implement the {@code
- * NavigableMap} interface.
+ * 可按升序或者降序访问和遍历一个 NavigableMap。descendingMap 方法
+ * 返回映射的一个视图，该视图包括所有反向的相关和定向方法。升序的操作
+ * 和视图可能比降序的要快。subMap, headMap, 和 tailMap 方法和名称比较
+ * 类似的 SortedMap 不同，它们接受额外的参数来描述上界和下界是包含的
+ * 还是排他的。任何 NavigableMap 的子映射都必须实现 NavigableMap 接口。
+ *
  *
  * <p>This interface additionally defines methods {@code firstEntry},
  * {@code pollFirstEntry}, {@code lastEntry}, and

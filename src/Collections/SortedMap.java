@@ -32,75 +32,30 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 
 /**
- * A {@link java.util.Map} that further provides a <em>total ordering</em> on its keys.
- * The map is ordered according to the {@linkplain Comparable natural
- * ordering} of its keys, or by a {@link Comparator} typically
- * provided at sorted map creation time.  This order is reflected when
- * iterating over the sorted map's collection views (returned by the
- * {@code entrySet}, {@code keySet} and {@code values} methods).
- * Several additional operations are provided to take advantage of the
- * ordering.  (This interface is the map analogue of {@link java.util.SortedSet}.)
+ * SortedMap 是一个额外提供对 key 排序的 Map。根据 key 的自然顺序或者
+ * 指定的 Comparator 进行排序（Comparator 通常在创建 Map 的时候指定）
+ * 对 Map 的集合视图（由 entrySet, keySet 和 values 方法返回）迭代
+ * 时会使用到这一排序结果。除此之外还提供了集中额外的方法来利用排序。
  *
- * <p>All keys inserted into a sorted map must implement the {@code Comparable}
- * interface (or be accepted by the specified comparator).  Furthermore, all
- * such keys must be <em>mutually comparable</em>: {@code k1.compareTo(k2)} (or
- * {@code comparator.compare(k1, k2)}) must not throw a
- * {@code ClassCastException} for any keys {@code k1} and {@code k2} in
- * the sorted map.  Attempts to violate this restriction will cause the
- * offending method or constructor invocation to throw a
- * {@code ClassCastException}.
+ * 插入到 SortedMap 中的所有 key 必须实现 Comparable 接口（或者存在
+ * 一个指定的比较器）。除此之外，所有的键必须是相互可比较的：对于任意
+ * 两个键 k1, k2，保证k1.compareTo(k2)（或者 comparator.compare(k1, k2)）
+ * 不会抛出 ClassCastException 异常。
  *
- * <p>Note that the ordering maintained by a sorted map (whether or not an
- * explicit comparator is provided) must be <em>consistent with equals</em> if
- * the sorted map is to correctly implement the {@code Map} interface.  (See
- * the {@code Comparable} interface or {@code Comparator} interface for a
- * precise definition of <em>consistent with equals</em>.)  This is so because
- * the {@code Map} interface is defined in terms of the {@code equals}
- * operation, but a sorted map performs all key comparisons using its
- * {@code compareTo} (or {@code compare}) method, so two keys that are
- * deemed equal by this method are, from the standpoint of the sorted map,
- * equal.  The behavior of a tree map <em>is</em> well-defined even if its
- * ordering is inconsistent with equals; it just fails to obey the general
- * contract of the {@code Map} interface.
+ * 注意 SortedMap 所维护的顺序（无论是否提供显式比较器）必须与 equals
+ * 一致。这是因为 Map 接口是根据 equals 操作定义的，SortedMap 使用
+ * compareTo（或compare方法）执行所有的键比较，所以从 SortedMap 的
+ * 角度看，比较的结果必须与 equals 操作的行为一致。
  *
- * <p>All general-purpose sorted map implementation classes should provide four
- * "standard" constructors. It is not possible to enforce this recommendation
- * though as required constructors cannot be specified by interfaces. The
- * expected "standard" constructors for all sorted map implementations are:
- * <ol>
- *   <li>A void (no arguments) constructor, which creates an empty sorted map
- *   sorted according to the natural ordering of its keys.</li>
- *   <li>A constructor with a single argument of type {@code Comparator}, which
- *   creates an empty sorted map sorted according to the specified comparator.</li>
- *   <li>A constructor with a single argument of type {@code Map}, which creates
- *   a new map with the same key-value mappings as its argument, sorted
- *   according to the keys' natural ordering.</li>
- *   <li>A constructor with a single argument of type {@code SortedMap}, which
- *   creates a new sorted map with the same key-value mappings and the same
- *   ordering as the input sorted map.</li>
- * </ol>
+ * 所有通用的 SortedMap 都应该提供四个“标准”构造函数。由于接口中无法
+ * 指定构造函数，所以这一建议无法强制执行。所有 SortedMap 的实现都
+ * 应该有以下四个构造函数：
+ *   一个 void 构造函数，根据 key 的自然顺序创建一个空的 SortedMap。
+ *   一个包含参数 Comparator 的构造函数，根据指定的比较器创建一个空的 SortedMap。
+ *   一个包含参数 Map 的构造函数。创建一个和参数 Map 中所有键值对相同的 Map，根据键的自然顺序排序。
+ *   一个包含参数 SortedMap 的构造函数，创建一个和参数中所有键值对相同的 SortedMap。
  *
- * <p><strong>Note</strong>: several methods return submaps with restricted key
- * ranges. Such ranges are <em>half-open</em>, that is, they include their low
- * endpoint but not their high endpoint (where applicable).  If you need a
- * <em>closed range</em> (which includes both endpoints), and the key type
- * allows for calculation of the successor of a given key, merely request
- * the subrange from {@code lowEndpoint} to
- * {@code successor(highEndpoint)}.  For example, suppose that {@code m}
- * is a map whose keys are strings.  The following idiom obtains a view
- * containing all of the key-value mappings in {@code m} whose keys are
- * between {@code low} and {@code high}, inclusive:<pre>
- *   SortedMap&lt;String, V&gt; sub = m.subMap(low, high+"\0");</pre>
- *
- * A similar technique can be used to generate an <em>open range</em>
- * (which contains neither endpoint).  The following idiom obtains a
- * view containing all of the key-value mappings in {@code m} whose keys
- * are between {@code low} and {@code high}, exclusive:<pre>
- *   SortedMap&lt;String, V&gt; sub = m.subMap(low+"\0", high);</pre>
- *
- * <p>This interface is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ *   此接口是  Java Collections Framework 的成员。
  *
  * @param <K> the type of keys maintained by this map
  * @param <V> the type of mapped values
@@ -118,9 +73,7 @@ import java.util.TreeMap;
 
 public interface SortedMap<K,V> extends java.util.Map<K,V> {
     /**
-     * Returns the comparator used to order the keys in this map, or
-     * {@code null} if this map uses the {@linkplain Comparable
-     * natural ordering} of its keys.
+     * 返回 Map 中对键排序的比较器，如果使用自然顺序排序，返回 null
      *
      * @return the comparator used to order the keys in this map,
      *         or {@code null} if this map uses the natural ordering
@@ -129,16 +82,12 @@ public interface SortedMap<K,V> extends java.util.Map<K,V> {
     Comparator<? super K> comparator();
 
     /**
-     * Returns a view of the portion of this map whose keys range from
-     * {@code fromKey}, inclusive, to {@code toKey}, exclusive.  (If
-     * {@code fromKey} and {@code toKey} are equal, the returned map
-     * is empty.)  The returned map is backed by this map, so changes
-     * in the returned map are reflected in this map, and vice-versa.
-     * The returned map supports all optional map operations that this
-     * map supports.
+     * 返回包含该 Map 部分键值对的视图，范围从 fromKey 到 toKey。（如果
+     * fromKey 和 toKey 相等，返回 null）。返回的 Map 由此 Map 支撑，任何
+     * 对返回 Map 的修改都会影响此 Map，反之亦然。返回的 Map 支持此 Map
+     * 的所有操作。
      *
-     * <p>The returned map will throw an {@code IllegalArgumentException}
-     * on an attempt to insert a key outside its range.
+     * 如果试图在返回 Map 的范围之外插入 key，将会抛出 IllegalArgumentException 异常。
      *
      * @param fromKey low endpoint (inclusive) of the keys in the returned map
      * @param toKey high endpoint (exclusive) of the keys in the returned map
@@ -160,14 +109,11 @@ public interface SortedMap<K,V> extends java.util.Map<K,V> {
     java.util.SortedMap<K,V> subMap(K fromKey, K toKey);
 
     /**
-     * Returns a view of the portion of this map whose keys are
-     * strictly less than {@code toKey}.  The returned map is backed
-     * by this map, so changes in the returned map are reflected in
-     * this map, and vice-versa.  The returned map supports all
-     * optional map operations that this map supports.
+     * 返回该映射中 key 严格小于 toKey 的部分。返回的 Map 由此 Map 支撑，
+     * 任何对返回 Map 的修改都会影响此 Map，反之亦然。返回的 Map 支持
+     * 此 Map 的所有操作。
      *
-     * <p>The returned map will throw an {@code IllegalArgumentException}
-     * on an attempt to insert a key outside its range.
+     * 如果试图在返回 Map 的范围之外插入 key，将会抛出 IllegalArgumentException 异常。
      *
      * @param toKey high endpoint (exclusive) of the keys in the returned map
      * @return a view of the portion of this map whose keys are strictly
@@ -187,14 +133,11 @@ public interface SortedMap<K,V> extends java.util.Map<K,V> {
     java.util.SortedMap<K,V> headMap(K toKey);
 
     /**
-     * Returns a view of the portion of this map whose keys are
-     * greater than or equal to {@code fromKey}.  The returned map is
-     * backed by this map, so changes in the returned map are
-     * reflected in this map, and vice-versa.  The returned map
-     * supports all optional map operations that this map supports.
+     * 返回该映射中 key 大于等于 fromKey 的部分。返回的 Map 由此 Map 支撑，
+     * 任何对返回 Map 的修改都会影响此 Map，反之亦然。返回的 Map 支持
+     * 此 Map 的所有操作。
      *
-     * <p>The returned map will throw an {@code IllegalArgumentException}
-     * on an attempt to insert a key outside its range.
+     * 如果试图在返回 Map 的范围之外插入 key，将会抛出 IllegalArgumentException 异常。
      *
      * @param fromKey low endpoint (inclusive) of the keys in the returned map
      * @return a view of the portion of this map whose keys are greater
@@ -214,7 +157,7 @@ public interface SortedMap<K,V> extends java.util.Map<K,V> {
     java.util.SortedMap<K,V> tailMap(K fromKey);
 
     /**
-     * Returns the first (lowest) key currently in this map.
+     * 返回此时 Map 中第一个（最小的）key。
      *
      * @return the first (lowest) key currently in this map
      * @throws NoSuchElementException if this map is empty
@@ -222,7 +165,7 @@ public interface SortedMap<K,V> extends java.util.Map<K,V> {
     K firstKey();
 
     /**
-     * Returns the last (highest) key currently in this map.
+     * 返回此时 Map 中最后一个（最大的）key。
      *
      * @return the last (highest) key currently in this map
      * @throws NoSuchElementException if this map is empty
@@ -230,18 +173,14 @@ public interface SortedMap<K,V> extends java.util.Map<K,V> {
     K lastKey();
 
     /**
-     * Returns a {@link java.util.Set} view of the keys contained in this map.
-     * The set's iterator returns the keys in ascending order.
-     * The set is backed by the map, so changes to the map are
-     * reflected in the set, and vice-versa.  If the map is modified
-     * while an iteration over the set is in progress (except through
-     * the iterator's own {@code remove} operation), the results of
-     * the iteration are undefined.  The set supports element removal,
-     * which removes the corresponding mapping from the map, via the
-     * {@code Iterator.remove}, {@code Set.remove},
-     * {@code removeAll}, {@code retainAll}, and {@code clear}
-     * operations.  It does not support the {@code add} or {@code addAll}
-     * operations.
+     * 返回包含 Map 中所有 key 的 Set 集合视图。
+     * 集合的迭代器按升序返回。
+     * 返回的集合由此 Map 支撑，任何对此 Map 的修改都会影响到集合，
+     * 反之亦然。对集合的迭代过程中如果此 Map 被修改
+     * （除了通过迭代器自身的 remove 方法），迭代的结果未定义。此集合
+     * 支持元素的删除，通过 Iterator.remove, Set.remove, removeAll,
+     * retainAll, clear 方法删除 Map 中对应的映射。集合不支持 add 或者 addAll
+     * 操作。
      *
      * @return a set view of the keys contained in this map, sorted in
      *         ascending order
@@ -249,19 +188,14 @@ public interface SortedMap<K,V> extends java.util.Map<K,V> {
     java.util.Set<K> keySet();
 
     /**
-     * Returns a {@link java.util.Collection} view of the values contained in this map.
-     * The collection's iterator returns the values in ascending order
-     * of the corresponding keys.
-     * The collection is backed by the map, so changes to the map are
-     * reflected in the collection, and vice-versa.  If the map is
-     * modified while an iteration over the collection is in progress
-     * (except through the iterator's own {@code remove} operation),
-     * the results of the iteration are undefined.  The collection
-     * supports element removal, which removes the corresponding
-     * mapping from the map, via the {@code Iterator.remove},
-     * {@code Collection.remove}, {@code removeAll},
-     * {@code retainAll} and {@code clear} operations.  It does not
-     * support the {@code add} or {@code addAll} operations.
+     * 返回包含 Map 中所有 value 的 Collection 集合视图。
+     * 集合的迭代器按对应 key 的升序返回 value 值。
+     * 返回的集合由此 Map 支撑，任何对此 Map 的修改都会影响到集合，
+     * 反之亦然。对集合的迭代过程中如果此 Map 被修改
+     * （除了通过迭代器自身的 remove 方法），迭代的结果未定义。此集合
+     * 支持元素的删除，通过 Iterator.remove, Set.remove, removeAll,
+     * retainAll, clear 方法删除 Map 中对应的映射。集合不支持 add 或者 addAll
+     * 操作。
      *
      * @return a collection view of the values contained in this map,
      *         sorted in ascending key order
@@ -269,19 +203,14 @@ public interface SortedMap<K,V> extends java.util.Map<K,V> {
     Collection<V> values();
 
     /**
-     * Returns a {@link java.util.Set} view of the mappings contained in this map.
-     * The set's iterator returns the entries in ascending key order.
-     * The set is backed by the map, so changes to the map are
-     * reflected in the set, and vice-versa.  If the map is modified
-     * while an iteration over the set is in progress (except through
-     * the iterator's own {@code remove} operation, or through the
-     * {@code setValue} operation on a map entry returned by the
-     * iterator) the results of the iteration are undefined.  The set
-     * supports element removal, which removes the corresponding
-     * mapping from the map, via the {@code Iterator.remove},
-     * {@code Set.remove}, {@code removeAll}, {@code retainAll} and
-     * {@code clear} operations.  It does not support the
-     * {@code add} or {@code addAll} operations.
+     * 返回包含 Map 中所有映射的 Set 集合视图。
+     * 集合的迭代器按对应 key 的升序返回 entry。
+     * 返回的集合由此 Map 支撑，任何对此 Map 的修改都会影响到集合，
+     * 反之亦然。对集合的迭代过程中如果此 Map 被修改
+     * （除了通过迭代器自身的 remove 方法或者 setValue 方法），迭代的
+     * 结果未定义。此集合支持元素的删除，通过
+     * Iterator.remove, Set.remove, removeAll, retainAll, clear 方法删除
+     * Map 中对应的映射。集合不支持 add 或者 addAll 操作。
      *
      * @return a set view of the mappings contained in this map,
      *         sorted in ascending key order
