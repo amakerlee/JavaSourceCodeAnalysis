@@ -85,7 +85,7 @@ import java.util.NavigableMap;
 import java.util.SortedMap;
 
 public class TreeMap<K,V>
-        extends java.util.AbstractMap<K,V>
+        extends AbstractMap<K,V>
         implements NavigableMap<K,V>, Cloneable, java.io.Serializable
 {
     /**
@@ -264,8 +264,7 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns this map's entry for the given key, or {@code null} if the map
-     * does not contain an entry for the key.
+     * 返回指定 key 对应的 entry，如果不存在则返回 null。
      *
      * @return this map's entry for the given key, or {@code null} if the map
      *         does not contain an entry for the key
@@ -277,11 +276,13 @@ public class TreeMap<K,V>
      */
     final TreeMap.Entry<K,V> getEntry(Object key) {
         // Offload comparator-based version for sake of performance
+        // 根据 Map 中指定的比较器获取对应的 entry。
         if (comparator != null)
             return getEntryUsingComparator(key);
         if (key == null)
             throw new NullPointerException();
         @SuppressWarnings("unchecked")
+        // 根据二叉检索树的性质，向下搜索，直到找到为止。否则返回 null
         Comparable<? super K> k = (Comparable<? super K>) key;
         TreeMap.Entry<K,V> p = root;
         while (p != null) {
@@ -297,10 +298,8 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Version of getEntry using comparator. Split off from getEntry
-     * for performance. (This is not worth doing for most methods,
-     * that are less dependent on comparator performance, but is
-     * worthwhile here.)
+     * 根据 Map 中指定的比较器获取对应的 entry。和 getEntry 区分的是
+     * 为了性能。（并非所有类似的操作都值得这样做。）
      */
     final TreeMap.Entry<K,V> getEntryUsingComparator(Object key) {
         @SuppressWarnings("unchecked")
@@ -322,16 +321,15 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Gets the entry corresponding to the specified key; if no such entry
-     * exists, returns the entry for the least key greater than the specified
-     * key; if no such entry exists (i.e., the greatest key in the Tree is less
-     * than the specified key), returns {@code null}.
+     * 获取指定 key 对应的 entry；如果不存在这样的 entry，返回比指定
+     * key 大的最小的 key 对应的 entry；如果还是不存在，则返回 null。
      */
     final TreeMap.Entry<K,V> getCeilingEntry(K key) {
         TreeMap.Entry<K,V> p = root;
         while (p != null) {
             int cmp = compare(key, p.key);
             if (cmp < 0) {
+                // 存在左子树，继续向左子树查找，不存在时当前节点即为要找的节点
                 if (p.left != null)
                     p = p.left;
                 else
@@ -340,8 +338,11 @@ public class TreeMap<K,V>
                 if (p.right != null) {
                     p = p.right;
                 } else {
+                    // 要查找的 key 比当前节点大，而当前节点不存在右子树，那么
+                    // 比当前节点 key 大的最小的 key 在父节点或父节点之上。
                     TreeMap.Entry<K,V> parent = p.parent;
                     TreeMap.Entry<K,V> ch = p;
+                    // ch 为其父节点的左子节点时，其父节点即为要找的节点。
                     while (parent != null && ch == parent.right) {
                         ch = parent;
                         parent = parent.parent;
@@ -355,15 +356,15 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Gets the entry corresponding to the specified key; if no such entry
-     * exists, returns the entry for the greatest key less than the specified
-     * key; if no such entry exists, returns {@code null}.
+     * 获取指定 key 对应的 entry；如果不存在这样的 entry，返回比指定
+     * key 小的最大的 key 对应的 entry；如果还是不存在，则返回 null。
      */
     final TreeMap.Entry<K,V> getFloorEntry(K key) {
         TreeMap.Entry<K,V> p = root;
         while (p != null) {
             int cmp = compare(key, p.key);
             if (cmp > 0) {
+                // 存在右子树，继续向右子树查找，不存在时当前节点即为要找的节点
                 if (p.right != null)
                     p = p.right;
                 else
@@ -372,8 +373,11 @@ public class TreeMap<K,V>
                 if (p.left != null) {
                     p = p.left;
                 } else {
+                    // 要查找的 key 比当前节点小，而当前节点不存在左子树，那么
+                    // 比当前节点 key 小的最大的 key 在父节点或父节点之上。
                     TreeMap.Entry<K,V> parent = p.parent;
                     TreeMap.Entry<K,V> ch = p;
+                    // ch 为其父节点的右子节点时，其父节点即为要找的节点。
                     while (parent != null && ch == parent.left) {
                         ch = parent;
                         parent = parent.parent;
@@ -388,10 +392,10 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Gets the entry for the least key greater than the specified
-     * key; if no such entry exists, returns the entry for the least
-     * key greater than the specified key; if no such entry exists
-     * returns {@code null}.
+     * 获取比指定 key 大的最小的 key 对应的 entry；如果不存在这样的 entry，
+     * 返回 null。
+     * 实现方法和 getCeilingEntry 类似，不同点在于当前节点 key 和指定 key
+     * 相等时，还要继续向右查找。
      */
     final TreeMap.Entry<K,V> getHigherEntry(K key) {
         TreeMap.Entry<K,V> p = root;
@@ -420,9 +424,10 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns the entry for the greatest key less than the specified key; if
-     * no such entry exists (i.e., the least key in the Tree is greater than
-     * the specified key), returns {@code null}.
+     * 获取比指定 key 小的最大的 key 对应的 entry；如果不存在这样的 entry，
+     * 返回 null。
+     * 实现方法和 getFloorEntry 类似，不同点在于当前节点 key 和指定 key
+     * 相等时，还要继续向左查找。
      */
     final TreeMap.Entry<K,V> getLowerEntry(K key) {
         TreeMap.Entry<K,V> p = root;
@@ -451,9 +456,8 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Associates the specified value with the specified key in this map.
-     * If the map previously contained a mapping for the key, the old
-     * value is replaced.
+     * 将指定的 key 和指定的 value 作为新的 entry 插入 Map 中。如果 Map
+     * 中已经存在指定 key 的映射，那么将其对应的 value 体验成指定 value。
      *
      * @param key key with which the specified value is to be associated
      * @param value value to be associated with the specified key
@@ -470,9 +474,11 @@ public class TreeMap<K,V>
      */
     public V put(K key, V value) {
         TreeMap.Entry<K,V> t = root;
+        // 如果根节点为 null
         if (t == null) {
+            // 对 key 是否为 null 进行检查 type
             compare(key, key); // type (and possibly null) check
-
+            // 创建一个根节点，返回 null
             root = new TreeMap.Entry<>(key, value, null);
             size = 1;
             modCount++;
@@ -482,18 +488,23 @@ public class TreeMap<K,V>
         TreeMap.Entry<K,V> parent;
         // split comparator and comparable paths
         Comparator<? super K> cpr = comparator;
+        // 如果存在比较器
         if (cpr != null) {
             do {
+                // 记录要插入节点的父节点，在创建新节点时使用
                 parent = t;
+                // 比较指定 key 和当前节点 key 的大小，并不断向下搜索
                 cmp = cpr.compare(key, t.key);
                 if (cmp < 0)
                     t = t.left;
                 else if (cmp > 0)
                     t = t.right;
+                // 如果已经存在 key，则更新其对应的 value 即可
                 else
                     return t.setValue(value);
             } while (t != null);
         }
+        // 如果不存在比较器
         else {
             if (key == null)
                 throw new NullPointerException();
@@ -510,11 +521,14 @@ public class TreeMap<K,V>
                     return t.setValue(value);
             } while (t != null);
         }
+        // 如果原先不存在指定 key，那么创建一个新的节点，并将其父节点
+        // 指针指向 parent
         TreeMap.Entry<K,V> e = new TreeMap.Entry<>(key, value, parent);
         if (cmp < 0)
             parent.left = e;
         else
             parent.right = e;
+        // 插入新节点后，为了保持红黑树平衡进行调整
         fixAfterInsertion(e);
         size++;
         modCount++;
@@ -522,7 +536,7 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Removes the mapping for this key from this TreeMap if present.
+     * 删除指定 key 对应的映射，如果其存在的话。
      *
      * @param  key key for which mapping should be removed
      * @return the previous value associated with {@code key}, or
@@ -546,8 +560,8 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Removes all of the mappings from this map.
-     * The map will be empty after this call returns.
+     * 删除 Map 中所有的映射。
+     * 此函数调用后 Map 为空。
      */
     public void clear() {
         modCount++;
@@ -556,8 +570,7 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns a shallow copy of this {@code TreeMap} instance. (The keys and
-     * values themselves are not cloned.)
+     * 返回 TreeMap 实例的一个浅拷贝。（key 和 value 对象本身不会克隆）
      *
      * @return a shallow copy of this map
      */
@@ -588,6 +601,7 @@ public class TreeMap<K,V>
     }
 
     // NavigableMap API methods
+    // 实现 NavigableMap 接口的方法
 
     /**
      * @since 1.6
@@ -714,40 +728,27 @@ public class TreeMap<K,V>
     }
 
     // Views
+    // 视图
 
     /**
-     * Fields initialized to contain an instance of the entry set view
-     * the first time this view is requested.  Views are stateless, so
-     * there's no reason to create more than one.
+     * 这几个属性用来创建 entry set 视图的实例。视图与状态无关，所以
+     * 没有理由创建多次。
      */
     private transient TreeMap.EntrySet entrySet;
     private transient TreeMap.KeySet<K> navigableKeySet;
     private transient NavigableMap<K,V> descendingMap;
 
     /**
-     * Returns a {@link java.util.Set} view of the keys contained in this map.
+     * 返回一个包含所有 key 的 Set 视图。
      *
-     * <p>The set's iterator returns the keys in ascending order.
-     * The set's spliterator is
-     * <em><a href="Spliterator.html#binding">late-binding</a></em>,
-     * <em>fail-fast</em>, and additionally reports {@link Spliterator#SORTED}
-     * and {@link Spliterator#ORDERED} with an encounter order that is ascending
-     * key order.  The spliterator's comparator (see
-     * {@link java.util.Spliterator#getComparator()}) is {@code null} if
-     * the tree map's comparator (see {@link #comparator()}) is {@code null}.
-     * Otherwise, the spliterator's comparator is the same as or imposes the
-     * same total ordering as the tree map's comparator.
+     * 该 Set 的迭代器按升序返回 key。
      *
-     * <p>The set is backed by the map, so changes to the map are
-     * reflected in the set, and vice-versa.  If the map is modified
-     * while an iteration over the set is in progress (except through
-     * the iterator's own {@code remove} operation), the results of
-     * the iteration are undefined.  The set supports element removal,
-     * which removes the corresponding mapping from the map, via the
-     * {@code Iterator.remove}, {@code Set.remove},
-     * {@code removeAll}, {@code retainAll}, and {@code clear}
-     * operations.  It does not support the {@code add} or {@code addAll}
-     * operations.
+     * 该 Set 由 Map 支撑，所以 Map 的任何改变都会影响返回的 Set，反之
+     * 亦然。在迭代过程中如果 Map 改变了（除非是调用迭代器自身的
+     * remove 方法），迭代的结果不确定。该 Set 支持元素删除，同时将会
+     * 从 Map 中删除相应的映射，通过 Iterator.remove, Set.remove,
+     *  removeAll, retainAll, 和 clear 方法完成这一操作。不支持 add 或者
+     *  addAll 操作。
      */
     public java.util.Set<K> keySet() {
         return navigableKeySet();
@@ -758,6 +759,7 @@ public class TreeMap<K,V>
      */
     public java.util.NavigableSet<K> navigableKeySet() {
         TreeMap.KeySet<K> nks = navigableKeySet;
+        // 调用 TreeMap 的 KeySet 方法返回键集合。
         return (nks != null) ? nks : (navigableKeySet = new TreeMap.KeySet<>(this));
     }
 
@@ -769,29 +771,22 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns a {@link java.util.Collection} view of the values contained in this map.
+     * 返回一个包含所有 value 的 Collection 视图。
      *
-     * <p>The collection's iterator returns the values in ascending order
-     * of the corresponding keys. The collection's spliterator is
-     * <em><a href="Spliterator.html#binding">late-binding</a></em>,
-     * <em>fail-fast</em>, and additionally reports {@link Spliterator#ORDERED}
-     * with an encounter order that is ascending order of the corresponding
-     * keys.
+     * 该 Set 的迭代器按 key 升序返回 key 对应的 value。
      *
-     * <p>The collection is backed by the map, so changes to the map are
-     * reflected in the collection, and vice-versa.  If the map is
-     * modified while an iteration over the collection is in progress
-     * (except through the iterator's own {@code remove} operation),
-     * the results of the iteration are undefined.  The collection
-     * supports element removal, which removes the corresponding
-     * mapping from the map, via the {@code Iterator.remove},
-     * {@code Collection.remove}, {@code removeAll},
-     * {@code retainAll} and {@code clear} operations.  It does not
-     * support the {@code add} or {@code addAll} operations.
+     * 该 Collection 由 Map 支撑，所以 Map 的任何改变都会影响返回的集合，
+     * 反之亦然。在迭代过程中如果 Map 改变了（除非是调用迭代器自身的
+     * remove 方法），迭代的结果不确定。该 Cellection 支持元素删除，同时
+     * 将会从 Map 中删除相应的映射，通过 Iterator.remove, Collection.remove,
+     *  removeAll, retainAll, 和 clear 方法完成这一操作。不支持 add 或者
+     *  addAll 操作。
      */
     public java.util.Collection<V> values() {
+        // AbstractMap 中存在 values 属性，用于保存所有的 value。
         Collection<V> vs = values;
         if (vs == null) {
+            // 调用 TreeMap 的 values 方法返回 value 的 Collection
             vs = new TreeMap.Values();
             values = vs;
         }
@@ -799,29 +794,20 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns a {@link java.util.Set} view of the mappings contained in this map.
+     * 返回一个包含所有映射的 Set 视图。
      *
-     * <p>The set's iterator returns the entries in ascending key order. The
-     * sets's spliterator is
-     * <em><a href="Spliterator.html#binding">late-binding</a></em>,
-     * <em>fail-fast</em>, and additionally reports {@link Spliterator#SORTED} and
-     * {@link Spliterator#ORDERED} with an encounter order that is ascending key
-     * order.
+     * 该 Set 的迭代器按 key 的升序返回 entry。
      *
-     * <p>The set is backed by the map, so changes to the map are
-     * reflected in the set, and vice-versa.  If the map is modified
-     * while an iteration over the set is in progress (except through
-     * the iterator's own {@code remove} operation, or through the
-     * {@code setValue} operation on a map entry returned by the
-     * iterator) the results of the iteration are undefined.  The set
-     * supports element removal, which removes the corresponding
-     * mapping from the map, via the {@code Iterator.remove},
-     * {@code Set.remove}, {@code removeAll}, {@code retainAll} and
-     * {@code clear} operations.  It does not support the
-     * {@code add} or {@code addAll} operations.
+     * 该 Set 由 Map 支撑，所以 Map 的任何改变都会影响返回的 Set，反之
+     * 亦然。在迭代过程中如果 Map 改变了（除非是调用迭代器自身的
+     * remove 方法），迭代的结果不确定。该 Set 支持元素删除，同时将会
+     * 从 Map 中删除相应的映射，通过 Iterator.remove, Set.remove,
+     *  removeAll, retainAll, 和 clear 方法完成这一操作。不支持 add 或者
+     *  addAll 操作。
      */
     public java.util.Set<Map.Entry<K,V>> entrySet() {
         TreeMap.EntrySet es = entrySet;
+        // 同样调用 TreeMap 的 EntrySet 方法返回所有 entry 的集合视图。
         return (es != null) ? es : (entrySet = new TreeMap.EntrySet());
     }
 
@@ -913,6 +899,8 @@ public class TreeMap<K,V>
     }
 
     @Override
+    // 将指定 key 的 value 替换成新的 value。指定 key 和 oldValue 都必须和
+    // 需要操作的 entry 对应。成功返回 true，失败返回 false。
     public boolean replace(K key, V oldValue, V newValue) {
         TreeMap.Entry<K,V> p = getEntry(key);
         if (p!=null && Objects.equals(oldValue, p.value)) {
@@ -923,6 +911,8 @@ public class TreeMap<K,V>
     }
 
     @Override
+    // 直接替换指定 key 对应的 value，不用考虑原先的 value。成功则返回
+    // 原先的 value，失败返回 null。
     public V replace(K key, V value) {
         TreeMap.Entry<K,V> p = getEntry(key);
         if (p!=null) {
@@ -947,6 +937,7 @@ public class TreeMap<K,V>
     }
 
     @Override
+    // 根据给定的 function 计算新的 value 值并替换
     public void replaceAll(BiFunction<? super K, ? super V, ? extends V> function) {
         Objects.requireNonNull(function);
         int expectedModCount = modCount;
@@ -961,7 +952,9 @@ public class TreeMap<K,V>
     }
 
     // View class support
+    // 视图支撑函数
 
+    // 包含所有 value 的 Collection 集合类
     class Values extends AbstractCollection<V> {
         public Iterator<V> iterator() {
             return new TreeMap.ValueIterator(getFirstEntry());
@@ -994,6 +987,7 @@ public class TreeMap<K,V>
         }
     }
 
+    // 包含所有 entry 的 Set 集合类
     class EntrySet extends java.util.AbstractSet<Map.Entry<K,V>> {
         public Iterator<Map.Entry<K,V>> iterator() {
             return new TreeMap.EntryIterator(getFirstEntry());
@@ -1013,8 +1007,10 @@ public class TreeMap<K,V>
                 return false;
             Map.Entry<?,?> entry = (Map.Entry<?,?>) o;
             Object value = entry.getValue();
+            // 找到指定 key 对应的 entry
             TreeMap.Entry<K,V> p = getEntry(entry.getKey());
             if (p != null && valEquals(p.getValue(), value)) {
+                // 删除 entry 并调整红黑树保持平衡
                 deleteEntry(p);
                 return true;
             }
@@ -1035,11 +1031,8 @@ public class TreeMap<K,V>
     }
 
     /*
-     * Unlike Values and EntrySet, the KeySet class is static,
-     * delegating to a NavigableMap to allow use by SubMaps, which
-     * outweighs the ugliness of needing type-tests for the following
-     * Iterator methods that are defined appropriately in main versus
-     * submap classes.
+     * 与 Values 和 EntrySet 不同，KeySet 类是静态的，它委托给一个
+     * NavigableMap 来允许子映射使用。
      */
 
     Iterator<K> keyIterator() {
@@ -1122,7 +1115,7 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Base class for TreeMap Iterators
+     * TreeMap 迭代器的基本类
      */
     abstract class PrivateEntryIterator<T> implements Iterator<T> {
         TreeMap.Entry<K,V> next;
@@ -1223,7 +1216,7 @@ public class TreeMap<K,V>
     // Little utilities
 
     /**
-     * Compares two keys using the correct comparison method for this TreeMap.
+     * 使用正确的比较器比较两个对象
      */
     @SuppressWarnings("unchecked")
     final int compare(Object k1, Object k2) {
@@ -1232,8 +1225,7 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Test two values for equality.  Differs from o1.equals(o2) only in
-     * that it copes with {@code null} o1 properly.
+     * 判断两个 value 是否相等，包括value 为 null 的情况。
      */
     static final boolean valEquals(Object o1, Object o2) {
         return (o1==null ? o2==null : o1.equals(o2));
@@ -1248,14 +1240,14 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Return key for entry, or null if null
+     * 返回 entry 的 key，如果为 null 则返回 null
      */
     static <K,V> K keyOrNull(TreeMap.Entry<K,V> e) {
         return (e == null) ? null : e.key;
     }
 
     /**
-     * Returns the key corresponding to the specified Entry.
+     * 返回指定 entry 的 key，如果 entry 为 null 抛出异常
      * @throws NoSuchElementException if the Entry is null
      */
     static <K> K key(TreeMap.Entry<K,?> e) {
