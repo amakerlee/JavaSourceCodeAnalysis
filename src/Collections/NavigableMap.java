@@ -54,33 +54,10 @@ import java.util.SortedMap;
  * 类似的 SortedMap 不同，它们接受额外的参数来描述上界和下界是包含的
  * 还是排他的。任何 NavigableMap 的子映射都必须实现 NavigableMap 接口。
  *
+ * 这一接口定义了 firstEntry, pollFirstEntry, lastEntry 和 pollLastEntry，
+ * 用来返回最小的和最大的映射，如果不存在则返回 null。
  *
- * <p>This interface additionally defines methods {@code firstEntry},
- * {@code pollFirstEntry}, {@code lastEntry}, and
- * {@code pollLastEntry} that return and/or remove the least and
- * greatest mappings, if any exist, else returning {@code null}.
- *
- * <p>Implementations of entry-returning methods are expected to
- * return {@code Map.Entry} pairs representing snapshots of mappings
- * at the time they were produced, and thus generally do <em>not</em>
- * support the optional {@code Entry.setValue} method. Note however
- * that it is possible to change mappings in the associated map using
- * method {@code put}.
- *
- * <p>Methods
- * {@link #subMap(Object, Object) subMap(K, K)},
- * {@link #headMap(Object) headMap(K)}, and
- * {@link #tailMap(Object) tailMap(K)}
- * are specified to return {@code SortedMap} to allow existing
- * implementations of {@code SortedMap} to be compatibly retrofitted to
- * implement {@code NavigableMap}, but extensions and implementations
- * of this interface are encouraged to override these methods to return
- * {@code NavigableMap}.  Similarly,
- * {@link #keySet()} can be overriden to return {@code NavigableSet}.
- *
- * <p>This interface is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此接口是 Java Collections Framework 的成员。
  *
  * @author Doug Lea
  * @author Josh Bloch
@@ -90,9 +67,7 @@ import java.util.SortedMap;
  */
 public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     /**
-     * Returns a key-value mapping associated with the greatest key
-     * strictly less than the given key, or {@code null} if there is
-     * no such key.
+     * 返回小于给定 key 的最大的 key 所对应的的键值对映射，如果不存在返回 null。
      *
      * @param key the key
      * @return an entry with the greatest key less than {@code key},
@@ -105,8 +80,7 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     java.util.Map.Entry<K,V> lowerEntry(K key);
 
     /**
-     * Returns the greatest key strictly less than the given key, or
-     * {@code null} if there is no such key.
+     * 返回小于给定 key 的最大的 key，如果不存在返回 null。
      *
      * @param key the key
      * @return the greatest key less than {@code key},
@@ -119,9 +93,7 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     K lowerKey(K key);
 
     /**
-     * Returns a key-value mapping associated with the greatest key
-     * less than or equal to the given key, or {@code null} if there
-     * is no such key.
+     * 返回小于等于给定 key 的最大的 key 所对应的的键值对映射，如果不存在返回 null。
      *
      * @param key the key
      * @return an entry with the greatest key less than or equal to
@@ -134,8 +106,7 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     java.util.Map.Entry<K,V> floorEntry(K key);
 
     /**
-     * Returns the greatest key less than or equal to the given key,
-     * or {@code null} if there is no such key.
+     * 返回小于等于给定 key 的最大的 key，如果不存在返回 null。
      *
      * @param key the key
      * @return the greatest key less than or equal to {@code key},
@@ -148,9 +119,7 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     K floorKey(K key);
 
     /**
-     * Returns a key-value mapping associated with the least key
-     * greater than or equal to the given key, or {@code null} if
-     * there is no such key.
+     * 返回大于等于给定 key 的最大的 key 所对应的的键值对映射，如果不存在返回 null。
      *
      * @param key the key
      * @return an entry with the least key greater than or equal to
@@ -163,8 +132,7 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     java.util.Map.Entry<K,V> ceilingEntry(K key);
 
     /**
-     * Returns the least key greater than or equal to the given key,
-     * or {@code null} if there is no such key.
+     * 返回大于等于给定 key 的最大的 key，如果不存在返回 null。
      *
      * @param key the key
      * @return the least key greater than or equal to {@code key},
@@ -177,9 +145,7 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     K ceilingKey(K key);
 
     /**
-     * Returns a key-value mapping associated with the least key
-     * strictly greater than the given key, or {@code null} if there
-     * is no such key.
+     * 返回大于给定 key 的最小的 key 所对应的的键值对映射，如果不存在返回 null。
      *
      * @param key the key
      * @return an entry with the least key greater than {@code key},
@@ -192,8 +158,7 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     java.util.Map.Entry<K,V> higherEntry(K key);
 
     /**
-     * Returns the least key strictly greater than the given key, or
-     * {@code null} if there is no such key.
+     * 返回大于给定 key 的最大的 key，如果不存在返回 null。
      *
      * @param key the key
      * @return the least key greater than {@code key},
@@ -206,8 +171,7 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     K higherKey(K key);
 
     /**
-     * Returns a key-value mapping associated with the least
-     * key in this map, or {@code null} if the map is empty.
+     * 返回此 Map 中最小的 key 对应的键值对，如果 Map 为空返回 null。
      *
      * @return an entry with the least key,
      *         or {@code null} if this map is empty
@@ -215,8 +179,7 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     java.util.Map.Entry<K,V> firstEntry();
 
     /**
-     * Returns a key-value mapping associated with the greatest
-     * key in this map, or {@code null} if the map is empty.
+     * 返回此 Map 中最大的 key 对应的键值对，如果 Map 为空返回 null。
      *
      * @return an entry with the greatest key,
      *         or {@code null} if this map is empty
@@ -224,8 +187,7 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     java.util.Map.Entry<K,V> lastEntry();
 
     /**
-     * Removes and returns a key-value mapping associated with
-     * the least key in this map, or {@code null} if the map is empty.
+     * 删除并返回此 Map 中最小的 key 对应的键值对，如果 Map 为空返回 null。
      *
      * @return the removed first entry of this map,
      *         or {@code null} if this map is empty
@@ -233,8 +195,7 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     java.util.Map.Entry<K,V> pollFirstEntry();
 
     /**
-     * Removes and returns a key-value mapping associated with
-     * the greatest key in this map, or {@code null} if the map is empty.
+     * 删除并返回此 Map 中最大的 key 对应的键值对，如果 Map 为空返回 null。
      *
      * @return the removed last entry of this map,
      *         or {@code null} if this map is empty
@@ -242,66 +203,50 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     Map.Entry<K,V> pollLastEntry();
 
     /**
-     * Returns a reverse order view of the mappings contained in this map.
-     * The descending map is backed by this map, so changes to the map are
-     * reflected in the descending map, and vice-versa.  If either map is
-     * modified while an iteration over a collection view of either map
-     * is in progress (except through the iterator's own {@code remove}
-     * operation), the results of the iteration are undefined.
+     * 返回此映射中包含映射的逆序视图。返回的 Map 由此 Map 支撑，所以任何
+     * 对此 Map 的改变都会反映到返回的 Map 中，反之亦然。如果这两者中的
+     * 任何一个在迭代过程中被修改（除非是迭代器自己的 remove 操作），迭代
+     * 的结果未定义。
      *
-     * <p>The returned map has an ordering equivalent to
-     * <tt>{@link Collections#reverseOrder(Comparator) Collections.reverseOrder}(comparator())</tt>.
-     * The expression {@code m.descendingMap().descendingMap()} returns a
-     * view of {@code m} essentially equivalent to {@code m}.
+     * 返回 Map 中的顺序和 Collections.reverseOrder 中的顺序一样。
+     * m.descendingMap().descendingMap() 表达式的结果和原来的 m 完全相等。
      *
      * @return a reverse order view of this map
      */
     java.util.NavigableMap<K,V> descendingMap();
 
     /**
-     * Returns a {@link java.util.NavigableSet} view of the keys contained in this map.
-     * The set's iterator returns the keys in ascending order.
-     * The set is backed by the map, so changes to the map are reflected in
-     * the set, and vice-versa.  If the map is modified while an iteration
-     * over the set is in progress (except through the iterator's own {@code
-     * remove} operation), the results of the iteration are undefined.  The
-     * set supports element removal, which removes the corresponding mapping
-     * from the map, via the {@code Iterator.remove}, {@code Set.remove},
-     * {@code removeAll}, {@code retainAll}, and {@code clear} operations.
-     * It does not support the {@code add} or {@code addAll} operations.
+     * 返回包含此 Map 中所有 key 的 NavigableSet 视图。返回集合的迭代器的
+     * 顺序为升序。返回的集合由此 Map 支撑，所以对此 Map 的任何改变都会影响
+     * 返回的集合，反之亦然。如果对返回集合的迭代过程中此 Map 被修改（除非
+     * 通过迭代器自身的 remove 操作），迭代的结果不确定。返回的集合提供
+     * 删除操作，同时也会删除 Map 中对应的映射，通过函数 Iterator.remove,
+     * Set.remove, removeAll, retainAll, 和 clear 实现。不支持 add 和 addAll 操作。
      *
      * @return a navigable set view of the keys in this map
      */
     java.util.NavigableSet<K> navigableKeySet();
 
     /**
-     * Returns a reverse order {@link java.util.NavigableSet} view of the keys contained in this map.
-     * The set's iterator returns the keys in descending order.
-     * The set is backed by the map, so changes to the map are reflected in
-     * the set, and vice-versa.  If the map is modified while an iteration
-     * over the set is in progress (except through the iterator's own {@code
-     * remove} operation), the results of the iteration are undefined.  The
-     * set supports element removal, which removes the corresponding mapping
-     * from the map, via the {@code Iterator.remove}, {@code Set.remove},
-     * {@code removeAll}, {@code retainAll}, and {@code clear} operations.
-     * It does not support the {@code add} or {@code addAll} operations.
+     * 返回包含此 Map 中所有 key 的逆序 NavigableSet 视图。返回集合的迭代器的
+     * 顺序为逆序。返回的集合由此 Map 支撑，所以对此 Map 的任何改变都会影响
+     * 返回的集合，反之亦然。如果对返回集合的迭代过程中此 Map 被修改（除非
+     * 通过迭代器自身的 remove 操作），迭代的结果不确定。返回的集合提供
+     * 删除操作，同时也会删除 Map 中对应的映射，通过函数 Iterator.remove,
+     * Set.remove, removeAll, retainAll, 和 clear 实现。不支持 add 和 addAll 操作。
      *
      * @return a reverse order navigable set view of the keys in this map
      */
     NavigableSet<K> descendingKeySet();
 
     /**
-     * Returns a view of the portion of this map whose keys range from
-     * {@code fromKey} to {@code toKey}.  If {@code fromKey} and
-     * {@code toKey} are equal, the returned map is empty unless
-     * {@code fromInclusive} and {@code toInclusive} are both true.  The
-     * returned map is backed by this map, so changes in the returned map are
-     * reflected in this map, and vice-versa.  The returned map supports all
-     * optional map operations that this map supports.
+     * 返回包括此 Map 部分键值对的子 Map 视图，key 的范围从 fromKey 到 toKey。
+     * 如果 fromKey 和 toKey 相等，则返回的 Map 为空，除非 fromInclusive
+     * 和 toInclusive 都为 true。返回的 Map 由此 Map 支撑，所以返回 Map 的
+     * 任何改变都会影响此 Map，反之亦然。返回的 Map 支持此 Map 支持的所有操作。
      *
-     * <p>The returned map will throw an {@code IllegalArgumentException}
-     * on an attempt to insert a key outside of its range, or to construct a
-     * submap either of whose endpoints lie outside its range.
+     * 如果试图在返回的 Map 包含的范围之外插入键值对，返回的 Map 将会抛出
+     * IllegalArgumentException 异常。
      *
      * @param fromKey low endpoint of the keys in the returned map
      * @param fromInclusive {@code true} if the low endpoint
@@ -328,14 +273,13 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
                                        K toKey, boolean toInclusive);
 
     /**
-     * Returns a view of the portion of this map whose keys are less than (or
-     * equal to, if {@code inclusive} is true) {@code toKey}.  The returned
-     * map is backed by this map, so changes in the returned map are reflected
-     * in this map, and vice-versa.  The returned map supports all optional
-     * map operations that this map supports.
+     * 返回包含此 Map 部分键值对的视图，这些键值对的 key 小于（如果 inclusive
+     * 为 true 则为小于等于）toKey。返回的 Map 由此 Map 支撑，所以返回 Map
+     * 的任何改变都会影响此 Map，反之亦然。返回的 Map 支持所有此 Map 支持
+     * 的操作。
      *
-     * <p>The returned map will throw an {@code IllegalArgumentException}
-     * on an attempt to insert a key outside its range.
+     * 如果试图在范围之外插入新的键值对，返回的 Map 将会抛出
+     * IllegalArgumentException 异常。
      *
      * @param toKey high endpoint of the keys in the returned map
      * @param inclusive {@code true} if the high endpoint
@@ -357,14 +301,13 @@ public interface NavigableMap<K,V> extends java.util.SortedMap<K,V> {
     java.util.NavigableMap<K,V> headMap(K toKey, boolean inclusive);
 
     /**
-     * Returns a view of the portion of this map whose keys are greater than (or
-     * equal to, if {@code inclusive} is true) {@code fromKey}.  The returned
-     * map is backed by this map, so changes in the returned map are reflected
-     * in this map, and vice-versa.  The returned map supports all optional
-     * map operations that this map supports.
+     * 返回包含此 Map 部分键值对的视图，这些键值对的 key 大于（如果 inclusive
+     * 为 true 则为大于等于）fromKey。返回的 Map 由此 Map 支撑，所以返回 Map
+     * 的任何改变都会影响此 Map，反之亦然。返回的 Map 支持所有此 Map 支持
+     * 的操作。
      *
-     * <p>The returned map will throw an {@code IllegalArgumentException}
-     * on an attempt to insert a key outside its range.
+     * 如果试图在范围之外插入新的键值对，返回的 Map 将会抛出
+     * IllegalArgumentException 异常。
      *
      * @param fromKey low endpoint of the keys in the returned map
      * @param inclusive {@code true} if the low endpoint
