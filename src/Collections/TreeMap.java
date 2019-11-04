@@ -1258,6 +1258,7 @@ public class TreeMap<K,V>
 
 
     // SubMaps
+    // 映射子集合
 
     /**
      * Dummy value serving as unmatchable fence key for unbounded
@@ -1969,13 +1970,13 @@ public class TreeMap<K,V>
 
 
     // Red-black mechanics
+    // 红黑机制
 
     private static final boolean RED   = false;
     private static final boolean BLACK = true;
 
     /**
-     * Node in the Tree.  Doubles as a means to pass key-value pairs back to
-     * user (see Map.Entry).
+     * 树中节点类
      */
 
     static final class Entry<K,V> implements Map.Entry<K,V> {
@@ -1987,8 +1988,7 @@ public class TreeMap<K,V>
         boolean color = BLACK;
 
         /**
-         * Make a new cell with given key, value, and parent, and with
-         * {@code null} child links, and BLACK color.
+         * 构造函数
          */
         Entry(K key, V value, TreeMap.Entry<K,V> parent) {
             this.key = key;
@@ -1997,7 +1997,7 @@ public class TreeMap<K,V>
         }
 
         /**
-         * Returns the key.
+         * 返回 key
          *
          * @return the key
          */
@@ -2006,7 +2006,7 @@ public class TreeMap<K,V>
         }
 
         /**
-         * Returns the value associated with the key.
+         * 返回 key 对应的 value
          *
          * @return the value associated with the key
          */
@@ -2015,8 +2015,7 @@ public class TreeMap<K,V>
         }
 
         /**
-         * Replaces the value currently associated with the key with the given
-         * value.
+         * 将此 entry 的 value 替换成新的 value
          *
          * @return the value associated with the key before this method was
          *         called
@@ -2027,6 +2026,7 @@ public class TreeMap<K,V>
             return oldValue;
         }
 
+        // 判断是否相等
         public boolean equals(Object o) {
             if (!(o instanceof Map.Entry))
                 return false;
@@ -2047,8 +2047,8 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns the first Entry in the TreeMap (according to the TreeMap's
-     * key-sort function).  Returns null if the TreeMap is empty.
+     * 返回 TreeMap 中的第一个 Entry（根据 TreeMap 的排序方法）。如果
+     * TreeMap 为空返回 null。
      */
     final TreeMap.Entry<K,V> getFirstEntry() {
         TreeMap.Entry<K,V> p = root;
@@ -2059,8 +2059,8 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns the last Entry in the TreeMap (according to the TreeMap's
-     * key-sort function).  Returns null if the TreeMap is empty.
+     * 返回 TreeMap 中的最后一个 Entry（根据 TreeMap 的排序方法）。如果
+     * TreeMap 为空返回 null。
      */
     final TreeMap.Entry<K,V> getLastEntry() {
         TreeMap.Entry<K,V> p = root;
@@ -2071,7 +2071,7 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns the successor of the specified Entry, or null if no such.
+     * 返回指定 Entry 的继任者（下一个节点），如果没有返回 null。
      */
     static <K,V> TreeMap.Entry<K,V> successor(TreeMap.Entry<K,V> t) {
         if (t == null)
@@ -2084,6 +2084,8 @@ public class TreeMap<K,V>
         } else {
             TreeMap.Entry<K,V> p = t.parent;
             TreeMap.Entry<K,V> ch = t;
+            // 不断向上查找，直到 p 节点为其父节点的左子节点为止。此时 p 的
+            // 父节点为要查找的节点。
             while (p != null && ch == p.right) {
                 ch = p;
                 p = p.parent;
@@ -2093,7 +2095,7 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Returns the predecessor of the specified Entry, or null if no such.
+     * 返回指定 Entry 的前一个节点），如果没有返回 null。
      */
     static <K,V> TreeMap.Entry<K,V> predecessor(TreeMap.Entry<K,V> t) {
         if (t == null)
@@ -2106,6 +2108,8 @@ public class TreeMap<K,V>
         } else {
             TreeMap.Entry<K,V> p = t.parent;
             TreeMap.Entry<K,V> ch = t;
+            // 不断向上查找，直到 p 节点为其父节点的右子节点为止。此时 p 的
+            // 父节点为要查找的节点。
             while (p != null && ch == p.left) {
                 ch = p;
                 p = p.parent;
@@ -2115,37 +2119,37 @@ public class TreeMap<K,V>
     }
 
     /**
-     * Balancing operations.
-     *
-     * Implementations of rebalancings during insertion and deletion are
-     * slightly different than the CLR version.  Rather than using dummy
-     * nilnodes, we use a set of accessors that deal properly with null.  They
-     * are used to avoid messiness surrounding nullness checks in the main
-     * algorithms.
+     * 平衡操作
      */
 
+    // 返回当前节点的颜色
     private static <K,V> boolean colorOf(TreeMap.Entry<K,V> p) {
         return (p == null ? BLACK : p.color);
     }
 
+    // 返回当前节点的父节点
     private static <K,V> TreeMap.Entry<K,V> parentOf(TreeMap.Entry<K,V> p) {
         return (p == null ? null: p.parent);
     }
 
+    // 设置当前节点的颜色
     private static <K,V> void setColor(TreeMap.Entry<K,V> p, boolean c) {
         if (p != null)
             p.color = c;
     }
 
+    // 返回当前节点左子节点
     private static <K,V> TreeMap.Entry<K,V> leftOf(TreeMap.Entry<K,V> p) {
         return (p == null) ? null: p.left;
     }
 
+    // 返回当前节点右子节点
     private static <K,V> TreeMap.Entry<K,V> rightOf(TreeMap.Entry<K,V> p) {
         return (p == null) ? null: p.right;
     }
 
     /** From CLR */
+    // 对指定节点 p 左旋
     private void rotateLeft(TreeMap.Entry<K,V> p) {
         if (p != null) {
             TreeMap.Entry<K,V> r = p.right;
@@ -2165,6 +2169,7 @@ public class TreeMap<K,V>
     }
 
     /** From CLR */
+    // 对节点 p 右旋
     private void rotateRight(TreeMap.Entry<K,V> p) {
         if (p != null) {
             TreeMap.Entry<K,V> l = p.left;
