@@ -82,6 +82,7 @@
 
 * [HashTable 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/HashTable.md)
 
+    [Dictionary](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Dictionary.java) | [Hashtable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Hashtable.java)
 
 ****
 ### 2. Java Concurrency Tools in java.util.concurrent
