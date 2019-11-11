@@ -83,7 +83,7 @@
 
 #### 基础
 
-[CAS 和 AQS](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/CASAndAQS.md)
+* [CAS 和 AQS](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/CASAndAQS.md)
 
 #### 锁
 
