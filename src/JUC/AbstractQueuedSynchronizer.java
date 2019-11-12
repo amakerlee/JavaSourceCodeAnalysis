@@ -230,13 +230,12 @@ public abstract class AbstractQueuedSynchronizer
     private static final long serialVersionUID = 7373984972572414691L;
 
     /**
-     * Creates a new {@code AbstractQueuedSynchronizer} instance
-     * with initial synchronization state of zero.
+     * 创建初始同步状态为 0 的 AbstractQueuedSynchronizer 实例。
      */
     protected AbstractQueuedSynchronizer() { }
 
     /**
-     * Wait queue node class.
+     * 等待队列的节点类。
      *
      * <p>The wait queue is a variant of a "CLH" (Craig, Landin, and
      * Hagersten) lock queue. CLH locks are normally used for
@@ -315,116 +314,90 @@ public abstract class AbstractQueuedSynchronizer
      * on the design of this class.
      */
     static final class Node {
-        /** Marker to indicate a node is waiting in shared mode */
+        /** 节点在共享模式下等待的标记 */
         static final Node SHARED = new Node();
-        /** Marker to indicate a node is waiting in exclusive mode */
+        /** 节点在独占模式下等待的标记 */
         static final Node EXCLUSIVE = null;
 
-        /** waitStatus value to indicate thread has cancelled */
+        /** 表示等待状态的值，为 1 表示线程被取消 */
         static final int CANCELLED =  1;
-        /** waitStatus value to indicate successor's thread needs unparking */
+        /** 表示等待状态的值，为 -1 表示当前节点的后继节点线程被阻塞 */
         static final int SIGNAL    = -1;
-        /** waitStatus value to indicate thread is waiting on condition */
+        /**  表示等待状态的值，为 -1 表示当前节点正在等待 condition */
         static final int CONDITION = -2;
         /**
-         * waitStatus value to indicate the next acquireShared should
-         * unconditionally propagate
+         * 表示等待状态的值，为 -3 （针对共享锁）表示下一个 acquireShared
+         * 操作应该被无条件传播。保证后续节点可以获取共享资源。
          */
         static final int PROPAGATE = -3;
 
         /**
-         * Status field, taking on only the values:
-         *   SIGNAL:     The successor of this node is (or will soon be)
-         *               blocked (via park), so the current node must
-         *               unpark its successor when it releases or
-         *               cancels. To avoid races, acquire methods must
-         *               first indicate they need a signal,
-         *               then retry the atomic acquire, and then,
-         *               on failure, block.
-         *   CANCELLED:  This node is cancelled due to timeout or interrupt.
-         *               Nodes never leave this state. In particular,
-         *               a thread with cancelled node never again blocks.
-         *   CONDITION:  This node is currently on a condition queue.
-         *               It will not be used as a sync queue node
-         *               until transferred, at which time the status
-         *               will be set to 0. (Use of this value here has
-         *               nothing to do with the other uses of the
-         *               field, but simplifies mechanics.)
-         *   PROPAGATE:  A releaseShared should be propagated to other
-         *               nodes. This is set (for head node only) in
-         *               doReleaseShared to ensure propagation
-         *               continues, even if other operations have
-         *               since intervened.
-         *   0:          None of the above
+         * 状态字段，只有如下几个值：
+         * SIGNAL: 当前节点的后继节点被（或者即将被）阻塞（通过 park），
+         * 因此当前节点在释放或者取消时必须接触对后继节点的阻塞。为了避免
+         * 竞争，acquire 方法必须首先表明它们需要一个信号，然后然后尝试原子
+         * 获取，如果失败则阻塞。
+         * CANCELLED：此节点由于超时或中断而取消。节点永远不会离开此状态。
+         * 特别是，具有已取消节点的线程不会再阻塞。
+         * CONDITION：此节点此时位于条件队列上。在转移之前它不会被用作
+         * 同步队列节点，此时状态被设为 0。（这里此值的使用与此字段的其他
+         * 用法无关，但是简化了机制）。
+         * PROPAGATE：releaseShared 应该被传播到其它节点。这是在 doReleaseShared
+         * 中设置的（仅针对头结点），以确保传播能够继续，即使其它操作已经介入了。
+         * 0：以上情况都不是
          *
-         * The values are arranged numerically to simplify use.
-         * Non-negative values mean that a node doesn't need to
-         * signal. So, most code doesn't need to check for particular
-         * values, just for sign.
+         * 此值以数字形式组织以简化使用。非负值意味着节点不需要发出信号。
+         * 因此，大多数代码不需要检查特定的值，只需要检查符号。
          *
-         * The field is initialized to 0 for normal sync nodes, and
-         * CONDITION for condition nodes.  It is modified using CAS
-         * (or when possible, unconditional volatile writes).
+         * 对于正常的同步节点此字段初始化为 0，对于田间节点初始化为
+         * CONDITION。可以使用 CAS （或者可能的话，使用无条件的 volatile 写）
+         * 修改它。
          */
         volatile int waitStatus;
 
         /**
-         * Link to predecessor node that current node/thread relies on
-         * for checking waitStatus. Assigned during enqueuing, and nulled
-         * out (for sake of GC) only upon dequeuing.  Also, upon
-         * cancellation of a predecessor, we short-circuit while
-         * finding a non-cancelled one, which will always exist
-         * because the head node is never cancelled: A node becomes
-         * head only as a result of successful acquire. A
-         * cancelled thread never succeeds in acquiring, and a thread only
-         * cancels itself, not any other node.
+         * 与当前节点锁依赖的用于检查等待状态的前辈节点建立的连接。在进入
+         * 队列时分配，在退出队列时设置为 null（便于垃圾回收）。此外，在查找
+         * 一个未取消的前驱节点时短路，这个前驱节点总是存在，因为头结点
+         * 绝不会被取消：一个节点只有在成功 acquire 之后才成为头结点。被取消
+         * 的线程 acquire 绝不会成功，而且线程只取消自己，不会取消其他节点。
          */
         volatile Node prev;
 
         /**
-         * Link to the successor node that the current node/thread
-         * unparks upon release. Assigned during enqueuing, adjusted
-         * when bypassing cancelled predecessors, and nulled out (for
-         * sake of GC) when dequeued.  The enq operation does not
-         * assign next field of a predecessor until after attachment,
-         * so seeing a null next field does not necessarily mean that
-         * node is at end of queue. However, if a next field appears
-         * to be null, we can scan prev's from the tail to
-         * double-check.  The next field of cancelled nodes is set to
-         * point to the node itself instead of null, to make life
-         * easier for isOnSyncQueue.
+         * 与当前节点 unpack 之后的后续节点建立的连接。在入队时分配，在绕过
+         * 已取消的前一个节点时调整，退出队列时设置为 null（方便 GC）。入队
+         * 操作直到 attachment 之后才会分配其后继节点，所以看到此字段为 null
+         * 并不一定意味着节点在队列尾部。但是，如果 next 字段看起来为 null，
+         * 我们可以从 tail 往前以进行双重检查。被取消节点的 next 字段设置成指向
+         * 其自身而不是 null，以使 isOnSyncQueue 的工作更简单。
          */
         volatile Node next;
 
         /**
-         * The thread that enqueued this node.  Initialized on
-         * construction and nulled out after use.
+         * 此节点代表的线程。
          */
         volatile Thread thread;
 
         /**
-         * Link to next node waiting on condition, or the special
-         * value SHARED.  Because condition queues are accessed only
-         * when holding in exclusive mode, we just need a simple
-         * linked queue to hold nodes while they are waiting on
-         * conditions. They are then transferred to the queue to
-         * re-acquire. And because conditions can only be exclusive,
-         * we save a field by using special value to indicate shared
-         * mode.
+         * 连接到在 condition 等待的下一个节点。由于条件队列只在独占模式下被
+         * 访问，我们只需要一个简单的链式队列在保存在 condition 中等待的节点。
+         * 然后他们被转移到队列中重新执行 acquire。由于 condition 只能是排它的，
+         * 我们可以通过使用一个字段，保存特殊值来表示共享模式。
          */
         Node nextWaiter;
 
         /**
-         * Returns true if node is waiting in shared mode.
+         * 如果节点在共享模式中处于等待状态，返回 true。
          */
         final boolean isShared() {
             return nextWaiter == SHARED;
         }
 
         /**
-         * Returns previous node, or throws NullPointerException if null.
-         * Use when predecessor cannot be null.  The null check could
-         * be elided, but is present to help the VM.
+         * 返回前一个节点，如果为 null 抛出 NullPointerException 异常。
+         * 当前一个节点不为 null 时才能使用。非空检查可以省略，此处是为了辅助
+         * 虚拟机。
          *
          * @return the predecessor of this node
          */
@@ -436,14 +409,17 @@ public abstract class AbstractQueuedSynchronizer
                 return p;
         }
 
+        // 用来创建初始节点或者共享标记
         Node() {    // Used to establish initial head or SHARED marker
         }
 
+        // addWaiter 使用
         Node(Thread thread, Node mode) {     // Used by addWaiter
             this.nextWaiter = mode;
             this.thread = thread;
         }
 
+        //Condition 使用
         Node(Thread thread, int waitStatus) { // Used by Condition
             this.waitStatus = waitStatus;
             this.thread = thread;
