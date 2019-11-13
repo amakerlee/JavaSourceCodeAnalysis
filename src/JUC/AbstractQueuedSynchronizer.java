@@ -427,27 +427,24 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Head of the wait queue, lazily initialized.  Except for
-     * initialization, it is modified only via method setHead.  Note:
-     * If head exists, its waitStatus is guaranteed not to be
-     * CANCELLED.
+     * 等待队列的头结点，延迟初始化。除了初始化之外，只能通过 setHead
+     * 修改。注意：如果 head 存在的话，其状态必须保证不是 CANCELLED。
      */
     private transient volatile Node head;
 
     /**
-     * Tail of the wait queue, lazily initialized.  Modified only via
-     * method enq to add new wait node.
+     * 等待队列的尾节点，延迟初始化。只能通过入队方法添加新的节点。
      */
     private transient volatile Node tail;
 
     /**
-     * The synchronization state.
+     * 同步状态。
      */
     private volatile int state;
 
     /**
-     * Returns the current value of synchronization state.
-     * This operation has memory semantics of a {@code volatile} read.
+     * 返回同步状态的当前值。
+     * 此操作具有 volatile read 的内存语义。
      * @return current state value
      */
     protected final int getState() {
@@ -455,8 +452,8 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Sets the value of synchronization state.
-     * This operation has memory semantics of a {@code volatile} write.
+     * 设置同步状态的值。
+     * 返回同步状态的当前值。此操作具有 volatile write 的内存语义。
      * @param newState the new state value
      */
     protected final void setState(int newState) {
@@ -464,10 +461,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Atomically sets synchronization state to the given updated
-     * value if the current state value equals the expected value.
-     * This operation has memory semantics of a {@code volatile} read
-     * and write.
+     * 通过 CAS 的方式设置状态值。
      *
      * @param expect the expected value
      * @param update the new value
@@ -480,6 +474,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     // Queuing utilities
+    // 队列工具
 
     /**
      * The number of nanoseconds for which it is faster to spin
@@ -489,18 +484,21 @@ public abstract class AbstractQueuedSynchronizer
     static final long spinForTimeoutThreshold = 1000L;
 
     /**
-     * Inserts node into queue, initializing if necessary. See picture above.
+     * 把节点添加到队列中，必要时初始化。
      * @param node the node to insert
      * @return node's predecessor
      */
     private Node enq(final Node node) {
         for (;;) {
             Node t = tail;
+            // 如果尾节点为 null，需要初始化并设置新的节点为头结点和尾节点。
             if (t == null) { // Must initialize
+                // 以 CAS 方式添加，防止多线程添加产生节点覆盖
                 if (compareAndSetHead(new Node()))
                     tail = head;
             } else {
                 node.prev = t;
+                // 以 CAS 方式添加，防止多线程添加产生节点覆盖
                 if (compareAndSetTail(t, node)) {
                     t.next = node;
                     return t;
@@ -510,14 +508,18 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Creates and enqueues node for current thread and given mode.
+     * 为当前线程和给定模式创建节点并添加到等待队列队列尾部，并返回当前线程
+     * 所在节点。
+     *
+     * 如果 tail 不为 null，即等待队列已经存在，则以 CAS 的方式将当前线程节点
+     * 加入到等待队列的末尾。否则，通过 enq 方法初始化一个等待队列，并返回当前节点。
      *
      * @param mode Node.EXCLUSIVE for exclusive, Node.SHARED for shared
      * @return the new node
      */
     private Node addWaiter(Node mode) {
         Node node = new Node(Thread.currentThread(), mode);
-        // Try the fast path of enq; backup to full enq on failure
+        // 尝试快速入队，失败时载调用 enq 函数的方式入队
         Node pred = tail;
         if (pred != null) {
             node.prev = pred;
@@ -531,9 +533,8 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Sets head of queue to be node, thus dequeuing. Called only by
-     * acquire methods.  Also nulls out unused fields for sake of GC
-     * and to suppress unnecessary signals and traversals.
+     * 将队列的头节点设置为指定节点，从而退出队列。仅仅在 acquire 方法中
+     * 调用。为了进行 GC 和异质不必要的信号和遍历，将不使用的字段设置为 null。
      *
      * @param node the node
      */
@@ -544,25 +545,23 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Wakes up node's successor, if one exists.
+     * 唤醒指定节点的后继节点，如果其存在的话。
+     * unpack - 唤醒
+     * 成功获取到资源之后，调用这个方法唤醒 head 的下一个节点。由于当前
+     * 节点已经释放掉资源，下一个等待的线程可以被唤醒继续获取资源。
      *
      * @param node the node
      */
     private void unparkSuccessor(Node node) {
-        /*
-         * If status is negative (i.e., possibly needing signal) try
-         * to clear in anticipation of signalling.  It is OK if this
-         * fails or if status is changed by waiting thread.
-         */
+
         int ws = node.waitStatus;
+        // 如果当前节点没有被取消，更新 waitStatus 为 0。
         if (ws < 0)
             compareAndSetWaitStatus(node, ws, 0);
 
-        /*
-         * Thread to unpark is held in successor, which is normally
-         * just the next node.  But if cancelled or apparently null,
-         * traverse backwards from tail to find the actual
-         * non-cancelled successor.
+        /**
+         * 待唤醒的线程保存在后继节点中，通常是下一个节点。但是如果已经被
+         * 取消或者显然为 null，则从 tail 向前遍历，以找到实际的未取消后继节点。
          */
         Node s = node.next;
         if (s == null || s.waitStatus > 0) {
@@ -576,22 +575,23 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Release action for shared mode -- signals successor and ensures
-     * propagation. (Note: For exclusive mode, release just amounts
-     * to calling unparkSuccessor of head if it needs signal.)
+     * 共享模式下的释放（资源）操作 -- 信号发送给后继者并确保资源传播。
+     * （注意：对于独占模式，如果释放之前需要信号，直接调用 head 的
+     * unpackSuccessor。）
+     *
+     * 在 tryReleaseShared 成功释放资源后，调用此方法唤醒后继线程并保证
+     * 后继节点的 release 传播（通过设置 head 的 waitStatus 为 PROPAGATE。
      */
     private void doReleaseShared() {
-        /*
-         * Ensure that a release propagates, even if there are other
-         * in-progress acquires/releases.  This proceeds in the usual
-         * way of trying to unparkSuccessor of head if it needs
-         * signal. But if it does not, status is set to PROPAGATE to
-         * ensure that upon release, propagation continues.
-         * Additionally, we must loop in case a new node is added
-         * while we are doing this. Also, unlike other uses of
-         * unparkSuccessor, we need to know if CAS to reset status
-         * fails, if so rechecking.
+        /**
+         * 确保 release 传播，即使有其它的正在 acquire 或者 release。这是试图
+         * 调用 head 唤醒后继者的正常方式，如果需要唤醒的话。但如果没有，
+         * 则将状态设置为 PROPAGATE，以确保 release 之后传播继续进行。
+         * 此外，我们必须在无限循环下进行，防止新节点插入到里面。另外，与
+         * unpackSuccessor 的其他用法不同，我们需要知道是否 CAS 的重置操作
+         * 失败，并重新检查。
          */
+        // 自旋确保释放后唤醒后继节点
         for (;;) {
             Node h = head;
             if (h != null && h != tail) {
@@ -599,6 +599,7 @@ public abstract class AbstractQueuedSynchronizer
                 if (ws == Node.SIGNAL) {
                     if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))
                         continue;            // loop to recheck cases
+                    // 唤醒后继节点
                     unparkSuccessor(h);
                 }
                 else if (ws == 0 &&
@@ -750,16 +751,12 @@ public abstract class AbstractQueuedSynchronizer
         return Thread.interrupted();
     }
 
-    /*
-     * Various flavors of acquire, varying in exclusive/shared and
-     * control modes.  Each is mostly the same, but annoyingly
-     * different.  Only a little bit of factoring is possible due to
-     * interactions of exception mechanics (including ensuring that we
-     * cancel if tryAcquire throws exception) and other control, at
-     * least not without hurting performance too much.
+    /**
+     * 以下是各种各样执行 acquire 操作的方式，在独占/共享和控制模式下各不相同。
      */
 
     /**
+     *
      * Acquires in exclusive uninterruptible mode for thread already in
      * queue. Used by condition wait methods as well as acquire.
      *
@@ -958,20 +955,20 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     // Main exported methods
+    // 主要方法
 
     /**
-     * Attempts to acquire in exclusive mode. This method should query
-     * if the state of the object permits it to be acquired in the
-     * exclusive mode, and if so to acquire it.
+     * 尝试以独占方式 acquire。此方法应该查询对象的状态是否允许以独占模式
+     *  acquire，如果允许，则继续进行。
      *
-     * <p>This method is always invoked by the thread performing
-     * acquire.  If this method reports failure, the acquire method
-     * may queue the thread, if it is not already queued, until it is
-     * signalled by a release from some other thread. This can be used
-     * to implement method {@link Lock#tryLock()}.
+     * 线程执行 acquire 操作时总是调用此方法。如果此方法提示失败，则线程进入
+     * 等待队列，直到其他线程发出 release 的信号。这可以用来实现方法 tryLock。
      *
-     * <p>The default
-     * implementation throws {@link UnsupportedOperationException}.
+     * 默认的实现仅仅是抛出 UnsupportedOperationException 异常。需要由扩展了
+     * AQS 的同步类来实现。
+     *
+     * 独占模式下只需要实现 tryAcquire 和 tryRelease，共享模式下只需要实现
+     * tryAcquireShared 和 tryReleaseShared。
      *
      * @param arg the acquire argument. This value is always the one
      *        passed to an acquire method, or is the value saved on entry
@@ -1096,13 +1093,17 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Acquires in exclusive mode, ignoring interrupts.  Implemented
-     * by invoking at least once {@link #tryAcquire},
-     * returning on success.  Otherwise the thread is queued, possibly
-     * repeatedly blocking and unblocking, invoking {@link
-     * #tryAcquire} until success.  This method can be used
-     * to implement method {@link Lock#lock}.
+     * 以独占模式 acquire，忽略中断。通过调用一次或多次 tryAcquire 来实现，
+     * 成功后返回。否则线程将入队列，可能会重复阻塞或者取消阻塞，直到
+     * tryAcquire 成功。此方法可以用来实现 Lock.lock 方法。
      *
+     * 此方法流程如下：
+     * tryAcquire 尝试获取资源，如果成功直接返回；
+     * addWaiter 将该线程加入到等待队列尾部，并且标记为独占模式；
+     * acquireQueued 使线程在等待队列中获取资源，直到取到为止。在整个等待
+     * 过程中被中断过返回 true，否则返回 false；
+     * 如果线程在等待过程中被中断，它不会响应。直到获取到资源后才进行自我
+     * 中断（selfInterrupt），将中断补上。
      * @param arg the acquire argument.  This value is conveyed to
      *        {@link #tryAcquire} but is otherwise uninterpreted and
      *        can represent anything you like.
