@@ -739,7 +739,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Convenience method to interrupt current thread.
+     * 中断当前线程
      */
     static void selfInterrupt() {
         Thread.currentThread().interrupt();
@@ -803,11 +803,12 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Acquires in exclusive interruptible mode.
+     * 以独占中断模式 acquire。
      * @param arg the acquire argument
      */
     private void doAcquireInterruptibly(int arg)
             throws InterruptedException {
+        // 将当前线程以独占模式创建节点加入等待队列尾部
         final Node node = addWaiter(Node.EXCLUSIVE);
         boolean failed = true;
         try {
@@ -819,8 +820,11 @@ public abstract class AbstractQueuedSynchronizer
                     failed = false;
                     return;
                 }
+                // 不断自旋直到将前驱节点的状态设置为 SIGNAL，然后阻塞当前线程
                 if (shouldParkAfterFailedAcquire(p, node) &&
                         parkAndCheckInterrupt())
+                    // 如果 parkAndCheckInterrupt 返回 true 即 Thread.interrupted
+                    // 返回 true 即线程被中断，则抛出中断异常。
                     throw new InterruptedException();
             }
         } finally {
@@ -830,7 +834,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Acquires in exclusive timed mode.
+     * 以独占限时模式 acquire。
      *
      * @param arg the acquire argument
      * @param nanosTimeout max wait time
@@ -840,6 +844,7 @@ public abstract class AbstractQueuedSynchronizer
             throws InterruptedException {
         if (nanosTimeout <= 0L)
             return false;
+        // 计算截止时间
         final long deadline = System.nanoTime() + nanosTimeout;
         final Node node = addWaiter(Node.EXCLUSIVE);
         boolean failed = true;
@@ -852,6 +857,7 @@ public abstract class AbstractQueuedSynchronizer
                     failed = false;
                     return true;
                 }
+                // 计算剩余时间，如果达到截止时间立即返回 false
                 nanosTimeout = deadline - System.nanoTime();
                 if (nanosTimeout <= 0L)
                     return false;
@@ -915,7 +921,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Acquires in shared interruptible mode.
+     * 共享中断模式下 acquire。
      * @param arg the acquire argument
      */
     private void doAcquireSharedInterruptibly(int arg)
@@ -945,7 +951,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Acquires in shared timed mode.
+     * 以共享限时模式 acquire。
      *
      * @param arg the acquire argument
      * @param nanosTimeout max wait time
@@ -1092,15 +1098,10 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Returns {@code true} if synchronization is held exclusively with
-     * respect to the current (calling) thread.  This method is invoked
-     * upon each call to a non-waiting {@link ConditionObject} method.
-     * (Waiting methods instead invoke {@link #release}.)
+     * 如果同步状态由当前线程独占则返回 true。此方法在每次调用非等待的
+     * ConditionObject 方法时调用。（相反等待方法时调用 release）。
      *
-     * <p>The default implementation throws {@link
-     * UnsupportedOperationException}. This method is invoked
-     * internally only within {@link ConditionObject} methods, so need
-     * not be defined if conditions are not used.
+     * 如果不使用 condition 则此方法不需要定义。
      *
      * @return {@code true} if synchronization is held exclusively;
      *         {@code false} otherwise
@@ -1133,13 +1134,10 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Acquires in exclusive mode, aborting if interrupted.
-     * Implemented by first checking interrupt status, then invoking
-     * at least once {@link #tryAcquire}, returning on
-     * success.  Otherwise the thread is queued, possibly repeatedly
-     * blocking and unblocking, invoking {@link #tryAcquire}
-     * until success or the thread is interrupted.  This method can be
-     * used to implement method {@link Lock#lockInterruptibly}.
+     * 以独占模式 acquire，如果中断则中止。
+     * 首先检查中断状态，然后至少调用一次 tryAcquire，成功直接返回。否则线程
+     * 进入队列等待，可能重复阻塞或者取消阻塞，调用 tryAcquire 直到成功或线程
+     * 被中断。此方法可用来实现 lockInterruptibly。
      *
      * @param arg the acquire argument.  This value is conveyed to
      *        {@link #tryAcquire} but is otherwise uninterpreted and
@@ -1148,6 +1146,7 @@ public abstract class AbstractQueuedSynchronizer
      */
     public final void acquireInterruptibly(int arg)
             throws InterruptedException {
+        // 中断则抛出异常
         if (Thread.interrupted())
             throw new InterruptedException();
         if (!tryAcquire(arg))
@@ -1155,14 +1154,10 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Attempts to acquire in exclusive mode, aborting if interrupted,
-     * and failing if the given timeout elapses.  Implemented by first
-     * checking interrupt status, then invoking at least once {@link
-     * #tryAcquire}, returning on success.  Otherwise, the thread is
-     * queued, possibly repeatedly blocking and unblocking, invoking
-     * {@link #tryAcquire} until success or the thread is interrupted
-     * or the timeout elapses.  This method can be used to implement
-     * method {@link Lock#tryLock(long, TimeUnit)}.
+     * 尝试以独占模式 acquire，如果中断将中止，如果超出给定时间将失败。首先检查
+     * 中断状态，然后至少调用一次 tryAcquire，成功立即返回。否则线程进入等待队列，
+     * 可能会重复阻塞或取消阻塞，调用 tryAcquire 直到成功或线程中断或超时。
+     * 此方法可用于实现 tryLock(long, TimeUnit)。
      *
      * @param arg the acquire argument.  This value is conveyed to
      *        {@link #tryAcquire} but is otherwise uninterpreted and
@@ -1215,12 +1210,9 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Acquires in shared mode, aborting if interrupted.  Implemented
-     * by first checking interrupt status, then invoking at least once
-     * {@link #tryAcquireShared}, returning on success.  Otherwise the
-     * thread is queued, possibly repeatedly blocking and unblocking,
-     * invoking {@link #tryAcquireShared} until success or the thread
-     * is interrupted.
+     * 以共享模式 acquire，如果中断将中止。首先检查中断状态，然后调用至少一次
+     * tryAcquireShared，成功立即返回。否则，想成进入等待队列，可能会重复阻塞
+     * 和取消阻塞，调用 tryAcquireShared 直到成功或者线程中断。
      * @param arg the acquire argument.
      * This value is conveyed to {@link #tryAcquireShared} but is
      * otherwise uninterpreted and can represent anything
@@ -1236,13 +1228,10 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Attempts to acquire in shared mode, aborting if interrupted, and
-     * failing if the given timeout elapses.  Implemented by first
-     * checking interrupt status, then invoking at least once {@link
-     * #tryAcquireShared}, returning on success.  Otherwise, the
-     * thread is queued, possibly repeatedly blocking and unblocking,
-     * invoking {@link #tryAcquireShared} until success or the thread
-     * is interrupted or the timeout elapses.
+     * 尝试以共享模式 acquire，如果中断将停止，如果超过时限将失败。首先检查
+     * 中断状态，然后至少调用一次 tryAcquireShared，成功立即返回。否则线程将
+     * 进入等待队列，可能会重复阻塞和取消阻塞，调用 tryAcquireShared 直到成功
+     * 或线程中断或超时。
      *
      * @param arg the acquire argument.  This value is conveyed to
      *        {@link #tryAcquireShared} but is otherwise uninterpreted
