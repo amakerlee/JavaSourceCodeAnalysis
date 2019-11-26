@@ -39,41 +39,25 @@ import java.util.Collection;
 import java.util.concurrent.locks.Condition;
 
 /**
- * A reentrant mutual exclusion {@link Lock} with the same basic
- * behavior and semantics as the implicit monitor lock accessed using
- * {@code synchronized} methods and statements, but with extended
- * capabilities.
+ * 可重入互斥锁具有与使用 synchronized 的隐式监视器锁相同的基本行为和
+ * 语义，但具有更多扩展功能。
  *
- * <p>A {@code ReentrantLock} is <em>owned</em> by the thread last
- * successfully locking, but not yet unlocking it. A thread invoking
- * {@code lock} will return, successfully acquiring the lock, when
- * the lock is not owned by another thread. The method will return
- * immediately if the current thread already owns the lock. This can
- * be checked using methods {@link #isHeldByCurrentThread}, and {@link
- * #getHoldCount}.
+ * ReentrantLock 由最后一次成功锁定但尚未解锁它的线程拥有。当锁不被其它
+ * 线程持有的时候，调用 lock 的线程将返回，并成功获取锁。如果当前线程已经
+ * 拥有锁，则该方法将立即返回。可以使用 isHeldByCurrentThread 方法和
+ * getHoldCount 进行检查。
  *
- * <p>The constructor for this class accepts an optional
- * <em>fairness</em> parameter.  When set {@code true}, under
- * contention, locks favor granting access to the longest-waiting
- * thread.  Otherwise this lock does not guarantee any particular
- * access order.  Programs using fair locks accessed by many threads
- * may display lower overall throughput (i.e., are slower; often much
- * slower) than those using the default setting, but have smaller
- * variances in times to obtain locks and guarantee lack of
- * starvation. Note however, that fairness of locks does not guarantee
- * fairness of thread scheduling. Thus, one of many threads using a
- * fair lock may obtain it multiple times in succession while other
- * active threads are not progressing and not currently holding the
- * lock.
- * Also note that the untimed {@link #tryLock()} method does not
- * honor the fairness setting. It will succeed if the lock
- * is available even if other threads are waiting.
+ * 该类的构造函数接受一个可选的公平性参数。当设置 true 时，在竞争状态下，
+ * 锁倾向于对最长等待的线程授予访问权。否则，此锁不保证任何特定的访问顺序。
+ * 使用多个线程访问的公平锁的程序可能会显示较低的总体吞吐量（即更慢，通常
+ * 比那些使用默认设置的要慢得多），但是在获取锁和保证不会饿死方面的时间
+ * 差异更小。但是注意，锁的公平性并不保证线程调度的公平性。因此，使用
+ * 公平锁的多个线程中的一个可能会连续多次获得它，而其他线程不会，在当前
+ * 时刻也没有持有锁。
+ * 注意未定时的 tryLock 方法不支持设置公平性。如果锁可用，即使有其他线程
+ * 正在等待，它也会成功。
  *
- * <p>It is recommended practice to <em>always</em> immediately
- * follow a call to {@code lock} with a {@code try} block, most
- * typically in a before/after construction such as:
- *
- *  <pre> {@code
+ * 建议使用如下方式：
  * class X {
  *   private final ReentrantLock lock = new ReentrantLock();
  *   // ...
@@ -86,46 +70,38 @@ import java.util.concurrent.locks.Condition;
  *       lock.unlock()
  *     }
  *   }
- * }}</pre>
+ * }}
  *
- * <p>In addition to implementing the {@link Lock} interface, this
- * class defines a number of {@code public} and {@code protected}
- * methods for inspecting the state of the lock.  Some of these
- * methods are only useful for instrumentation and monitoring.
+ * 除了实现 Lock 接口外，此类还定义了一系列 public 和 protected 方法来检查
+ * 锁的状态。其中一些方法仅对监测和监视有用。
  *
- * <p>Serialization of this class behaves in the same way as built-in
- * locks: a deserialized lock is in the unlocked state, regardless of
- * its state when serialized.
- *
- * <p>This lock supports a maximum of 2147483647 recursive locks by
- * the same thread. Attempts to exceed this limit result in
- * {@link Error} throws from locking methods.
+ * 此锁支持最多同一个线程获取 2147483547（Integer.MAX_VALUE）个
+ * 递归锁。视图超过此限制将会抛出 Error 异常。
  *
  * @since 1.5
  * @author Doug Lea
  */
 public class ReentrantLock implements Lock, java.io.Serializable {
     private static final long serialVersionUID = 7373984872572414699L;
-    /** Synchronizer providing all implementation mechanics */
+
+    /** 提供所有实现机制的同步器 */
     private final Sync sync;
 
     /**
-     * Base of synchronization control for this lock. Subclassed
-     * into fair and nonfair versions below. Uses AQS state to
-     * represent the number of holds on the lock.
+     * 此锁同步控制的基础。下层子类分为公平版本和非公平版本。使用 AQS
+     * 状态表示锁的持有数量。
      */
     abstract static class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = -5179523762034025860L;
 
         /**
-         * Performs {@link Lock#lock}. The main reason for subclassing
-         * is to allow fast path for nonfair version.
+         * 用于 Lock.lock 实现。子类化的主要原因是允许非公平版本的快速实现。
          */
         abstract void lock();
 
         /**
-         * Performs non-fair tryLock.  tryAcquire is implemented in
-         * subclasses, but both need nonfair try for trylock method.
+         * 非公平的 tryLock。tryAcquire 在子类中实现，但是同时需要 trylock
+         * 方法中的非公平尝试。
          */
         final boolean nonfairTryAcquire(int acquires) {
             final Thread current = Thread.currentThread();
