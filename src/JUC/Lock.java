@@ -92,7 +92,7 @@ import java.util.concurrent.locks.Condition;
 public interface Lock {
 
     /**
-     * 获取锁。
+     * 获取锁。如果锁不可用一直等待。
      *
      * 如果锁不可用，则当前线程将出于线程调度的目的而禁用，并处于休眠状态，
      * 直到获取到锁为止。
@@ -104,7 +104,7 @@ public interface Lock {
     void lock();
 
     /**
-     * 获取锁除非当前线程被中断。
+     * 获取锁除非当前线程被中断。获取锁的同时响应中断。
      *
      * 如果锁可用并能立即返回的话获取锁。
      *
@@ -124,7 +124,7 @@ public interface Lock {
     void lockInterruptibly() throws InterruptedException;
 
     /**
-     * 调用时如果锁是空闲的，则尝试 acquire。
+     * 调用时如果锁是空闲的，则尝试 acquire。获取失败直接返回。
      *
      * 如果锁可用，则获取锁，并立即返回 true。如果锁不可用，返回 false。
      *
