@@ -39,32 +39,18 @@ import java.util.Collection;
 import java.util.concurrent.locks.Condition;
 
 /**
- * An implementation of {@link ReadWriteLock} supporting similar
- * semantics to {@link ReentrantLock}.
- * <p>This class has the following properties:
- *
- * <ul>
- * <li><b>Acquisition order</b>
- *
- * <p>This class does not impose a reader or writer preference
- * ordering for lock access.  However, it does support an optional
- * <em>fairness</em> policy.
- *
- * <dl>
- * <dt><b><i>Non-fair mode (default)</i></b>
- * <dd>When constructed as non-fair (the default), the order of entry
- * to the read and write lock is unspecified, subject to reentrancy
- * constraints.  A nonfair lock that is continuously contended may
- * indefinitely postpone one or more reader or writer threads, but
- * will normally have higher throughput than a fair lock.
- *
- * <dt><b><i>Fair mode</i></b>
- * <dd>When constructed as fair, threads contend for entry using an
- * approximately arrival-order policy. When the currently held lock
- * is released, either the longest-waiting single writer thread will
- * be assigned the write lock, or if there is a group of reader threads
- * waiting longer than all waiting writer threads, that group will be
- * assigned the read lock.
+ * 此类是ReadWriteLock 接口的一个实现，支持 ReentrantLock 相同的语义。
+ * 此类有如下特性：
+ * <b>Acquisition order</b>
+ *此类不强制对锁访问进行读写线程优先级排序，但是它支持一个可选的公平性策略。
+ * <b>非公平模式（默认）</b>
+ * 若构造时指定为非公平模式（默认），读写锁的进入顺序是未指定的，这
+ * 取决于可重入性约束。一个被持续竞争的非公平锁可能无限期地延迟一个或
+ * 多个读写线程，但通常比公平锁有更高的吞吐量。
+ * <b>公平模式</b>
+ * 若构造时指定为公平模式，线程使用类似于到达顺序的策略竞争进入。当当前
+ * 持有的锁被释放时，要么等待时间最长的单个写线程被分配写锁，要么为一组
+ * 等待时间比所有写线程等待时间都长的读线程分配读锁。
  *
  * <p>A thread that tries to acquire a fair read lock (non-reentrantly)
  * will block if either the write lock is held, or there is a waiting

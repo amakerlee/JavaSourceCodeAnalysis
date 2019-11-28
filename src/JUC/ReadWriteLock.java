@@ -36,78 +36,44 @@
 package JUC;
 
 /**
- * A {@code ReadWriteLock} maintains a pair of associated {@link
- * Lock locks}, one for read-only operations and one for writing.
- * The {@link #readLock read lock} may be held simultaneously by
- * multiple reader threads, so long as there are no writers.  The
- * {@link #writeLock write lock} is exclusive.
+ * 一个 ReadWriteLock 维护一对有关联的 Lock，一个只用来进行读操作，一个
+ * 用来进行写操作。读锁可以同时被多个线程持有，只要没有写入者即可。写锁是
+ * 独占锁。
  *
- * <p>All {@code ReadWriteLock} implementations must guarantee that
- * the memory synchronization effects of {@code writeLock} operations
- * (as specified in the {@link Lock} interface) also hold with respect
- * to the associated {@code readLock}. That is, a thread successfully
- * acquiring the read lock will see all updates made upon previous
- * release of the write lock.
+ * 所有 ReadWriteLock 的实现必须保证 writeLock 操作的内存同步效果对关联
+ * 的 readLock 也有效。也就是说，一个成功获取读锁的线程将看到在已释放的
+ * 写锁上进行的所有更新。
  *
- * <p>A read-write lock allows for a greater level of concurrency in
- * accessing shared data than that permitted by a mutual exclusion lock.
- * It exploits the fact that while only a single thread at a time (a
- * <em>writer</em> thread) can modify the shared data, in many cases any
- * number of threads can concurrently read the data (hence <em>reader</em>
- * threads).
- * In theory, the increase in concurrency permitted by the use of a read-write
- * lock will lead to performance improvements over the use of a mutual
- * exclusion lock. In practice this increase in concurrency will only be fully
- * realized on a multi-processor, and then only if the access patterns for
- * the shared data are suitable.
+ * 与互斥所相比，读写锁在访问共享数据时允许更高级别的并发性。它利用了：
+ * 虽然一次只能有一个线程（写线程）修改共享数据，但在许多情况下，任何
+ * 数量的线程（读线程）都可以并发读取数据。
+ * 理论上，与使用互斥锁相比，读写锁中允许的并发性增加将提高性能。在实践中，
+ * 并发性的增加只能在多处理器上完全实现，然后使用共享数据的访问模式才合适。
  *
- * <p>Whether or not a read-write lock will improve performance over the use
- * of a mutual exclusion lock depends on the frequency that the data is
- * read compared to being modified, the duration of the read and write
- * operations, and the contention for the data - that is, the number of
- * threads that will try to read or write the data at the same time.
- * For example, a collection that is initially populated with data and
- * thereafter infrequently modified, while being frequently searched
- * (such as a directory of some kind) is an ideal candidate for the use of
- * a read-write lock. However, if updates become frequent then the data
- * spends most of its time being exclusively locked and there is little, if any
- * increase in concurrency. Further, if the read operations are too short
- * the overhead of the read-write lock implementation (which is inherently
- * more complex than a mutual exclusion lock) can dominate the execution
- * cost, particularly as many read-write lock implementations still serialize
- * all threads through a small section of code. Ultimately, only profiling
- * and measurement will establish whether the use of a read-write lock is
- * suitable for your application.
+ * 读写锁相比于互斥锁是否能提高性能取决于数据的读取相对写入的频率，读和
+ * 写操作的持续时间，和数据的竞争 —— 即同一时间试图读取或写入的线程数量。
+ * 例如，一个集合最初用数据填充，然后很少进行修改，而经常被搜索（例如某种
+ * 目录）是使用读写锁的理想选择。但是，如果频繁更新，那么数据大部分时间
+ * 被锁定，并发性基本没有增加。此外如果读操作太短，读写锁实现的开销（其
+ * 本质上比互斥锁更复杂）会决定执行成本，特别是许多读写锁的实现会通过
+ * 一小段代码序列化所有线程。最终，只有分析和度量才能确定读写锁是否适合
+ * 某个应用程序。
  *
+ * 尽管读写锁的基本操作很简单，但是其实现必须使用很多策略，这可能影响给定
+ * 应用程序中读写锁的有效性。
+ * 这些策略的示例包括：
+ * 当读和写线程都在等待，此时一个写锁正好释放，需要确定是将锁授予读锁
+ * 还是写锁。通常偏好写锁，因为写入操作被认为是短暂且很少发生的。偏向读
+ * 锁的策略是不常见的，如果读操作是频繁发生且长久进行的，将会导致写操作
+ * 的延迟。公平（按顺序）策略也可行。
+ * 在读操作仍然活跃而写操作正在等待时，确定是否授予请求读锁的读线程读锁。
+ * 偏向读的策略将会无线延迟写操作，偏向写的策略则会降低并发性。
+ * 确定锁是否是可重入的：一个持有写锁的线程是否可以重新获取写锁？它能否
+ * 在持有写锁同时获取读锁？读锁自身是可重入的吗？
+ * 不允许插入写程序时是否可以将写锁降级为读锁？是否可以优先于其他正在等待
+ * 读取或写入的线程将读锁升级为写锁。
  *
- * <p>Although the basic operation of a read-write lock is straight-forward,
- * there are many policy decisions that an implementation must make, which
- * may affect the effectiveness of the read-write lock in a given application.
- * Examples of these policies include:
- * <ul>
- * <li>Determining whether to grant the read lock or the write lock, when
- * both readers and writers are waiting, at the time that a writer releases
- * the write lock. Writer preference is common, as writes are expected to be
- * short and infrequent. Reader preference is less common as it can lead to
- * lengthy delays for a write if the readers are frequent and long-lived as
- * expected. Fair, or &quot;in-order&quot; implementations are also possible.
- *
- * <li>Determining whether readers that request the read lock while a
- * reader is active and a writer is waiting, are granted the read lock.
- * Preference to the reader can delay the writer indefinitely, while
- * preference to the writer can reduce the potential for concurrency.
- *
- * <li>Determining whether the locks are reentrant: can a thread with the
- * write lock reacquire it? Can it acquire a read lock while holding the
- * write lock? Is the read lock itself reentrant?
- *
- * <li>Can the write lock be downgraded to a read lock without allowing
- * an intervening writer? Can a read lock be upgraded to a write lock,
- * in preference to other waiting readers or writers?
- *
- * </ul>
- * You should consider all of these things when evaluating the suitability
- * of a given implementation for your application.
+ * 在评估给定实现的适用性时应该考虑这些所有的因素。
  *
  * @see ReentrantReadWriteLock
  * @see Lock
@@ -118,14 +84,14 @@ package JUC;
  */
 public interface ReadWriteLock {
     /**
-     * Returns the lock used for reading.
+     * 返回读锁。
      *
      * @return the lock used for reading
      */
     Lock readLock();
 
     /**
-     * Returns the lock used for writing.
+     * 返回写锁。
      *
      * @return the lock used for writing
      */
