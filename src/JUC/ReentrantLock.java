@@ -352,7 +352,6 @@ public class ReentrantLock implements Lock, java.io.Serializable {
      * 如果指定的等待时间到期了，返回 false。如果时间小于等于 0，此方法
      * 不会再等待。
      *
-     *
      * 在此实现中，由于这个方法是显式中断点，所以优先相应中断而不是正常的
      * 或者可重入的锁获取，也不是等待时间的流逝。
      *
