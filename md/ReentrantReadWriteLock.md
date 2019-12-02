@@ -16,3 +16,9 @@
 
 
 > 成员函数
+
+
+***
+> 参考：
+
+[ThreadLocal源码分析](https://www.jianshu.com/p/80866ca6c424)

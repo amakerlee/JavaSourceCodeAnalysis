@@ -37,42 +37,29 @@ package JUC;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A synchronization aid that allows one or more threads to wait until
- * a set of operations being performed in other threads completes.
+ * 此类是一个同步辅助类，允许一个或多个线程等待，直到在其他线程中执行的
+ * 一组操作完成。
  *
- * <p>A {@code CountDownLatch} is initialized with a given <em>count</em>.
- * The {@link #await await} methods block until the current count reaches
- * zero due to invocations of the {@link #countDown} method, after which
- * all waiting threads are released and any subsequent invocations of
- * {@link #await await} return immediately.  This is a one-shot phenomenon
- * -- the count cannot be reset.  If you need a version that resets the
- * count, consider using a {@link CyclicBarrier}.
+ * CountDownLatch 是用给定的 count 初始化。由于 countDown 方法的调用，
+ * await 方法阻塞，直到当前计数为 0，释放所有的等待线程，然后立即返回任何
+ * 后续的 await 调用。这是一次性现象——计数无法重置。如果需要重置计数，
+ * 考虑使用 CyclicBarrier。
  *
- * <p>A {@code CountDownLatch} is a versatile synchronization tool
- * and can be used for a number of purposes.  A
- * {@code CountDownLatch} initialized with a count of one serves as a
- * simple on/off latch, or gate: all threads invoking {@link #await await}
- * wait at the gate until it is opened by a thread invoking {@link
- * #countDown}.  A {@code CountDownLatch} initialized to <em>N</em>
- * can be used to make one thread wait until <em>N</em> threads have
- * completed some action, or some action has been completed N times.
+ * CountDownLatch 是一种通用的同步工具，可以用于多种用途。初始化一个
+ * count 为 1 的 CountDownLatch 作为简单的 on/off latch 或 gate：所有调用
+ * await 的线程都在 gate 外等候，直到调用 countDown 的线程打开它。初始化
+ * 为 N 的 CountDownLatch 可以用来让一个线程等待，直到 N 个线程完成了
+ * 一下操作，或者完成一些操作 N 次。
  *
- * <p>A useful property of a {@code CountDownLatch} is that it
- * doesn't require that threads calling {@code countDown} wait for
- * the count to reach zero before proceeding, it simply prevents any
- * thread from proceeding past an {@link #await await} until all
- * threads could pass.
+ * CountDownLatch 一个有用的属性是，它不需要调用 countDown 的线程
+ * 等待计数为 0 才继续，它只是防止任何线程通过 await，直到所有线程都可以
+ * 通过。
  *
- * <p><b>Sample usage:</b> Here is a pair of classes in which a group
- * of worker threads use two countdown latches:
- * <ul>
- * <li>The first is a start signal that prevents any worker from proceeding
- * until the driver is ready for them to proceed;
- * <li>The second is a completion signal that allows the driver to wait
- * until all workers have completed.
- * </ul>
+ * 实例：这是两个类，其中一组工作线程使用两个 CountDownLatch：
+ * 第一个是启动信号，用于在 driver 准备好继续执行之前，防止任何 worker
+ * 继续执行。
+ * 第二个是完成信号，允许 driver 等到所有 worker 执行完成。
  *
- *  <pre> {@code
  * class Driver { // ...
  *   void main() throws InterruptedException {
  *     CountDownLatch startSignal = new CountDownLatch(1);
@@ -104,16 +91,13 @@ import java.util.concurrent.TimeUnit;
  *   }
  *
  *   void doWork() { ... }
- * }}</pre>
+ * }
  *
- * <p>Another typical usage would be to divide a problem into N parts,
- * describe each part with a Runnable that executes that portion and
- * counts down on the latch, and queue all the Runnables to an
- * Executor.  When all sub-parts are complete, the coordinating thread
- * will be able to pass through await. (When threads must repeatedly
- * count down in this way, instead use a {@link CyclicBarrier}.)
+ * 另一个典型用法是将一个问题分成 N 个部分，用一个 Runnable 来描述每个
+ * 部分，每个 Runnable 执行部分任务，并在 latch 上 count down，然后将所有
+ * Runnable 排队给一个 Executor。当所有的子部件完成后，协调线程将能够
+ * 通过 await 通过。（当所有线程必须以这样的方式重复 count down，使用 CyclicBarrier）
  *
- *  <pre> {@code
  * class Driver2 { // ...
  *   void main() throws InterruptedException {
  *     CountDownLatch doneSignal = new CountDownLatch(N);
@@ -122,6 +106,7 @@ import java.util.concurrent.TimeUnit;
  *     for (int i = 0; i < N; ++i) // create and start threads
  *       e.execute(new WorkerRunnable(doneSignal, i));
  *
+ *     // 等待所有线程执行完毕
  *     doneSignal.await();           // wait for all to finish
  *   }
  * }
@@ -141,22 +126,14 @@ import java.util.concurrent.TimeUnit;
  *   }
  *
  *   void doWork() { ... }
- * }}</pre>
- *
- * <p>Memory consistency effects: Until the count reaches
- * zero, actions in a thread prior to calling
- * {@code countDown()}
- * <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>
- * actions following a successful return from a corresponding
- * {@code await()} in another thread.
+ * }
  *
  * @since 1.5
  * @author Doug Lea
  */
 public class CountDownLatch {
     /**
-     * Synchronization control For CountDownLatch.
-     * Uses AQS state to represent count.
+     * CountDownLatch 的同步控制器。
      */
     private static final class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = 4982264981922014374L;
@@ -169,10 +146,13 @@ public class CountDownLatch {
             return getState();
         }
 
+        //调用此函数的方法是 acquireSharedInterruptibly
+        // 在 acquireSharedInterruptibly 中，返回值小于 0 时进入 AQS 队列等待
         protected int tryAcquireShared(int acquires) {
             return (getState() == 0) ? 1 : -1;
         }
 
+        // 释放共享锁
         protected boolean tryReleaseShared(int releases) {
             // Decrement count; signal when transition to zero
             for (;;) {
@@ -180,6 +160,7 @@ public class CountDownLatch {
                 if (c == 0)
                     return false;
                 int nextc = c-1;
+                // 通过 CAS 设置同步状态
                 if (compareAndSetState(c, nextc))
                     return nextc == 0;
             }
@@ -189,7 +170,7 @@ public class CountDownLatch {
     private final Sync sync;
 
     /**
-     * Constructs a {@code CountDownLatch} initialized with the given count.
+     * 根据给定的 count 构造一个 CountDownLatch
      *
      * @param count the number of times {@link #countDown} must be invoked
      *        before threads can pass through {@link #await}
@@ -201,28 +182,17 @@ public class CountDownLatch {
     }
 
     /**
-     * Causes the current thread to wait until the latch has counted down to
-     * zero, unless the thread is {@linkplain Thread#interrupt interrupted}.
+     * 使当前线程等待，直到 latch 的计数降到 0，等待过程中响应中断。
      *
-     * <p>If the current count is zero then this method returns immediately.
+     * 如果当前计数为 0，则此方法立即返回（获取成功）。
      *
-     * <p>If the current count is greater than zero then the current
-     * thread becomes disabled for thread scheduling purposes and lies
-     * dormant until one of two things happen:
-     * <ul>
-     * <li>The count reaches zero due to invocations of the
-     * {@link #countDown} method; or
-     * <li>Some other thread {@linkplain Thread#interrupt interrupts}
-     * the current thread.
-     * </ul>
+     * 如果当前计数大于 0，则出于线程调度的目的，当前线程将被禁用，并休眠
+     * 直到发生以下两种情况之一：
+     * 由于调用 countDown 方法当前计数降到 0；或者其他线程中断此线程。
      *
-     * <p>If the current thread:
-     * <ul>
-     * <li>has its interrupted status set on entry to this method; or
-     * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
-     * </ul>
-     * then {@link InterruptedException} is thrown and the current thread's
-     * interrupted status is cleared.
+     * 如果当前线程：
+     * 在进入此方法前设置了中断状态；或者在等待时被中断，
+     * 那么抛出 InterruptedException 异常，并清除当前线程的中断状态。
      *
      * @throws InterruptedException if the current thread is interrupted
      *         while waiting
@@ -232,38 +202,24 @@ public class CountDownLatch {
     }
 
     /**
-     * Causes the current thread to wait until the latch has counted down to
-     * zero, unless the thread is {@linkplain Thread#interrupt interrupted},
-     * or the specified waiting time elapses.
+     * 使当前线程等待，直到 latch 的计数降到 0，等待过程中响应中断，并且
+     * 有等待时间限制。
      *
-     * <p>If the current count is zero then this method returns immediately
-     * with the value {@code true}.
+     * 如果当前计数为 0，则此方法立即返回 true（获取成功）。
      *
-     * <p>If the current count is greater than zero then the current
-     * thread becomes disabled for thread scheduling purposes and lies
-     * dormant until one of three things happen:
-     * <ul>
-     * <li>The count reaches zero due to invocations of the
-     * {@link #countDown} method; or
-     * <li>Some other thread {@linkplain Thread#interrupt interrupts}
-     * the current thread; or
-     * <li>The specified waiting time elapses.
-     * </ul>
+     * 如果当前计数大于 0，则出于线程调度的目的，当前线程将被禁用，并休眠
+     * 直到发生以下三种情况之一：
+     * 由于调用 countDown 方法当前计数降到 0；或者其他线程中断此线程；
+     * 或者等待时间到期。
      *
-     * <p>If the count reaches zero then the method returns with the
-     * value {@code true}.
+     * 如果计数降到 0，此方法返回 true。
      *
-     * <p>If the current thread:
-     * <ul>
-     * <li>has its interrupted status set on entry to this method; or
-     * <li>is {@linkplain Thread#interrupt interrupted} while waiting,
-     * </ul>
-     * then {@link InterruptedException} is thrown and the current thread's
-     * interrupted status is cleared.
+     * 如果当前线程：
+     * 在进入此方法前设置了中断状态；或者在等待时被中断，
+     * 那么抛出 InterruptedException 异常，并清除当前线程的中断状态。
      *
-     * <p>If the specified waiting time elapses then the value {@code false}
-     * is returned.  If the time is less than or equal to zero, the method
-     * will not wait at all.
+     * 如果指定等待时间到期，返回 false。如果时间小于等于 0，此方法不会再
+     * 等待。
      *
      * @param timeout the maximum time to wait
      * @param unit the time unit of the {@code timeout} argument
@@ -278,21 +234,19 @@ public class CountDownLatch {
     }
 
     /**
-     * Decrements the count of the latch, releasing all waiting threads if
-     * the count reaches zero.
+     * latch 的计数递减，如果计数达到 0，则释放所有的等待线程。
      *
-     * <p>If the current count is greater than zero then it is decremented.
-     * If the new count is zero then all waiting threads are re-enabled for
-     * thread scheduling purposes.
+     * 如果当前计数大于 0，则递减。如果新的计数为 0，那么所有等待的线程都
+     * 将重新启用，以便进行线程调度。
      *
-     * <p>If the current count equals zero then nothing happens.
+     * 如果当前计数等于 0，则什么也不会发生。
      */
     public void countDown() {
         sync.releaseShared(1);
     }
 
     /**
-     * Returns the current count.
+     * 返回当前计数。
      *
      * <p>This method is typically used for debugging and testing purposes.
      *
@@ -303,10 +257,6 @@ public class CountDownLatch {
     }
 
     /**
-     * Returns a string identifying this latch, as well as its state.
-     * The state, in brackets, includes the String {@code "Count ="}
-     * followed by the current count.
-     *
      * @return a string identifying this latch, as well as its state
      */
     public String toString() {
