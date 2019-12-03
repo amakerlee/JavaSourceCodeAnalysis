@@ -435,13 +435,13 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * 等待队列的头结点，延迟初始化。除了初始化之外，只能通过 setHead
+     * 同步队列的头结点，延迟初始化。除了初始化之外，只能通过 setHead
      * 修改。注意：如果 head 存在的话，其状态必须保证不是 CANCELLED。
      */
     private transient volatile Node head;
 
     /**
-     * 等待队列的尾节点，延迟初始化。只能通过入队方法添加新的节点。
+     * 同步队列的尾节点，延迟初始化。只能通过入队方法添加新的节点。
      */
     private transient volatile Node tail;
 
@@ -710,7 +710,7 @@ public abstract class AbstractQueuedSynchronizer
         // ws 存储前驱节点的状态
         if (ws == Node.SIGNAL)
             /**
-             * 这个节点已经将状态设置为 SIGNAL，即已告诉前驱节点自己正在
+             * pred 节点已经将状态设置为 SIGNAL，即 node 已告诉前驱节点自己正在
              * 等到唤醒。此时可以安心进入等待状态。
              */
             return true;
@@ -764,7 +764,7 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * 等待队列中的线程自旋时，以独占且不可中断的方式 acquire。
-     * 用于 condition 等待方式和 acquire。
+     * 用于 condition 等待方式中的 acquire。
      *
      * @param node the node
      * @param arg the acquire argument
@@ -820,7 +820,8 @@ public abstract class AbstractQueuedSynchronizer
                     failed = false;
                     return;
                 }
-                // 不断自旋直到将前驱节点的状态设置为 SIGNAL，然后阻塞当前线程
+                // 不断自旋直到将前驱节点的状态设置为 SIGNAL，然后阻塞当前线程。
+                // 将前驱节点状态设置成 SIGNAL 之后才能安心进入休眠状态。
                 if (shouldParkAfterFailedAcquire(p, node) &&
                         parkAndCheckInterrupt())
                     // 如果 parkAndCheckInterrupt 返回 true 即 Thread.interrupted
@@ -1618,6 +1619,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     // Instrumentation methods for conditions
+    // 监测 Condition 队列的方法
 
     /**
      * 检查给定 ConditionObject 是否使用此同步器作为其 lock。
@@ -1905,19 +1907,20 @@ public abstract class AbstractQueuedSynchronizer
             // 释放当前线程并返回释放前的状态值
             int savedState = fullyRelease(node);
             int interruptMode = 0;
-            // 如果节点不在 sync 中一直循环，同时检查是否发生中断，发生则中止循环
-            // 即阻塞直到收到 signal 或中断
+            // 如果节点不在 sync 中一直循环（阻塞）
+            // 同时检查是否发生中断，如果发生则中止循环
             while (!isOnSyncQueue(node)) {
                 LockSupport.park(this);
                 if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)
                     break;
             }
-            // 再次 acquire
+            // 被唤醒后，重新加入到同步队列队尾竞争获取锁，如果竞争不到则会沉睡，等待唤醒重新开始竞争。
             if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
                 interruptMode = REINTERRUPT;
             if (node.nextWaiter != null) // clean up if cancelled
                 unlinkCancelledWaiters();
             // 如果在之前的 while 循环中有中断发生，抛出 InterruptedException 异常
+            // 延迟响应中断
             if (interruptMode != 0)
                 reportInterruptAfterWait(interruptMode);
         }
