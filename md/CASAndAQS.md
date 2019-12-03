@@ -1,33 +1,33 @@
-<font color=#FF7F00 size=5>CAS</font>
+### CAS
 
 ***
-<font color=#00B2EE size=4>CAS 原理</font>
+> CAS 原理
 
 CAS （compare and swap）算法包含三个参数，分别是当前内存值 V，旧的预期值 A，要写入的新值。当且仅当 V 的值等于 A 时，CAS 才会通过原子方式用新的值 B 来更新该内存位置的值，否则不进行任何操作。
 
 CAS 是乐观锁的一种，如果在执行 CAS 的时候发现变量的值已经被修改过了，那么不能简单地继续进行后续更新操作，因为在此之前读到的数据已经是脏数据了。当多个线程使用 CAS 的方法同时更新一个变量时，只有其中一个线程能更新成功，其他线程都将失败。
 
-例如：
+**例如：**
 
 线程 A 和线程 B 同时对变量 m = 1 执行加 1 的操作，正常情况下希望得到的最终结果是 m = 3（加了两次）。如果不使用 CAS，可能发生的一种情况是：第一阶段两个线程同时取到 m 的值，ma = 1 且 mb = 1（Java 内存模型中，各线程工作内存中分别持有变量副本）。第二阶段两个线程分别对 ma 和 mb 进行更新，此时 ma = 2 且 mb = 2。第三阶段，线程 a 首先将 ma = 2 写入主内存，m = 2，然后线程 b 将 mb = 2 写入主内存，m 的值还是 2。与预期结果不符。
 
 使用 CAS 方式，在线程 b 写入时，首先检查 V 和 A 是否相等，此时 V = 2，而预期的 A = 1，V 不等于 A，不允许写入。
 
-<font color=#00B2EE size=4>CAS 的 ABA 问题</font>
+> CAS 的 ABA 问题
 
 如果有两个线程 x 和 y ，如果 x 初次从内存中读取变量值为 A；线程 y 对它进行了一些操作使其变成 B，然后再改回 A，那么线程 x 进行 CAS 的时候就会误认为这个值没有被修改过。尽管 CAS 操作会成功执行，但是不代表它是没有问题的，如果有一个单向链表 A B 组成的栈，栈顶为 A，线程 T1 准备执行 CAS 操作 head.compareAndSet(A,B)，在执行之前线程 T2 介入，T2 将A、B出栈，然后又把C、A放入栈，T2执行完毕；切回线程 T1，T1 发现栈顶元素依然为 A，也会成功执行 CAS 将栈顶元素修改为 B，但因为 B.next 为 null，所以栈结构就会丢弃 C 元素。（引用自[JUC源码分析—CAS和Unsafe](https://www.jianshu.com/p/a897c4b8929f)）
 
 对于 CAS 的解决方案是版本号管理。为每一个变量保存一个版本号，当这个值由 A 变为 B，然后又变成 A 时，版本号会不同。
 
-<font color=#FF7F00 size=5>AQS</font>
+### AQS
 
 ***
-<font color=#00B2EE size=4>完整源码解析</font>
+> 完整源码解析
 
 [AbstractOwnableSynchronizer](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/AbstractOwnableSynchronizer.java) | [AbstractQueuedSynchronizer](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/AbstractQueuedSynchronizer.java)
 
 ***
-<font color=#00B2EE size=4>概述</font>
+> 概述
 
 AQS 是 JUC 框架中构建锁和同步器的基础。一种常用的方式是将 AQS 实例作为某个同步器的属性，从而使用 AQS 的各种方法。AQS 中常用锁的概念有自旋锁（自身循环），重入锁，独占锁，共享锁，读锁，写锁，乐观锁和悲观锁等，这些在后续内容中将会多次出现。
 
@@ -41,7 +41,7 @@ AQS 中包含两种队列，如下图所示：
 一种是同步队列，一种是 Condition 队列（条件队列）。一个 AQS 中可以有多个 Condition 队列。一个节点只能同时存在于同步队列或 Condition 队列中。
 
 ***
-<font color=#00B2EE size=4>内部类 Node</font>
+> 内部类 Node
 
 AQS 同步控制器基于 Node 节点类，节点类主要包含其代表的线程，节点模式为共享还是独占，节点状态，指向前后节点的指针，若其在 Condition 队列中，还将使用指向 Condition 队列中后一个节点的指针 nextWaiter。节点状态在类中用 waitStatus 表示，对于不同类型的锁可以表示不同的特征，如资源数，锁状态等。
 
@@ -169,7 +169,7 @@ AQS 同步控制器基于 Node 节点类，节点类主要包含其代表的线�
 ```
 
 ***
-<font color=#00B2EE size=4>内部类 Condition</font>
+> 内部类 Condition
 
 Condition 类仍然使用 Node 节点作为基础数据结构，每一个 Condition 队列的构建主要包含两个属性，分别作为队列的头结点和队列的尾节点：
 
@@ -532,7 +532,7 @@ Condition 类仍然使用 Node 节点作为基础数据结构，每一个 Condit
 除此之外，Condition 类中还提供了**isOwnedBy** 方法判断 Condition 是否被指定同步器持有，**hasWaiters** 判断是否有线程在 Condition 上等待，**getWaitQueueLength** 获取条件队列上等待的节点个数，**getWaitingThreads** 获取条件队列上所有等到的线程
 
 ***
-<font color=#00B2EE size=4>类属性</font>
+> 类属性
 
 变量 head 和 tail 分别记录同步队列的头结点和尾节点，state 记录同步状态。
 
@@ -555,11 +555,11 @@ Condition 类仍然使用 Node 节点作为基础数据结构，每一个 Condit
 ```
 
 ***
-<font color=#00B2EE size=4>成员函数</font>
+> 成员函数
 
 所有成员函数中，核心的方法分为 acquire 和 release 两类。acquire 相关函数用于在独占/共享模式下获取锁，release 相关函数用于在独占/共享模式下释放锁。
 
-<font color=#00B2EE size=4>acquire</font>
+> acquire
 
 acquire 相关的实现根据共享/独占，是否相应中断，是否有时间限制等要求，主要有下列函数：
 
@@ -798,7 +798,8 @@ acquire 相关的实现根据共享/独占，是否相应中断，是否有时�
     }
 ```
 
-<font color=#00B2EE size=4>release</font>
+ 
+ > release
  
 **release** 函数用于在独占模式下释放锁，调用 tryRelease 方法释放锁，成功则调用 unpackSuccessor 方法唤醒下一个线程
 
@@ -883,7 +884,7 @@ acquire 相关的实现根据共享/独占，是否相应中断，是否有时�
     }
 ```
  
-<font color=#00B2EE size=4>辅助函数</font>
+ > 辅助函数
  
  * unparkSuccessor：唤醒指定节点的后继节点
  * cancelAcquire：取消获取锁的尝试
@@ -899,7 +900,7 @@ acquire 相关的实现根据共享/独占，是否相应中断，是否有时�
  * tryReleaseShared：尝试以共享模式释放锁
 
 ***
-<font color=#00B2EE size=4>参考</font>
+> 参考
 
 [JUC源码分析—CAS和Unsafe](https://www.jianshu.com/p/a897c4b8929f)
 [JUC源码分析—AQS](https://www.jianshu.com/p/a8d27ba5db49)
