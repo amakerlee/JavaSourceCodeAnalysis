@@ -1,4 +1,4 @@
-<font color=#FF7F00 size=5>CAS</font>
+### CAS
 
 ***
 > CAS 原理
@@ -903,4 +903,5 @@ acquire 相关的实现根据共享/独占，是否相应中断，是否有时�
 > 参考
 
 [JUC源码分析—CAS和Unsafe](https://www.jianshu.com/p/a897c4b8929f)
+
 [JUC源码分析—AQS](https://www.jianshu.com/p/a8d27ba5db49)
