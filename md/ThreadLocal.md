@@ -3,7 +3,7 @@
 ***
 > 完整源码解析
 
-[ThreadLocal](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ThreadLocal.java)
+[ThreadLocalMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ThreadLocal.java) | [ThreadLocal](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ThreadLocal.java)
 
 ***
 > 基本原理
@@ -78,7 +78,11 @@ rehash 的阈值设置为 table 数组长度的 2/3，且 table 数组长度保�
 
 **get 方法**
 
-首先计算 key 的 hash 值
+在 getEntry 方法中首先根据 key 的 hash 值计算所在位置，如果一次命中则返回，否则进入 getEntryAfterMiss 继续查找。
+
+getEntryAfterMiss 方法使用线性探查从当前位置继续往后查找，直到找到该节点或遇到 null 桶为止。每一次的循环过程，都调用 expungeStaleEntry 清理一段范围内的无效 Entry。
+
+expungeStaleEntry 方法从当前参数位置开始往后遍历，直到遇到 null 空槽为止。遍历过程中，清除无效 Entry（置为 null，虚拟机执行回收）。由于清理后多出了空槽，所以清理的同时，根据 hash 值重新计算此范围内节点的位置，并进行重置。重置过程保证了当中间节点被清除时，后续节点回到其正确的位置上，或者填补这一空白。
 
 ```java
         /**
@@ -179,6 +183,8 @@ rehash 的阈值设置为 table 数组长度的 2/3，且 table 数组长度保�
 ```
 
 **set 方法**
+
+set 方法用于插入新的节点，或者更新节点的 value 值，同样首先查找对应的 key，然后新建或替换，然后清理范围内无效的节点并重置范围内节点位置。
 
 ```java
         /**
@@ -472,10 +478,11 @@ rehash 的阈值设置为 table 数组长度的 2/3，且 table 数组长度保�
 ***
 > 内存泄露问题
 
+ThreadLocalMap 中采用 ThreadLocal 作为键值对的 key，如果 ThreadLocal 被回收则意味着此 ThreadLocal 对应的 value 再也不会被访问到，也成为无用的内存。由于 Map 被当前线程持有，不管 ThreadLocal 有没有被回收，value 都会一直存在于内存中，无意义的 value 在内存中累加，极有可能造成内存泄露的问题。
 
+针对此问题，ThreadLocal 类中的 set、get 等方法均实现了回收无效的 Entry 节点的操作。如果检测到范围内节点的 key 为 null，则设置其 value 为 null，其 Entry 的引用为 null，那么在下一次垃圾回收之前，将会自动回收这些弱引用的节点对象。
 
-
-
+强引用对象是指不会被回收的对象；软引用对象是指内部不足的时候回收的对象；弱引用对象是指存活到垃圾回收前的对象，此类对象在垃圾回收发生时会立刻进行回收。
 
 ***
 > 参考：
