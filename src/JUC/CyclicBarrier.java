@@ -144,7 +144,7 @@ public class CyclicBarrier {
     private Generation generation = new Generation();
 
     /**
-     * 仍然在等待的线程数量。每一个 generation 从 parties 降到 0。创建新的
+     * 仍然需要等待的线程数量。每一个 generation 从 parties 降到 0。创建新的
      * generation 或者 broken 的时候重置为需要拦截的线程数。
      * parties 表示需要拦截的线程数。
      */
@@ -217,6 +217,7 @@ public class CyclicBarrier {
             for (;;) {
                 try {
                     if (!timed)
+                        // 线程进入 Condition 队列中等待会释放持有的锁
                         trip.await();
                     else if (nanos > 0L)
                         nanos = trip.awaitNanos(nanos);
