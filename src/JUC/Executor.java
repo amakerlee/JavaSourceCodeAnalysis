@@ -36,6 +36,7 @@
 package JUC;
 
 /**
+ * 一个执行
  * An object that executes submitted {@link Runnable} tasks. This
  * interface provides a way of decoupling task submission from the
  * mechanics of how each task will be run, including details of thread
