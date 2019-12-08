@@ -80,6 +80,43 @@ tryAcquireShared 方法中仅仅判断当前状态（状态用于判断是否打
 ```
 
 ***
+> 应用实例
+
+CountDownLatch 创建时指定 count 为 3，main 主线程在 latch.await 处等待三个子线程完成 latch.countDown 操作之后，才继续执行后面的操作。
+
+```java
+public class test {
+    public static void main(String[] args) {
+        ExecutorService service = Executors.newFixedThreadPool(3);
+        CountDownLatch latch = new CountDownLatch(3);
+        for (int i = 0; i < 3; i++) {
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        System.out.println("子线程 " + Thread.currentThread().getName() + " 开始执行");
+                        Thread.sleep((long) (Math.random() * 10000));
+                        System.out.println("子线程 " + Thread.currentThread().getName() + " 执行完毕");
+                        latch.countDown();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+            service.execute(runnable);
+        }
+        try{
+            System.out.println("主线程 " + Thread.currentThread().getName() + " 等待子线程完成");
+            latch.await();
+            System.out.println("主线程 " + Thread.currentThread().getName() + " 执行完毕");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+***
 > 总结
 
 CountDownLatch 底层实现依赖于 AQS 共享锁的实现机制，首先初始化计数器 count，调用 countDown 方法时，计数器 count 减 1，当计数器 count 等于 0 时，会唤醒 AQS 等待队列中的线程。调用 await 方法，线程会被挂起，它会等待直到 count 值为 0 才继续执行，否则会加入到等待队列中，等待被唤醒。

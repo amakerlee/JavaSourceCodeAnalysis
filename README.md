@@ -45,14 +45,14 @@
 
 #### Set
 
-* [HashSet 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/HashSet.md)
+* [HashSet 核心（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/HashSet.md)
 
     [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Set](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Set.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)  | [AbstractSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractSet.java) | [HashSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/HashSet.java)
 
     <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/HashSet.png" width=50% />
 
 
-* [TreeSet 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/TreeSet.md)
+* [TreeSet 核心（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/TreeSet.md)
 
     [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Set](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Set.java) | [SortedSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/SortedSet.java) | [NavigableSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/NavigableSet.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)  | [AbstractSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractSet.java) | [TreeSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/TreeSet.java)
 
@@ -75,11 +75,12 @@
     <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/HashMap.png" width=30% />
 
 
-* [LinkedHashMap 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/LinkedHashMap.md)
+* [LinkedHashMap 核心（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/LinkedHashMap.md)
 
 
 ****
 ### 2. Java Concurrency Tools in java.util.concurrent
+    include CAS, AQS, ThreadLocal, Lock, Concurrent Collection, Thread Pool and Atomic Class 
 
 #### 基础
 
@@ -112,5 +113,23 @@
 * [ThreadPoolExecutor 核心](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/ThreadPoolExecutor.md)
 
     [Executor](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/Executor.java) | [ExecutorService](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ExecutorService.java) | [AbstractExecutorService](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/AbstractExecutorService.java) | [ThreadPoolExecutor](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ThreadPoolExecutor.java)
+
+    <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ThreadPoolExecutor.png" width=70% />
+
+* [ScheduledThreadPoolExecutor 核心（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/ScheduledThreadPoolExecutor.md)
+
+    [Executor](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/Executor.java) | [ExecutorService](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ExecutorService.java) | [AbstractExecutorService](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/AbstractExecutorService.java) | [ThreadPoolExecutor](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ThreadPoolExecutor.java) | [ScheduledExecutorService](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ScheduledExecutorService.java) | [ScheduledThreadPoolExecutor](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ScheduledThreadPoolExecutor.java)
+
+    <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ScheduledThreadPoolExecutor.png" width=70% />
+
+* [ForkJoinPool 核心（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/ThreadPoolExecutor.md)
+
+    [Executor](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/Executor.java) | [ExecutorService](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ExecutorService.java) | [AbstractExecutorService](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/AbstractExecutorService.java) | [ForkJoinPool](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ForkJoinPool.java)
+
+    <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ForkJoinPool.png" width=70% />
+
+* [Executors 核心（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Executors.md)
+
+    [Executors](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/Executors.java)
 
 #### 原子类
