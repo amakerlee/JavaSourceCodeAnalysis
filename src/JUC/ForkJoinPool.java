@@ -35,6 +35,8 @@
 
 package JUC;
 
+import oracle.jrockit.jfr.events.Bits;
+
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -76,17 +78,10 @@ import java.security.Permissions;
  * 方法（例如 getStealCount），用于帮助开发，调优和监视 fork/join 应用程序。
  * 而且，还可以使用 toString 方法返回非正式监视的线程池状态。
  *
- * <p>As is the case with other ExecutorServices, there are three
- * main task execution methods summarized in the following table.
- * These are designed to be used primarily by clients not already
- * engaged in fork/join computations in the current pool.  The main
- * forms of these methods accept instances of {@code ForkJoinTask},
- * but overloaded forms also allow mixed execution of plain {@code
- * Runnable}- or {@code Callable}- based activities as well.  However,
- * tasks that are already executing in a pool should normally instead
- * use the within-computation forms listed in the table unless using
- * async event-style tasks that are not usually joined, in which case
- * there is little difference among choice of methods.
+ * 与其它的 ExecutorService 类一样，下表总结了三种主要的任务执行方法。
+ * 它们主要用于当前线程池中尚未参与 fork/join 计算的客户端。这些方法
+ * 主要执行 ForkJoinTask 任务，也允许混合执行基于 Runnable 或者 Callable
+ * 的任务。
  *
  * <table BORDER CELLPADDING=3 CELLSPACING=1>
  * <caption>Summary of task execution methods</caption>
@@ -684,14 +679,13 @@ public class ForkJoinPool extends AbstractExecutorService {
     // Nested classes
 
     /**
-     * Factory for creating new {@link ForkJoinWorkerThread}s.
-     * A {@code ForkJoinWorkerThreadFactory} must be defined and used
-     * for {@code ForkJoinWorkerThread} subclasses that extend base
-     * functionality or initialize threads with different contexts.
+     * 创建新的 ForkJoinWorkerThread 的工厂。ForkJoinWorkerThreadFactory
+     * 必须定义和用于构建扩展基本功能或在不同上下文初始化线程的
+     * ForkJoinWorkerThread 子类。
      */
     public static interface ForkJoinWorkerThreadFactory {
         /**
-         * Returns a new worker thread operating in the given pool.
+         * 返回线程池可操作的新的工作线程。
          *
          * @param pool the pool this thread works in
          * @return the new worker thread
@@ -701,8 +695,8 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Default ForkJoinWorkerThreadFactory implementation; creates a
-     * new ForkJoinWorkerThread.
+     * 默认的 ForkJoinWorkerThreadFactory 实现，创建一个新的
+     * ForkJoinWorkerThread。
      */
     static final class DefaultForkJoinWorkerThreadFactory
             implements ForkJoinWorkerThreadFactory {
@@ -712,10 +706,10 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Class for artificial tasks that are used to replace the target
-     * of local joins if they are removed from an interior queue slot
-     * in WorkQueue.tryRemoveAndExec. We don't need the proxy to
-     * actually do anything beyond having a unique identity.
+     * 此类表示如果本地 join 被 WorkQueue.tryRemoveAndExec 从内部队列
+     * 插槽中删除，用来替换 join 的任务。我们不需要代理来做任何事情，除了
+     * 有一个唯一的身份。
+     * 内部占位类，用于替换队列中 join 的任务。
      */
     static final class EmptyTask extends ForkJoinTask<Void> {
         private static final long serialVersionUID = -7721805057305804111L;
@@ -726,71 +720,56 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     // Constants shared across ForkJoinPool and WorkQueue
+    // 由 ForkJoinPool 和 WorkQueue 共享的常量
 
-    // Bounds
+    // 边界
     static final int SMASK        = 0xffff;        // short bits == max index
-    static final int MAX_CAP      = 0x7fff;        // max #workers - 1
+    static final int MAX_CAP      = 0x7fff;        // 工作线程最大容量
     static final int EVENMASK     = 0xfffe;        // even short bits
-    static final int SQMASK       = 0x007e;        // max 64 (even) slots
+    static final int SQMASK       = 0x007e;        // workQueues 最多 64 个槽位
 
-    // Masks and units for WorkQueue.scanState and ctl sp subfield
-    static final int SCANNING     = 1;             // false when running tasks
-    static final int INACTIVE     = 1 << 31;       // must be negative
-    static final int SS_SEQ       = 1 << 16;       // version count
+    // ctl 的子域，workQueue.scanState 的掩码和标志位
+    static final int SCANNING     = 1;             // 标记是否正在运行任务
+    static final int INACTIVE     = 1 << 31;       // 失活状态，负数
+    static final int SS_SEQ       = 1 << 16;       // 版本号，防止 ABA 问题
 
-    // Mode bits for ForkJoinPool.config and WorkQueue.config
-    static final int MODE_MASK    = 0xffff << 16;  // top half of int
-    static final int LIFO_QUEUE   = 0;
-    static final int FIFO_QUEUE   = 1 << 16;
-    static final int SHARED_QUEUE = 1 << 31;       // must be negative
+    // ForkJoinPool.config 和 WorkQueue.config 的配置信息标记
+    static final int MODE_MASK    = 0xffff << 16;  // 模式掩码
+    static final int LIFO_QUEUE   = 0; // LIFO 队列
+    static final int FIFO_QUEUE   = 1 << 16; // FIFO 队列
+    static final int SHARED_QUEUE = 1 << 31;       // 共享模式队列，负数
 
     /**
-     * Queues supporting work-stealing as well as external task
-     * submission. See above for descriptions and algorithms.
-     * Performance on most platforms is very sensitive to placement of
-     * instances of both WorkQueues and their arrays -- we absolutely
-     * do not want multiple WorkQueue instances or multiple queue
-     * arrays sharing cache lines. The @Contended annotation alerts
-     * JVMs to try to keep instances apart.
+     * 支持工作窃取和外部任务提交的队列。
      */
     @sun.misc.Contended
     static final class WorkQueue {
 
         /**
-         * Capacity of work-stealing queue array upon initialization.
-         * Must be a power of two; at least 4, but should be larger to
-         * reduce or eliminate cacheline sharing among queues.
-         * Currently, it is much larger, as a partial workaround for
-         * the fact that JVMs often place arrays in locations that
-         * share GC bookkeeping (especially cardmarks) such that
-         * per-write accesses encounter serious memory contention.
+         * 初始化时 work-stealing 队列数组的容量。必须是 2 的幂。
          */
         static final int INITIAL_QUEUE_CAPACITY = 1 << 13;
 
         /**
-         * Maximum size for queue arrays. Must be a power of two less
-         * than or equal to 1 << (31 - width of array entry) to ensure
-         * lack of wraparound of index calculations, but defined to a
-         * value a bit less than this to help users trap runaway
-         * programs before saturating systems.
+         * 队列数组的最大容量。必须是 2 的幂，且小于等于 1 << (31 - 数组宽度)。
          */
         static final int MAXIMUM_QUEUE_CAPACITY = 1 << 26; // 64M
 
-        // Instance fields
-        volatile int scanState;    // versioned, <0: inactive; odd:scanning
-        int stackPred;             // pool stack (ctl) predecessor
-        int nsteals;               // number of steals
-        int hint;                  // randomization and stealer index hint
-        int config;                // pool index and mode
+        // 实例字段
+        volatile int scanState;    // Worker 状态, <0: inactive; odd:scanning
+        int stackPred;             // 前一个栈顶的 ctl
+        int nsteals;               // 偷取任务数
+        int hint;                  // 记录偷取者索引，初始为随机索引
+        int config;                // 线程池索引和模式
         volatile int qlock;        // 1: locked, < 0: terminate; else 0
-        volatile int base;         // index of next slot for poll
-        int top;                   // index of next slot for push
-        ForkJoinTask<?>[] array;   // the elements (initially unallocated)
+        volatile int base;         // 下一个 poll 操作的索引（栈底/队列头）
+        int top;                   // 下一个 push 操作的索引（栈顶/队列尾）
+        ForkJoinTask<?>[] array;   // 任务数组
         final ForkJoinPool pool;   // the containing pool (may be null)
-        final ForkJoinWorkerThread owner; // owning thread or null if shared
-        volatile Thread parker;    // == owner during call to park; else null
-        volatile ForkJoinTask<?> currentJoin;  // task being joined in awaitJoin
-        volatile ForkJoinTask<?> currentSteal; // mainly used by helpStealer
+        final ForkJoinWorkerThread owner; // 当前工作队列的工作线程，共享模式下为 null
+        volatile Thread parker;    // 调用 park 阻塞期间为 null，其他情况为 null
+        volatile ForkJoinTask<?> currentJoin;  // 记录被 join 过来的任务
+        volatile ForkJoinTask<?> currentSteal; // 记录从其他队列偷取过来的任务
 
         WorkQueue(ForkJoinPool pool, ForkJoinWorkerThread owner) {
             this.pool = pool;
@@ -1225,43 +1204,37 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     // static fields (initialized in static initializer below)
+    // 静态字段
 
     /**
-     * Creates a new ForkJoinWorkerThread. This factory is used unless
-     * overridden in ForkJoinPool constructors.
+     * 创建一个新的 ForkJoinWorkerThread。使用此工厂创建新线程，除非在
+     * ForkJoinPool 构造函数中被覆盖。
      */
     public static final ForkJoinWorkerThreadFactory
             defaultForkJoinWorkerThreadFactory;
 
     /**
-     * Permission required for callers of methods that may start or
-     * kill threads.
+     * 启动或杀死线程的方法调用者权限。
      */
     private static final RuntimePermission modifyThreadPermission;
 
     /**
-     * Common (static) pool. Non-null for public use unless a static
-     * construction exception, but internal usages null-check on use
-     * to paranoically avoid potential initialization circularities
-     * as well as to simplify generated code.
+     * 公共静态的线程池。
      */
     static final ForkJoinPool common;
 
     /**
-     * Common pool parallelism. To allow simpler use and management
-     * when common pool threads are disabled, we allow the underlying
-     * common.parallelism field to be zero, but in that case still report
-     * parallelism as 1 to reflect resulting caller-runs mechanics.
+     * 并行度，对应内部 common 池。
      */
     static final int commonParallelism;
 
     /**
-     * Limit on spare thread construction in tryCompensate.
+     * 备用线程数，在 tryCompensate 中使用。
      */
     private static int commonMaxSpares;
 
     /**
-     * Sequence number for creating workerNamePrefix.
+     * 创建 workNamePrefix（工作线程名称前缀）时的序号。
      */
     private static int poolNumberSequence;
 
@@ -1274,90 +1247,75 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     // static configuration constants
+    // 静态配置变量
 
     /**
-     * Initial timeout value (in nanoseconds) for the thread
-     * triggering quiescence to park waiting for new work. On timeout,
-     * the thread will instead try to shrink the number of
-     * workers. The value should be large enough to avoid overly
-     * aggressive shrinkage during most transient stalls (long GCs
-     * etc).
+     * 初始的超时设定值。用于已经触发暂停，正在等待新任务的线程。在超时时，
+     * 线程将尝试减少工作者数量。该值应该足够大，以避免在大多数瞬时停机时
+     * 的过度收缩（例如在 GC 的时候）。
      */
     private static final long IDLE_TIMEOUT = 2000L * 1000L * 1000L; // 2sec
 
     /**
-     * Tolerance for idle timeouts, to cope with timer undershoots
+     * 空闲超时时间，防止 timer 未命中。
      */
     private static final long TIMEOUT_SLOP = 20L * 1000L * 1000L;  // 20ms
 
     /**
-     * The initial value for commonMaxSpares during static
-     * initialization. The value is far in excess of normal
-     * requirements, but also far short of MAX_CAP and typical
-     * OS thread limits, so allows JVMs to catch misuse/abuse
-     * before running out of resources needed to do so.
+     * commonMaxSpares 的默认值，备用线程数。
      */
     private static final int DEFAULT_COMMON_MAX_SPARES = 256;
 
     /**
-     * Number of times to spin-wait before blocking. The spins (in
-     * awaitRunStateLock and awaitWork) currently use randomized
-     * spins. Currently set to zero to reduce CPU usage.
+     * 阻塞前自旋的次数，用在 awaitRunStateLock 和 awaitWork 中。当前设置
+     * 为 0 以减少 CPU 的使用。
      *
-     * If greater than zero the value of SPINS must be a power
-     * of two, at least 4.  A value of 2048 causes spinning for a
-     * small fraction of typical context-switch times.
-     *
-     * If/when MWAIT-like intrinsics becomes available, they
-     * may allow quieter spinning.
+     * 如果大于 0，此变量的值必须是 2 的幂，至少是 4。若值为 2048，只会在
+     * 典型的上下文切换时间的一小部分时间里发生旋转。
      */
     private static final int SPINS  = 0;
 
     /**
-     * Increment for seed generators. See class ThreadLocal for
-     * explanation.
+     * indexSeed 的增量。ThreadLocal 中有详细解释。
      */
     private static final int SEED_INCREMENT = 0x9e3779b9;
 
-    /*
-     * Bits and masks for field ctl, packed with 4 16 bit subfields:
-     * AC: Number of active running workers minus target parallelism
-     * TC: Number of total workers minus target parallelism
-     * SS: version count and status of top waiting thread
-     * ID: poolIndex of top of Treiber stack of waiters
+    /**
+     * ForkJoinPool 的内部状态是通过 long 类型的 64 位 ctl 变量存储，由 4 个
+     * 16 位的子域构成：
+     * AC：正在运行工作线程数减去目标并行度，高 16 位
+     * TC：总工作线程数减去目标并行度，中高 16 位
+     * SS：栈顶等待线程的版本计数和状态，中低 16 位
+     * ID：栈顶 WorkQueue 在池中的索引（poolIndex），低 16 位
      *
-     * When convenient, we can extract the lower 32 stack top bits
-     * (including version bits) as sp=(int)ctl.  The offsets of counts
-     * by the target parallelism and the positionings of fields makes
-     * it possible to perform the most common checks via sign tests of
-     * fields: When ac is negative, there are not enough active
-     * workers, when tc is negative, there are not enough total
-     * workers.  When sp is non-zero, there are waiting workers.  To
-     * deal with possibly negative fields, we use casts in and out of
-     * "short" and/or signed shifts to maintain signedness.
+     * 可以通过 sp=(int)ctl 提取低 32 位栈顶位（包括版本位）。
+     * 当 AC 为负时，没有足够的活跃工作线程；
+     * 当 TC 为负时，没有足够的工作线程。
+     * 当 SP 不是 0 时，有线程在等待任务。
+     * 为了处理可能的负字段，我们使用强制类型转换来维持符号性。
      *
-     * Because it occupies uppermost bits, we can add one active count
-     * using getAndAddLong of AC_UNIT, rather than CAS, when returning
-     * from a blocked join.  Other updates entail multiple subfields
-     * and masking, requiring CAS.
+     * 因为它占据了最高位，当从阻塞的 join 返回时，使用 AC_UNIT 的
+     * getAndAddLong 而不是 CAS 来添加这个活动计数。其他更新包含多个
+     * 子域和掩码的，需要 CAS。
      */
 
-    // Lower and upper word masks
+    // 低位和高位掩码
     private static final long SP_MASK    = 0xffffffffL;
     private static final long UC_MASK    = ~SP_MASK;
 
-    // Active counts
+    // 活跃线程数
     private static final int  AC_SHIFT   = 48;
-    private static final long AC_UNIT    = 0x0001L << AC_SHIFT;
-    private static final long AC_MASK    = 0xffffL << AC_SHIFT;
+    private static final long AC_UNIT    = 0x0001L << AC_SHIFT; // 活跃线程数增量
+    private static final long AC_MASK    = 0xffffL << AC_SHIFT; // 活跃线程数掩码
 
-    // Total counts
+    // 工作线程数
     private static final int  TC_SHIFT   = 32;
-    private static final long TC_UNIT    = 0x0001L << TC_SHIFT;
-    private static final long TC_MASK    = 0xffffL << TC_SHIFT;
-    private static final long ADD_WORKER = 0x0001L << (TC_SHIFT + 15); // sign
+    private static final long TC_UNIT    = 0x0001L << TC_SHIFT; // 工作线程数增量
+    private static final long TC_MASK    = 0xffffL << TC_SHIFT; // 掩码
+    private static final long ADD_WORKER = 0x0001L << (TC_SHIFT + 15); // 创建工作线程标志
 
     // runState bits: SHUTDOWN must be negative, others arbitrary powers of two
+    // 线程池状态
     private static final int  RSLOCK     = 1;
     private static final int  RSIGNAL    = 1 << 1;
     private static final int  STARTED    = 1 << 2;
@@ -1365,16 +1323,16 @@ public class ForkJoinPool extends AbstractExecutorService {
     private static final int  TERMINATED = 1 << 30;
     private static final int  SHUTDOWN   = 1 << 31;
 
-    // Instance fields
-    volatile long ctl;                   // main pool control
-    volatile int runState;               // lockable status
-    final int config;                    // parallelism, mode
-    int indexSeed;                       // to generate worker index
-    volatile WorkQueue[] workQueues;     // main registry
-    final ForkJoinWorkerThreadFactory factory;
-    final UncaughtExceptionHandler ueh;  // per-worker UEH
-    final String workerNamePrefix;       // to create worker name string
-    volatile AtomicLong stealCounter;    // also used as sync monitor
+    // 实例字段
+    volatile long ctl;                   // 主控制参数
+    volatile int runState;               // 运行状态锁
+    final int config;                    // 并行度 | 模式
+    int indexSeed;                       // 用于生成工作线程索引
+    volatile WorkQueue[] workQueues;     // 主对象注册信息，workQueue
+    final ForkJoinWorkerThreadFactory factory; // 线程工厂
+    final UncaughtExceptionHandler ueh;  // 每个工作线程的异常信息
+    final String workerNamePrefix;       // 用于创建工作线程的名称
+    volatile AtomicLong stealCounter;    // 偷取任务总数，也可作为同步监视器
 
     /**
      * Acquires the runState lock; returns current (locked) runState.
@@ -3178,26 +3136,18 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Interface for extending managed parallelism for tasks running
-     * in {@link ForkJoinPool}s.
+     * 为 ForkJoinPool 中的任务提供扩展管理并行数的接口，一般用在可能会
+     * 阻塞的任务（在 Phaser 中用于等待 phase 到下一个 generation）
      *
-     * <p>A {@code ManagedBlocker} provides two methods.  Method
-     * {@link #isReleasable} must return {@code true} if blocking is
-     * not necessary. Method {@link #block} blocks the current thread
-     * if necessary (perhaps internally invoking {@code isReleasable}
-     * before actually blocking). These actions are performed by any
-     * thread invoking {@link ForkJoinPool#managedBlock(ManagedBlocker)}.
-     * The unusual methods in this API accommodate synchronizers that
-     * may, but don't usually, block for long periods. Similarly, they
-     * allow more efficient internal handling of cases in which
-     * additional workers may be, but usually are not, needed to
-     * ensure sufficient parallelism.  Toward this end,
-     * implementations of method {@code isReleasable} must be amenable
-     * to repeated invocation.
+     * 一个 ManagedBlocker 提供两个方法。如果不需要阻塞则 isReleasable
+     * 必须返回 true。方法 block 在必要时（可能在实际阻塞之前内部调用
+     * isReleasable）阻塞当前线程。这些操作是由调用
+     * ForkJoinPool.managedBlock(ManagedBlocker) 的线程执行的。
+     * 这个 API 中这些方法可能，但不会经常，长时间阻塞。同样的，允许更有效的
+     * 内部处理，在这种情况下可能需要（但通常不需要）额外的工作线程来
+     * 保证足够的并行性。所以，方法 isReleasable 必须能重复调用。
      *
-     * <p>For example, here is a ManagedBlocker based on a
-     * ReentrantLock:
-     *  <pre> {@code
+     * 例如，这是一个基于 ReentrantLock 的 ManagedBlocker：
      * class ManagedLocker implements ManagedBlocker {
      *   final ReentrantLock lock;
      *   boolean hasLock = false;
@@ -3210,11 +3160,9 @@ public class ForkJoinPool extends AbstractExecutorService {
      *   public boolean isReleasable() {
      *     return hasLock || (hasLock = lock.tryLock());
      *   }
-     * }}</pre>
+     * }}
      *
-     * <p>Here is a class that possibly blocks waiting for an
-     * item on a given queue:
-     *  <pre> {@code
+     * 这是一个在等待给定队列中对象时可能阻塞的类：
      * class QueueTaker<E> implements ManagedBlocker {
      *   final BlockingQueue<E> queue;
      *   volatile E item = null;
@@ -3230,12 +3178,11 @@ public class ForkJoinPool extends AbstractExecutorService {
      *   public E getItem() { // call after pool.managedBlock completes
      *     return item;
      *   }
-     * }}</pre>
+     * }
      */
     public static interface ManagedBlocker {
         /**
-         * Possibly blocks the current thread, for example waiting for
-         * a lock or condition.
+         * 可能阻塞当前线程，例如等待锁或者 Condition。
          *
          * @return {@code true} if no additional blocking is necessary
          * (i.e., if isReleasable would return true)
@@ -3245,7 +3192,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         boolean block() throws InterruptedException;
 
         /**
-         * Returns {@code true} if blocking is unnecessary.
+         * 如果必须要阻塞返回 true。
          * @return {@code true} if blocking is unnecessary
          */
         boolean isReleasable();
