@@ -682,6 +682,11 @@ public class ForkJoinPool extends AbstractExecutorService {
      * 创建新的 ForkJoinWorkerThread 的工厂。ForkJoinWorkerThreadFactory
      * 必须定义和用于构建扩展基本功能或在不同上下文初始化线程的
      * ForkJoinWorkerThread 子类。
+     *
+     * ForkJoinWorkerThread 是该 ForkJoinPool 中使用线程类，继承自 Thread，
+     * 内部属性包括：
+     * final ForkJoinPool pool;   // 该线程所属的线程池
+     * final ForkJoinPool.WorkQueue workQueue;   // 该线程使用的任务执行队列
      */
     public static interface ForkJoinWorkerThreadFactory {
         /**
@@ -735,8 +740,8 @@ public class ForkJoinPool extends AbstractExecutorService {
 
     // ForkJoinPool.config 和 WorkQueue.config 的配置信息标记
     static final int MODE_MASK    = 0xffff << 16;  // 模式掩码
-    static final int LIFO_QUEUE   = 0; // LIFO 队列
-    static final int FIFO_QUEUE   = 1 << 16; // FIFO 队列
+    static final int LIFO_QUEUE   = 0; // 两种异步模型之一，workQueue 为LIFO 队列
+    static final int FIFO_QUEUE   = 1 << 16; // 两种异步模型之一，workQueue 为FIFO 队列
     static final int SHARED_QUEUE = 1 << 31;       // 共享模式队列，负数
 
     /**
@@ -761,12 +766,12 @@ public class ForkJoinPool extends AbstractExecutorService {
         int nsteals;               // 偷取任务数
         int hint;                  // 记录偷取者索引，初始为随机索引
         int config;                // 线程池索引和模式
-        volatile int qlock;        // 1: locked, < 0: terminate; else 0
-        volatile int base;         // 下一个 poll 操作的索引（栈底/队列头）
-        int top;                   // 下一个 push 操作的索引（栈顶/队列尾）
-        ForkJoinTask<?>[] array;   // 任务数组
-        final ForkJoinPool pool;   // the containing pool (may be null)
-        final ForkJoinWorkerThread owner; // 当前工作队列的工作线程，共享模式下为 null
+        volatile int qlock;        // 队列状态，1: locked, < 0: terminate; else 0
+        volatile int base;         // 下一个 poll 操作的索引（栈底）
+        int top;                   // 下一个 push 操作的索引（栈顶）
+        ForkJoinTask<?>[] array;   // 此双端队列使用数组存储元素
+        final ForkJoinPool pool;   // 队列所属的 ForkJoinPool 线程池
+        final ForkJoinWorkerThread owner; // 当前工作队列所属的工作线程，共享模式下为 null
         volatile Thread parker;    // 调用 park 阻塞期间为 null，其他情况为 null
         volatile ForkJoinTask<?> currentJoin;  // 记录被 join 过来的任务
         volatile ForkJoinTask<?> currentSteal; // 记录从其他队列偷取过来的任务
@@ -786,7 +791,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         /**
-         * Returns the approximate number of tasks in the queue.
+         * 返回队列中任务数量估计值。
          */
         final int queueSize() {
             int n = base - top;       // non-owner callers must read base first
@@ -794,9 +799,8 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         /**
-         * Provides a more accurate estimate of whether this queue has
-         * any tasks than does queueSize, by checking whether a
-         * near-empty queue has at least one unclaimed task.
+         * 尽量准确地估计队列是否为空，通过检查接近空的队列是否有至少一个
+         * 无人认领的任务。
          */
         final boolean isEmpty() {
             ForkJoinTask<?>[] a; int n, m, s;
@@ -808,8 +812,8 @@ public class ForkJoinPool extends AbstractExecutorService {
         }
 
         /**
-         * Pushes a task. Call only by owner in unshared queues.  (The
-         * shared-queue version is embedded in method externalPush.)
+         * push 一个任务到队列里。由非共享队列的拥有者调用。（共享队列的版本
+         * 嵌入到了方法 externalPush 中）
          *
          * @param task the task. Caller must ensure non-null.
          * @throws RejectedExecutionException if array cannot be resized
@@ -819,36 +823,47 @@ public class ForkJoinPool extends AbstractExecutorService {
             int b = base, s = top, n;
             if ((a = array) != null) {    // ignore if queue removed
                 int m = a.length - 1;     // fenced write for task visibility
+                // putOrderedObject 方法在指定的对象 a 中，指定的内存偏移量的位置
+                // 放置一个新的元素 task
                 U.putOrderedObject(a, ((m & s) << ASHIFT) + ABASE, task);
+                // putOrderedInt，对指定对象的指定字段进行赋值操作
+                // 此处为将 workQueue 对象本身（this）的 top 标识位置加 1
                 U.putOrderedInt(this, QTOP, s + 1);
+                // 当前活动线程数过少，创建或唤醒一个工作线程
                 if ((n = s - b) <= 1) {
                     if ((p = pool) != null)
                         p.signalWork(p.workQueues, this);
                 }
+                // 队列（数组）太小，进行数组扩容
                 else if (n >= m)
                     growArray();
             }
         }
 
         /**
-         * Initializes or doubles the capacity of array. Call either
-         * by owner or with lock held -- it is OK for base, but not
-         * top, to move while resizings are in progress.
+         * 初始化或者将数组扩容为原来的两倍。由队列的拥有者扩容，或者锁住
+         * 再扩容。在扩容过程中 base 可以移动，top 不能移动。
          */
         final ForkJoinTask<?>[] growArray() {
+            // 扩容前数组
             ForkJoinTask<?>[] oldA = array;
+            // 原来的数组不为空，大小为原来的两倍，否则为设定的初始容量
             int size = oldA != null ? oldA.length << 1 : INITIAL_QUEUE_CAPACITY;
             if (size > MAXIMUM_QUEUE_CAPACITY)
                 throw new RejectedExecutionException("Queue capacity exceeded");
             int oldMask, t, b;
+            // 创建新的数组（开辟新的内存空间）。
             ForkJoinTask<?>[] a = array = new ForkJoinTask<?>[size];
             if (oldA != null && (oldMask = oldA.length - 1) >= 0 &&
                     (t = top) - (b = base) > 0) {
                 int mask = size - 1;
                 do { // emulate poll from old array, push to new array
                     ForkJoinTask<?> x;
+                    // 从个老数组中取出数据，放到新数组里
+                    // 老的索引
                     int oldj = ((b & oldMask) << ASHIFT) + ABASE;
-                    int j    = ((b &    mask) << ASHIFT) + ABASE;
+                    // 新的索引
+                    int j    = ((b & mask) << ASHIFT) + ABASE;
                     x = (ForkJoinTask<?>)U.getObjectVolatile(oldA, oldj);
                     if (x != null &&
                             U.compareAndSwapObject(oldA, oldj, x, null))
@@ -1335,7 +1350,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     volatile AtomicLong stealCounter;    // 偷取任务总数，也可作为同步监视器
 
     /**
-     * Acquires the runState lock; returns current (locked) runState.
+     * 获取 runState 的锁（尝试锁定 runState），返回当前锁定的 runState。
      */
     private int lockRunState() {
         int rs;
@@ -1408,9 +1423,8 @@ public class ForkJoinPool extends AbstractExecutorService {
     // Creating, registering and deregistering workers
 
     /**
-     * Tries to construct and start one worker. Assumes that total
-     * count has already been incremented as a reservation.  Invokes
-     * deregisterWorker on any failure.
+     * 尝试构造并开启一个新的工作线程。假定 ctl 中线程总数已经增加了。失败时
+     * 调用 deregisterWorker。
      *
      * @return true if successful
      */
@@ -1419,6 +1433,7 @@ public class ForkJoinPool extends AbstractExecutorService {
         Throwable ex = null;
         ForkJoinWorkerThread wt = null;
         try {
+            // 使用工厂方法创建新线程，然后启动这个新线程
             if (fac != null && (wt = fac.newThread(this)) != null) {
                 wt.start();
                 return true;
@@ -1431,8 +1446,8 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Tries to add one worker, incrementing ctl counts before doing
-     * so, relying on createWorker to back out on failure.
+     * 尝试添加一个工作线程，在添加线程之前，增加 ctl 中的计数，依赖于
+     * createWorker 方法。
      *
      * @param c incoming ctl value, with total count negative and no
      * idle workers.  On CAS failure, c is refreshed and retried if
@@ -1445,12 +1460,15 @@ public class ForkJoinPool extends AbstractExecutorService {
                     (TC_MASK & (c + TC_UNIT)));
             if (ctl == c) {
                 int rs, stop;                 // check if terminating
+                // 检查是否被 STOP
+                // 锁定 runState，线程数增加，然后释放锁
                 if ((stop = (rs = lockRunState()) & STOP) == 0)
                     add = U.compareAndSwapLong(this, CTL, c, nc);
                 unlockRunState(rs, rs & ~RSLOCK);
                 if (stop != 0)
                     break;
                 if (add) {
+                    // 创建新的工作线程
                     createWorker();
                     break;
                 }
@@ -1558,25 +1576,35 @@ public class ForkJoinPool extends AbstractExecutorService {
     // Signalling
 
     /**
-     * Tries to create or activate a worker if too few are active.
+     * 如果当前活跃工作线程较少，尝试创造或唤醒一个工作线程
+     * ws 表示 WorkQueues，q 表示 WorkQueue
      *
      * @param ws the worker array to use to find signallees
      * @param q a WorkQueue --if non-null, don't retry if now empty
      */
     final void signalWork(WorkQueue[] ws, WorkQueue q) {
-        long c; int sp, i; WorkQueue v; Thread p;
+        long c;
+        int sp, i;
+        WorkQueue v;
+        Thread p;
         while ((c = ctl) < 0L) {                       // too few active
+            // 如果没有空闲的线程
             if ((sp = (int)c) == 0) {                  // no idle workers
                 if ((c & ADD_WORKER) != 0L)            // too few workers
+                    // 添加新的工作线程
                     tryAddWorker(c);
                 break;
             }
+            // WorkQueues 为 null，已经被终止或者没有初始化
             if (ws == null)                            // unstarted/terminated
                 break;
+            // 已经被终止
             if (ws.length <= (i = sp & SMASK))         // terminated
                 break;
+            // 正在被终止
             if ((v = ws[i]) == null)                   // terminating
                 break;
+            // 计算
             int vs = (sp + SS_SEQ) & ~INACTIVE;        // next scanState
             int d = sp - v.scanState;                  // screen CAS
             long nc = (UC_MASK & (c + AC_UNIT)) | (SP_MASK & v.stackPred);
@@ -2243,35 +2271,44 @@ public class ForkJoinPool extends AbstractExecutorService {
     // External operations
 
     /**
-     * Full version of externalPush, handling uncommon cases, as well
-     * as performing secondary initialization upon the first
-     * submission of the first task to the pool.  It also detects
-     * first submission by an external thread and creates a new shared
-     * queue if the one at index if empty or contended.
+     * 完整版的 externalPush，处理不常见的情况，以及在第一次向线程池提交
+     * 第一个任务时执行二次初始化。它还可以检测外部线程的首次提交，如果
+     * 索引队列为空或争用，则创建一个新的共享队列。
      *
      * @param task the task. Caller must ensure non-null.
      */
     private void externalSubmit(ForkJoinTask<?> task) {
+        // 初始化调用线程的探针值，用于计算 workQueue 的索引
         int r;                                    // initialize caller's probe
         if ((r = ThreadLocalRandom.getProbe()) == 0) {
             ThreadLocalRandom.localInit();
             r = ThreadLocalRandom.getProbe();
         }
         for (;;) {
-            WorkQueue[] ws; WorkQueue q; int rs, m, k;
+            WorkQueue[] ws;
+            WorkQueue q;
+            int rs, m, k;
+            // move 记录任务是否加入成功
             boolean move = false;
+            // 如果线程池已经关闭
             if ((rs = runState) < 0) {
                 tryTerminate(false, false);     // help terminate
                 throw new RejectedExecutionException();
             }
+            // 初始化 workQueues
+            // 此 if/else 分支里没有 return 语句
             else if ((rs & STARTED) == 0 ||     // initialize
                     ((ws = workQueues) == null || (m = ws.length - 1) < 0)) {
                 int ns = 0;
+                // 锁定 runState
                 rs = lockRunState();
                 try {
                     if ((rs & STARTED) == 0) {
+                        // 初始化 STEALCOUNTER 为 0（AtomicLong 类型）
                         U.compareAndSwapObject(this, STEALCOUNTER, null,
                                 new AtomicLong());
+                        // 创建容量为 n 的 workQueue 数组
+                        // 初始设定容量为 p，经过位运算得到比 p 大的最小的 2 的幂
                         // create workQueues array with size a power of two
                         int p = config & SMASK; // ensure at least 2 slots
                         int n = (p > 1) ? p - 1 : 1;
@@ -2281,15 +2318,19 @@ public class ForkJoinPool extends AbstractExecutorService {
                         ns = STARTED;
                     }
                 } finally {
+                    // 解锁并更新 runState
                     unlockRunState(rs, (rs & ~RSLOCK) | ns);
                 }
             }
+            // 从 workQueues 数组中获取随机偶数槽位的 workQueue
             else if ((q = ws[k = r & m & SQMASK]) != null) {
+                // 锁定 workQueue（可能由于其他线程竞争锁定失败）
                 if (q.qlock == 0 && U.compareAndSwapInt(q, QLOCK, 0, 1)) {
                     ForkJoinTask<?>[] a = q.array;
                     int s = q.top;
                     boolean submitted = false; // initial submission or resizing
                     try {                      // locked version of push
+                        // 在队列 top 上放入给定任务（必要时扩容）
                         if ((a != null && a.length > s + 1 - q.base) ||
                                 (a = q.growArray()) != null) {
                             int j = (((a.length - 1) & s) << ASHIFT) + ABASE;
@@ -2298,21 +2339,26 @@ public class ForkJoinPool extends AbstractExecutorService {
                             submitted = true;
                         }
                     } finally {
+                        // 解除锁定
                         U.compareAndSwapInt(q, QLOCK, 1, 0);
                     }
+                    // 如果任务提交成功，创建或激活工作线程来运行任务，然后返回。
                     if (submitted) {
                         signalWork(ws, q);
                         return;
                     }
                 }
+                // 任务提交失败，重新获取探针值
                 move = true;                   // move on failure
             }
+            // workQueue 为 null，创建新的 workQueue
             else if (((rs = runState) & RSLOCK) == 0) { // create new queue
                 q = new WorkQueue(this, null);
                 q.hint = r;
                 q.config = k | SHARED_QUEUE;
                 q.scanState = INACTIVE;
                 rs = lockRunState();           // publish index
+                // 将 k 位置的槽设置为新创建的 workQueue
                 if (rs > 0 &&  (ws = workQueues) != null &&
                         k < ws.length && ws[k] == null)
                     ws[k] = q;                 // else terminated
@@ -2320,39 +2366,52 @@ public class ForkJoinPool extends AbstractExecutorService {
             }
             else
                 move = true;                   // move if busy
+            // 重新获取线程探针值
             if (move)
                 r = ThreadLocalRandom.advanceProbe(r);
         }
     }
 
     /**
-     * Tries to add the given task to a submission queue at
-     * submitter's current queue. Only the (vastly) most common path
-     * is directly handled in this method, while screening for need
-     * for externalSubmit.
+     * 添加给定（外部）任务到 submission 队列中
      *
      * @param task the task. Caller must ensure non-null.
      */
     final void externalPush(ForkJoinTask<?> task) {
         WorkQueue[] ws; WorkQueue q; int m;
+        // ThreadLocalRandom 随机数生成器
+        // r 探针值，用于计算 workQueue 槽位索引
         int r = ThreadLocalRandom.getProbe();
         int rs = runState;
         if ((ws = workQueues) != null && (m = (ws.length - 1)) >= 0 &&
+                // 获取随机偶数槽位的 workQueue（ws 是 workQueue 数组）
                 (q = ws[m & r & SQMASK]) != null && r != 0 && rs > 0 &&
+                // 锁定 workQueue
                 U.compareAndSwapInt(q, QLOCK, 0, 1)) {
-            ForkJoinTask<?>[] a; int am, n, s;
+            ForkJoinTask<?>[] a;
+            int am, n, s;
+            // 得到的 workQueue 不为 null，且里面可以放入任务
             if ((a = q.array) != null &&
                     (am = a.length - 1) > (n = (s = q.top) - q.base)) {
+                // 计算任务待放入位置索引
                 int j = ((am & s) << ASHIFT) + ABASE;
+                // 任务放入计算出来的位置（栈顶）
                 U.putOrderedObject(a, j, task);
+                // 栈顶向上移动一位
                 U.putOrderedInt(q, QTOP, s + 1);
+                // 解除锁定
                 U.putIntVolatile(q, QLOCK, 0);
+                // 任务书小于 1 时尝试创建或激活一个工作线程
+                // （防止在 externalSubmit 初始化时发生异常导致工作线程创建失败）
                 if (n <= 1)
                     signalWork(ws, q);
                 return;
             }
+            // 解除锁定
             U.compareAndSwapInt(q, QLOCK, 1, 0);
         }
+        // 如果没有 return，说明需要初始化 workQueues 及相关属性
+        // workQueues 为空或者 workQueue 为空都会进入此方法
         externalSubmit(task);
     }
 
@@ -2407,12 +2466,10 @@ public class ForkJoinPool extends AbstractExecutorService {
     // Exported methods
 
     // Constructors
+    // 构造函数
 
     /**
-     * Creates a {@code ForkJoinPool} with parallelism equal to {@link
-     * java.lang.Runtime#availableProcessors}, using the {@linkplain
-     * #defaultForkJoinWorkerThreadFactory default thread factory},
-     * no UncaughtExceptionHandler, and non-async LIFO processing mode.
+     * 全部使用默认参数的线程池。
      *
      * @throws SecurityException if a security manager exists and
      *         the caller is not permitted to modify threads
@@ -2425,10 +2482,7 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Creates a {@code ForkJoinPool} with the indicated parallelism
-     * level, the {@linkplain
-     * #defaultForkJoinWorkerThreadFactory default thread factory},
-     * no UncaughtExceptionHandler, and non-async LIFO processing mode.
+     * 指定参数 parallelism
      *
      * @param parallelism the parallelism level
      * @throws IllegalArgumentException if parallelism less than or
@@ -2443,21 +2497,15 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Creates a {@code ForkJoinPool} with the given parameters.
+     * 使用给定参数构造一个 ForkJoinPool 实例。
      *
-     * @param parallelism the parallelism level. For default value,
-     * use {@link java.lang.Runtime#availableProcessors}.
-     * @param factory the factory for creating new threads. For default value,
-     * use {@link #defaultForkJoinWorkerThreadFactory}.
-     * @param handler the handler for internal worker threads that
-     * terminate due to unrecoverable errors encountered while executing
-     * tasks. For default value, use {@code null}.
-     * @param asyncMode if true,
-     * establishes local first-in-first-out scheduling mode for forked
-     * tasks that are never joined. This mode may be more appropriate
-     * than default locally stack-based mode in applications in which
-     * worker threads only process event-style asynchronous tasks.
-     * For default value, use {@code false}.
+     * @param parallelism 并行度，默认为 CPU 数，最小为 1
+     * @param factory 创造新线程的线程工厂，默认为
+     *                defaultForkJoinWorkerThreadFactory
+     * @param handler 异常情况处理，默认为 null
+     * @param asyncMode 是否为异步模式，默认为 false。如果为 true，表示
+     *                  子任务的执行遵循 FIFO 顺序，并且任务不能被合并（join）。
+     *                  这种模式适用于工作线程只运行事件类型的异步任务。
      * @throws IllegalArgumentException if parallelism less than or
      *         equal to zero, or greater than implementation limit
      * @throws NullPointerException if the factory is null
@@ -2478,12 +2526,14 @@ public class ForkJoinPool extends AbstractExecutorService {
         checkPermission();
     }
 
+    // 检查 parallelism 是否超出边界。
     private static int checkParallelism(int parallelism) {
         if (parallelism <= 0 || parallelism > MAX_CAP)
             throw new IllegalArgumentException();
         return parallelism;
     }
 
+    // 检查线程工厂是否为 null。
     private static ForkJoinWorkerThreadFactory checkFactory
             (ForkJoinWorkerThreadFactory factory) {
         if (factory == null)
@@ -2492,9 +2542,8 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Creates a {@code ForkJoinPool} with the given parameters, without
-     * any security checks or parameter validation.  Invoked directly by
-     * makeCommonPool.
+     * 创造一个不执行任何安全检查的 ForkJoinPool 线程池。此方法由
+     * makeCommonPool 直接调用。
      */
     private ForkJoinPool(int parallelism,
                          ForkJoinWorkerThreadFactory factory,
@@ -3327,8 +3376,10 @@ public class ForkJoinPool extends AbstractExecutorService {
     }
 
     /**
-     * Creates and returns the common pool, respecting user settings
-     * specified via system properties.
+     * 创造和返回普通的 common ForkJoinPool 线程池，线程池的参数配置根据
+     * 系统的各项参数设定。
+     * 通过系统的参数定义”并行度，线程工厂和异常处理类“等，
+     * 支持任务合并（join）。
      */
     private static ForkJoinPool makeCommonPool() {
         int parallelism = -1;

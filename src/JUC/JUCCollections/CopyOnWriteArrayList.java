@@ -53,37 +53,23 @@ import java.util.function.UnaryOperator;
 import sun.misc.SharedSecrets;
 
 /**
- * A thread-safe variant of {@link java.util.ArrayList} in which all mutative
- * operations ({@code add}, {@code set}, and so on) are implemented by
- * making a fresh copy of the underlying array.
+ * ArrayList 的线程安全版本。其中所有的可变操作（add, set 等）都是通过
+ * 创建底层数组的新副本来实现的。
  *
- * <p>This is ordinarily too costly, but may be <em>more</em> efficient
- * than alternatives when traversal operations vastly outnumber
- * mutations, and is useful when you cannot or don't want to
- * synchronize traversals, yet need to preclude interference among
- * concurrent threads.  The "snapshot" style iterator method uses a
- * reference to the state of the array at the point that the iterator
- * was created. This array never changes during the lifetime of the
- * iterator, so interference is impossible and the iterator is
- * guaranteed not to throw {@code ConcurrentModificationException}.
- * The iterator will not reflect additions, removals, or changes to
- * the list since the iterator was created.  Element-changing
- * operations on iterators themselves ({@code remove}, {@code set}, and
- * {@code add}) are not supported. These methods throw
- * {@code UnsupportedOperationException}.
+ * 这通常开销太大，但是当便利操作的数量远远超过突变时，它可能比替代方法
+ * 更有效。如果不能或不想同步遍历，但又需要排除并发线程之间的干扰时，
+ * 此类很有用。“快照”模式实现的迭代器方法使用迭代器创建时数组状态的引用。
+ * 此数组在迭代器的生命周期内不会改变，因此不可能产生干扰，迭代器不会
+ * 抛出 ConcurrentModificationException 异常。创建迭代器之后，迭代器不会对
+ * 列表进行添加、删除或更改操作。不支持对迭代器本身的 remove, set, add
+ * 进行元素更改操作。这些方法会抛出 UnsupportedOperationException 异常。
  *
- * <p>All elements are permitted, including {@code null}.
+ * 允许所有类型的元素，包括 null。
  *
- * <p>Memory consistency effects: As with other concurrent
- * collections, actions in a thread prior to placing an object into a
- * {@code CopyOnWriteArrayList}
- * <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>
- * actions subsequent to the access or removal of that element from
- * the {@code CopyOnWriteArrayList} in another thread.
+ * 内存一致性：与其它并发集合一样，遵循 happen-before 原则。一个线程将
+ * 对象插入到 CopyOnWriteArrayList 的操作发生在访问或删除该元素的操作之前。
  *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此类是 Java Collections Framework 的成员。
  *
  * @since 1.5
  * @author Doug Lea
@@ -93,38 +79,35 @@ public class CopyOnWriteArrayList<E>
         implements List<E>, RandomAccess, Cloneable, java.io.Serializable {
     private static final long serialVersionUID = 8673264195747942595L;
 
-    /** The lock protecting all mutators */
+    /** 保护所有数据更改操作的锁 */
     final transient ReentrantLock lock = new ReentrantLock();
 
-    /** The array, accessed only via getArray/setArray. */
+    /** 数组。只能通过 getArray/setArray 访问此数组（不是数组中的元素）。*/
     private transient volatile Object[] array;
 
     /**
-     * Gets the array.  Non-private so as to also be accessible
-     * from CopyOnWriteArraySet class.
+     * 获取数组。包访问权限。可以通过 CopyOnWriteArraySet 访问。
      */
     final Object[] getArray() {
         return array;
     }
 
     /**
-     * Sets the array.
+     * 设置数组。
      */
     final void setArray(Object[] a) {
         array = a;
     }
 
     /**
-     * Creates an empty list.
+     * 创建空列表。
      */
     public CopyOnWriteArrayList() {
         setArray(new Object[0]);
     }
 
     /**
-     * Creates a list containing the elements of the specified
-     * collection, in the order they are returned by the collection's
-     * iterator.
+     * 创建包括指定集合中所有元素的列表，排列顺序为迭代器返回的顺序。
      *
      * @param c the collection of initially held elements
      * @throws NullPointerException if the specified collection is null
@@ -143,7 +126,7 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Creates a list holding a copy of the given array.
+     * 创建一个包含指定数组所有元素的列表。
      *
      * @param toCopyIn the array (a copy of this array is used as the
      *        internal array)
@@ -154,7 +137,7 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Returns the number of elements in this list.
+     * 返回列表中元素个数。
      *
      * @return the number of elements in this list
      */
@@ -163,7 +146,7 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Returns {@code true} if this list contains no elements.
+     * 如果列表不包含任何元素返回 true。
      *
      * @return {@code true} if this list contains no elements
      */
@@ -172,15 +155,16 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Tests for equality, coping with nulls.
+     * 测试是否相等，调用 equals 判断是否相等。
      */
     private static boolean eq(Object o1, Object o2) {
         return (o1 == null) ? o2 == null : o1.equals(o2);
     }
 
     /**
-     * static version of indexOf, to allow repeated calls without
-     * needing to re-acquire array each time.
+     * indexOf 的静态版本，允许重复调用而无需每次重新获取数组。查找范围为
+     * index（包含）到 fence（不包含）。
+     * 注意：没有加锁
      * @param o element to search for
      * @param elements the array
      * @param index first index to search
@@ -202,7 +186,8 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * static version of lastIndexOf.
+     * lastIndexOf 的静态版本。从索引为 index 位置开始查找。
+     * 没有加锁。
      * @param o element to search for
      * @param elements the array
      * @param index first index to search
@@ -222,10 +207,7 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Returns {@code true} if this list contains the specified element.
-     * More formally, returns {@code true} if and only if this list contains
-     * at least one element {@code e} such that
-     * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
+     * 如果列表包含指定元素返回 true。
      *
      * @param o element whose presence in this list is to be tested
      * @return {@code true} if this list contains the specified element
@@ -244,12 +226,8 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Returns the index of the first occurrence of the specified element in
-     * this list, searching forwards from {@code index}, or returns -1 if
-     * the element is not found.
-     * More formally, returns the lowest index {@code i} such that
-     * <tt>(i&nbsp;&gt;=&nbsp;index&nbsp;&amp;&amp;&nbsp;(e==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;e.equals(get(i))))</tt>,
-     * or -1 if there is no such index.
+     * 返回列表中第一次出现指定元素的索引。从 index 位置开始往后找，如果
+     * 没找到返回 -1。
      *
      * @param e element to search for
      * @param index index to start searching from
@@ -272,12 +250,8 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Returns the index of the last occurrence of the specified element in
-     * this list, searching backwards from {@code index}, or returns -1 if
-     * the element is not found.
-     * More formally, returns the highest index {@code i} such that
-     * <tt>(i&nbsp;&lt;=&nbsp;index&nbsp;&amp;&amp;&nbsp;(e==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;e.equals(get(i))))</tt>,
-     * or -1 if there is no such index.
+     * 返回列表中指定元素出现的最后一个位置索引，从 index 往前找，没找到
+     * 返回 -1。
      *
      * @param e element to search for
      * @param index index to start searching backwards from
@@ -293,8 +267,7 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Returns a shallow copy of this list.  (The elements themselves
-     * are not copied.)
+     * 返回列表的浅拷贝。（元素本身不拷贝）
      *
      * @return a clone of this list
      */
@@ -312,15 +285,12 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Returns an array containing all of the elements in this list
-     * in proper sequence (from first to last element).
+     * 返回包含列表所有元素拷贝的数组，以正确的顺序（从头到尾）。
      *
-     * <p>The returned array will be "safe" in that no references to it are
-     * maintained by this list.  (In other words, this method must allocate
-     * a new array).  The caller is thus free to modify the returned array.
+     * 返回的数组完全安全，列表不保留任何对它的引用（返回的完全是一个新的数组）。
+     * 调用者可以任意修改。
      *
-     * <p>This method acts as bridge between array-based and collection-based
-     * APIs.
+     * 此方法是基于数组的 API 和基于集合的 API 的桥梁。
      *
      * @return an array containing all the elements in this list
      */
@@ -330,33 +300,10 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Returns an array containing all of the elements in this list in
-     * proper sequence (from first to last element); the runtime type of
-     * the returned array is that of the specified array.  If the list fits
-     * in the specified array, it is returned therein.  Otherwise, a new
-     * array is allocated with the runtime type of the specified array and
-     * the size of this list.
+     * 如果指定数组能容纳列表所有元素，则放入指定数组，不能容纳时，分配
+     * 新的数组空间。
      *
-     * <p>If this list fits in the specified array with room to spare
-     * (i.e., the array has more elements than this list), the element in
-     * the array immediately following the end of the list is set to
-     * {@code null}.  (This is useful in determining the length of this
-     * list <i>only</i> if the caller knows that this list does not contain
-     * any null elements.)
-     *
-     * <p>Like the {@link #toArray()} method, this method acts as bridge between
-     * array-based and collection-based APIs.  Further, this method allows
-     * precise control over the runtime type of the output array, and may,
-     * under certain circumstances, be used to save allocation costs.
-     *
-     * <p>Suppose {@code x} is a list known to contain only strings.
-     * The following code can be used to dump the list into a newly
-     * allocated array of {@code String}:
-     *
-     *  <pre> {@code String[] y = x.toArray(new String[0]);}</pre>
-     *
-     * Note that {@code toArray(new Object[0])} is identical in function to
-     * {@code toArray()}.
+     * 多余的空间设置为 null。
      *
      * @param a the array into which the elements of the list are to
      *          be stored, if it is big enough; otherwise, a new array of the
@@ -371,6 +318,7 @@ public class CopyOnWriteArrayList<E>
     public <T> T[] toArray(T a[]) {
         Object[] elements = getArray();
         int len = elements.length;
+        // 判断指定数组能否容纳所有的元素
         if (a.length < len)
             return (T[]) Arrays.copyOf(elements, len, a.getClass());
         else {
@@ -381,7 +329,7 @@ public class CopyOnWriteArrayList<E>
         }
     }
 
-    // Positional Access Operations
+    // 位置访问操作
 
     @SuppressWarnings("unchecked")
     private E get(Object[] a, int index) {
@@ -398,13 +346,13 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Replaces the element at the specified position in this list with the
-     * specified element.
+     * 将列表中指定位置元素替换成指定的值。
      *
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
     public E set(int index, E element) {
         final ReentrantLock lock = this.lock;
+        // 替换之前上锁
         lock.lock();
         try {
             Object[] elements = getArray();
@@ -412,8 +360,10 @@ public class CopyOnWriteArrayList<E>
 
             if (oldValue != element) {
                 int len = elements.length;
+                // Arrays.copyOf 返回新数组，并指定新数组长度
                 Object[] newElements = Arrays.copyOf(elements, len);
                 newElements[index] = element;
+                // 将新数组设定为存储元素的数组
                 setArray(newElements);
             } else {
                 // Not quite a no-op; ensures volatile write semantics
@@ -426,7 +376,7 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Appends the specified element to the end of this list.
+     * 将指定元素添加到列表末尾。
      *
      * @param e element to be appended to this list
      * @return {@code true} (as specified by {@link Collection#add})
@@ -437,6 +387,8 @@ public class CopyOnWriteArrayList<E>
         try {
             Object[] elements = getArray();
             int len = elements.length;
+            // 同样创建新数组，并将元素添加到新数组尾部，然后将新数组设置成
+            // 支撑数组
             Object[] newElements = Arrays.copyOf(elements, len + 1);
             newElements[len] = e;
             setArray(newElements);
@@ -447,9 +399,8 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Inserts the specified element at the specified position in this
-     * list. Shifts the element currently at that position (if any) and
-     * any subsequent elements to the right (adds one to their indices).
+     * 在列表中指定位置插入指定元素（插入后元素在 index 位置）。将 index
+     * 位置及之后的元素往右移一位（索引加 1）。
      *
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
@@ -463,11 +414,15 @@ public class CopyOnWriteArrayList<E>
                 throw new IndexOutOfBoundsException("Index: "+index+
                         ", Size: "+len);
             Object[] newElements;
+            // 需要移动的元素
             int numMoved = len - index;
+            // 如果不用移动任何元素，创造一个比当前数组容量大 1 的数组。
             if (numMoved == 0)
                 newElements = Arrays.copyOf(elements, len + 1);
             else {
+                // 创建新数组
                 newElements = new Object[len + 1];
+                // 将 elements 里的元素复制到 newElements 里面
                 System.arraycopy(elements, 0, newElements, 0, index);
                 System.arraycopy(elements, index, newElements, index + 1,
                         numMoved);
@@ -480,9 +435,8 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Removes the element at the specified position in this list.
-     * Shifts any subsequent elements to the left (subtracts one from their
-     * indices).  Returns the element that was removed from the list.
+     * 删除列表中指定位置的元素。
+     * 将之后的元素往前移动一格。并返回删除的元素。
      *
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
@@ -494,9 +448,11 @@ public class CopyOnWriteArrayList<E>
             int len = elements.length;
             E oldValue = get(elements, index);
             int numMoved = len - index - 1;
+            // 删除的元素是最后一个元素，截断即可
             if (numMoved == 0)
                 setArray(Arrays.copyOf(elements, len - 1));
             else {
+                // 否则将其后的元素向前移动一位
                 Object[] newElements = new Object[len - 1];
                 System.arraycopy(elements, 0, newElements, 0, index);
                 System.arraycopy(elements, index + 1, newElements, index,
@@ -510,20 +466,15 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Removes the first occurrence of the specified element from this list,
-     * if it is present.  If this list does not contain the element, it is
-     * unchanged.  More formally, removes the element with the lowest index
-     * {@code i} such that
-     * <tt>(o==null&nbsp;?&nbsp;get(i)==null&nbsp;:&nbsp;o.equals(get(i)))</tt>
-     * (if such an element exists).  Returns {@code true} if this list
-     * contained the specified element (or equivalently, if this list
-     * changed as a result of the call).
+     * 从列表中删除第一次出现的指定元素，如果其存在的话。如果不包含该元素，
+     * 不做出任何改变。
      *
      * @param o element to be removed from this list, if present
      * @return {@code true} if this list contained the specified element
      */
     public boolean remove(Object o) {
         Object[] snapshot = getArray();
+        // 要删除元素的索引
         int index = indexOf(o, snapshot, 0, snapshot.length);
         return (index < 0) ? false : remove(o, snapshot, index);
     }
@@ -538,22 +489,32 @@ public class CopyOnWriteArrayList<E>
         try {
             Object[] current = getArray();
             int len = current.length;
+            // 如果快照已经不是当前的数组了
             if (snapshot != current) findIndex: {
                 int prefix = Math.min(index, len);
+                // 遍历找到该元素现在的位置
                 for (int i = 0; i < prefix; i++) {
+                    // 如果 current[i] == snapshot[i]，数组当前位置没有被改变
+                    // 如果不相等，而且 o 等于 curr[i]，说明已经找到现在所在位置
                     if (current[i] != snapshot[i] && eq(o, current[i])) {
                         index = i;
                         break findIndex;
                     }
                 }
+                // 运行到这一步的 index 大于等于 len，说明数组缩短了
+                // 如果在 len 范围内没找到，说明元素在列表中已经不存在了
                 if (index >= len)
                     return false;
+                // index < len
+                // 当前 index 的元素就是要找的元素则跳出循环，否则从 index 开始，
+                // 查找 index - len 范围内是否存在
                 if (current[index] == o)
                     break findIndex;
                 index = indexOf(o, current, index, len);
                 if (index < 0)
                     return false;
             }
+            // 找到其索引，执行复制操作
             Object[] newElements = new Object[len - 1];
             System.arraycopy(current, 0, newElements, 0, index);
             System.arraycopy(current, index + 1,
@@ -567,11 +528,8 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Removes from this list all of the elements whose index is between
-     * {@code fromIndex}, inclusive, and {@code toIndex}, exclusive.
-     * Shifts any succeeding elements to the left (reduces their index).
-     * This call shortens the list by {@code (toIndex - fromIndex)} elements.
-     * (If {@code toIndex==fromIndex}, this operation has no effect.)
+     * 删除索引范围为 fromIndex（包含）到 toIndex（不包含）的元素。
+     * 将右边的元素向左移动。如果 fromIndex 等于 toIndex，列表不会做出任何改变。
      *
      * @param fromIndex index of first element to be removed
      * @param toIndex index after last element to be removed
@@ -585,8 +543,10 @@ public class CopyOnWriteArrayList<E>
             Object[] elements = getArray();
             int len = elements.length;
 
+            // 判断边界是否符合要求
             if (fromIndex < 0 || toIndex > len || toIndex < fromIndex)
                 throw new IndexOutOfBoundsException();
+            // 新的长度
             int newlen = len - (toIndex - fromIndex);
             int numMoved = len - toIndex;
             if (numMoved == 0)
@@ -604,13 +564,15 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Appends the element, if not present.
+     * 添加元素，如果它不存在的话。
      *
      * @param e element to be added to this list, if absent
      * @return {@code true} if the element was added
      */
     public boolean addIfAbsent(E e) {
+        // 快照是留下来的旧的数组，最新的数组和快照没有关系
         Object[] snapshot = getArray();
+        // 调用 index 判断是否存在该元素
         return indexOf(e, snapshot, 0, snapshot.length) >= 0 ? false :
                 addIfAbsent(e, snapshot);
     }
@@ -618,6 +580,7 @@ public class CopyOnWriteArrayList<E>
     /**
      * A version of addIfAbsent using the strong hint that given
      * recent snapshot does not contain e.
+     * 和 remove(Object o, Object[] snapshot, int index) 类似的操作。
      */
     private boolean addIfAbsent(E e, Object[] snapshot) {
         final ReentrantLock lock = this.lock;
@@ -627,13 +590,19 @@ public class CopyOnWriteArrayList<E>
             int len = current.length;
             if (snapshot != current) {
                 // Optimize for lost race to another addXXX operation
+                // 首先在快照的长度和最新数组的长度值较小的范围内查找
                 int common = Math.min(snapshot.length, len);
                 for (int i = 0; i < common; i++)
+                    // 如果已经存在该元素，返回 false.
+                    // 如果 current[i] == snapshot[i]，说明该位置没有被其他线程修改过，
+                    // 同时该位置是不可能存在的，因为之前已经检查过了
                     if (current[i] != snapshot[i] && eq(e, current[i]))
                         return false;
+                    // 如果在没查找的范围内找到了，也返回 false
                 if (indexOf(e, current, common, len) >= 0)
                     return false;
             }
+            // 复制
             Object[] newElements = Arrays.copyOf(current, len + 1);
             newElements[len] = e;
             setArray(newElements);
@@ -644,9 +613,9 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Returns {@code true} if this list contains all of the elements of the
-     * specified collection.
-     *
+     * 如果列表中包含指定集合所有元素则返回 true。
+     * 没有加锁，也不存在快照和实际数组的区分。
+     * CopyOnWriteArrayList 的读操作不需要加锁（读取快照）。
      * @param c collection to be checked for containment in this list
      * @return {@code true} if this list contains all of the elements of the
      *         specified collection
@@ -664,9 +633,8 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Removes from this list all of its elements that are contained in
-     * the specified collection. This is a particularly expensive operation
-     * in this class because of the need for an internal temporary array.
+     * 从列表中删除指定集合中包含的元素。此操作代价昂贵，因为需要内部临时
+     * 存储的数组。
      *
      * @param c collection containing elements to be removed from this list
      * @return {@code true} if this list changed as a result of the call
@@ -681,6 +649,7 @@ public class CopyOnWriteArrayList<E>
      */
     public boolean removeAll(Collection<?> c) {
         if (c == null) throw new NullPointerException();
+        // 此类中所有的写操作都加锁，此时其他的写操作就不能再写入了
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
@@ -689,12 +658,14 @@ public class CopyOnWriteArrayList<E>
             if (len != 0) {
                 // temp array holds those elements we know we want to keep
                 int newlen = 0;
+                // 创建临时数组 temp，用于保存不需要删除的元素
                 Object[] temp = new Object[len];
                 for (int i = 0; i < len; ++i) {
                     Object element = elements[i];
                     if (!c.contains(element))
                         temp[newlen++] = element;
                 }
+                // 复制
                 if (newlen != len) {
                     setArray(Arrays.copyOf(temp, newlen));
                     return true;
@@ -707,9 +678,8 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Retains only the elements in this list that are contained in the
-     * specified collection.  In other words, removes from this list all of
-     * its elements that are not contained in the specified collection.
+     * 保留此列表中同时存在于指定集合中的元素。换句话说，删除列表在指定
+     * 集合中不存在的元素。（求交集）
      *
      * @param c collection containing elements to be retained in this list
      * @return {@code true} if this list changed as a result of the call
@@ -750,10 +720,10 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Appends all of the elements in the specified collection that
-     * are not already contained in this list, to the end of
-     * this list, in the order that they are returned by the
-     * specified collection's iterator.
+     * 将指定集合中所有不存在于列表中的元素加入到列表中（求并集），按
+     * 指定集合迭代器返回的顺序加入。
+     *
+     * 如果加入列表的元素有重复，只加入一次。
      *
      * @param c collection containing elements to be added to this list
      * @return the number of elements added
@@ -771,12 +741,16 @@ public class CopyOnWriteArrayList<E>
             int len = elements.length;
             int added = 0;
             // uniquify and compact elements in cs
+            // 从集合中找出不存在于列表中的元素（还需要判断它和已处理过的
+            // 元素不相等，为了删除重复的元素）
+            // 将找出的元素保存在cs 数组前面
             for (int i = 0; i < cs.length; ++i) {
                 Object e = cs[i];
                 if (indexOf(e, elements, 0, len) < 0 &&
                         indexOf(e, cs, 0, added) < 0)
                     cs[added++] = e;
             }
+            // 复制
             if (added > 0) {
                 Object[] newElements = Arrays.copyOf(elements, len + added);
                 System.arraycopy(cs, 0, newElements, len, added);
@@ -789,8 +763,8 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Removes all of the elements from this list.
-     * The list will be empty after this call returns.
+     * 从列表中删除所有元素。
+     * 此方法调用后列表为空。
      */
     public void clear() {
         final ReentrantLock lock = this.lock;
@@ -803,9 +777,8 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Appends all of the elements in the specified collection to the end
-     * of this list, in the order that they are returned by the specified
-     * collection's iterator.
+     * 将指定集合中的所有元素加入到列表末尾，添加顺序为指定集合迭代器
+     * 返回的顺序。
      *
      * @param c collection containing elements to be added to this list
      * @return {@code true} if this list changed as a result of the call
@@ -825,6 +798,7 @@ public class CopyOnWriteArrayList<E>
             if (len == 0 && cs.getClass() == Object[].class)
                 setArray(cs);
             else {
+                // 直接创建新的数组，，而不是加在原来的数组后面
                 Object[] newElements = Arrays.copyOf(elements, len + cs.length);
                 System.arraycopy(cs, 0, newElements, len, cs.length);
                 setArray(newElements);
@@ -951,7 +925,7 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Saves this list to a stream (that is, serializes it).
+     * 序列化
      *
      * @param s the stream
      * @throws java.io.IOException if an I/O error occurs
@@ -974,7 +948,7 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Reconstitutes this list from a stream (that is, deserializes it).
+     * 反序列化
      * @param s the stream
      * @throws ClassNotFoundException if the class of a serialized object
      *         could not be found
