@@ -798,7 +798,7 @@ public class CopyOnWriteArrayList<E>
             if (len == 0 && cs.getClass() == Object[].class)
                 setArray(cs);
             else {
-                // 直接创建新的数组，，而不是加在原来的数组后面
+                // 直接创建新的数组，而不是加在原来的数组后面
                 Object[] newElements = Arrays.copyOf(elements, len + cs.length);
                 System.arraycopy(cs, 0, newElements, len, cs.length);
                 setArray(newElements);
@@ -810,12 +810,8 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Inserts all of the elements in the specified collection into this
-     * list, starting at the specified position.  Shifts the element
-     * currently at that position (if any) and any subsequent elements to
-     * the right (increases their indices).  The new elements will appear
-     * in this list in the order that they are returned by the
-     * specified collection's iterator.
+     * 在此列表中指定位置插入指定集合中所有元素。将当前位置和其之后的元素
+     * 向右移动（索引增加）。插入的顺序和集合迭代器返回的顺序一致。
      *
      * @param index index at which to insert the first element
      *        from the specified collection
@@ -832,22 +828,28 @@ public class CopyOnWriteArrayList<E>
         try {
             Object[] elements = getArray();
             int len = elements.length;
+            // 判断边界
             if (index > len || index < 0)
                 throw new IndexOutOfBoundsException("Index: "+index+
                         ", Size: "+len);
             if (cs.length == 0)
                 return false;
+            // 需要移动的元素个数
             int numMoved = len - index;
             Object[] newElements;
             if (numMoved == 0)
+                // 创建可以容纳所有元素的数组，并将列表元素复制到该数组里
                 newElements = Arrays.copyOf(elements, len + cs.length);
             else {
+                // 创建可以容纳所有元素的数组，将分别将 index 之前，index 及
+                // 之后的元素复制到对应的位子（中间空出 cs 的位置）
                 newElements = new Object[len + cs.length];
                 System.arraycopy(elements, 0, newElements, 0, index);
                 System.arraycopy(elements, index,
                         newElements, index + cs.length,
                         numMoved);
             }
+            // 将指定集合元素复制到 index 及之后
             System.arraycopy(cs, 0, newElements, index, cs.length);
             setArray(newElements);
             return true;
@@ -910,11 +912,13 @@ public class CopyOnWriteArrayList<E>
         }
     }
 
+    // 排序（调用 Arrays.sort 排序）
     public void sort(Comparator<? super E> c) {
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
             Object[] elements = getArray();
+            // 生成新数组
             Object[] newElements = Arrays.copyOf(elements, elements.length);
             @SuppressWarnings("unchecked") E[] es = (E[])newElements;
             Arrays.sort(es, c);
@@ -974,12 +978,7 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Returns a string representation of this list.  The string
-     * representation consists of the string representations of the list's
-     * elements in the order they are returned by its iterator, enclosed in
-     * square brackets ({@code "[]"}).  Adjacent elements are separated by
-     * the characters {@code ", "} (comma and space).  Elements are
-     * converted to strings as by {@link String#valueOf(Object)}.
+     * 返回字符串
      *
      * @return a string representation of this list
      */
@@ -988,16 +987,9 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Compares the specified object with this list for equality.
-     * Returns {@code true} if the specified object is the same object
-     * as this object, or if it is also a {@link List} and the sequence
-     * of elements returned by an {@linkplain List#iterator() iterator}
-     * over the specified list is the same as the sequence returned by
-     * an iterator over this list.  The two sequences are considered to
-     * be the same if they have the same length and corresponding
-     * elements at the same position in the sequence are <em>equal</em>.
-     * Two elements {@code e1} and {@code e2} are considered
-     * <em>equal</em> if {@code (e1==null ? e2==null : e1.equals(e2))}.
+     * 比较指定的对象和列表是否相等。如果指定集合也是 List 类型，指定集合
+     * 迭代器返回的元素顺序和列表迭代器返回的元素顺序相同，且每个元素对应
+     * 相等，则认为这两个对象相等。
      *
      * @param o the object to be compared for equality with this list
      * @return {@code true} if the specified object is equal to this list
@@ -1021,9 +1013,9 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Returns the hash code value for this list.
+     * 返回列表的 hash 值
      *
-     * <p>This implementation uses the definition in {@link List#hashCode}.
+     * 此实现使用了 List.hashCode 的定义。
      *
      * @return the hash code value for this list
      */
@@ -1039,12 +1031,9 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Returns an iterator over the elements in this list in proper sequence.
+     * 返回列表中元素正常顺序的迭代器。
      *
-     * <p>The returned iterator provides a snapshot of the state of the list
-     * when the iterator was constructed. No synchronization is needed while
-     * traversing the iterator. The iterator does <em>NOT</em> support the
-     * {@code remove} method.
+     * 遍历迭代器的时候不需要同步，因为迭代器是快照。迭代器不支持 remove 方法。
      *
      * @return an iterator over the elements in this list in proper sequence
      */
@@ -1055,10 +1044,7 @@ public class CopyOnWriteArrayList<E>
     /**
      * {@inheritDoc}
      *
-     * <p>The returned iterator provides a snapshot of the state of the list
-     * when the iterator was constructed. No synchronization is needed while
-     * traversing the iterator. The iterator does <em>NOT</em> support the
-     * {@code remove}, {@code set} or {@code add} methods.
+     * 遍历迭代器的时候不需要同步，因为迭代器是快照。迭代器不支持 remove 方法。
      */
     public ListIterator<E> listIterator() {
         return new COWIterator<E>(getArray(), 0);
@@ -1067,11 +1053,7 @@ public class CopyOnWriteArrayList<E>
     /**
      * {@inheritDoc}
      *
-     * <p>The returned iterator provides a snapshot of the state of the list
-     * when the iterator was constructed. No synchronization is needed while
-     * traversing the iterator. The iterator does <em>NOT</em> support the
-     * {@code remove}, {@code set} or {@code add} methods.
-     *
+     * 遍历迭代器的时候不需要同步，因为迭代器是快照。迭代器不支持 remove 方法。
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
     public ListIterator<E> listIterator(int index) {
@@ -1103,9 +1085,9 @@ public class CopyOnWriteArrayList<E>
     }
 
     static final class COWIterator<E> implements ListIterator<E> {
-        /** Snapshot of the array */
+        /** 数组快照*/
         private final Object[] snapshot;
-        /** Index of element to be returned by subsequent call to next.  */
+        /** 下次调用 next 时的元素索引  */
         private int cursor;
 
         private COWIterator(Object[] elements, int initialCursor) {
@@ -1144,7 +1126,7 @@ public class CopyOnWriteArrayList<E>
         }
 
         /**
-         * Not supported. Always throws UnsupportedOperationException.
+         * 不支持。调用时总是抛出 UnsupportedOperationException 异常。
          * @throws UnsupportedOperationException always; {@code remove}
          *         is not supported by this iterator.
          */
@@ -1153,7 +1135,7 @@ public class CopyOnWriteArrayList<E>
         }
 
         /**
-         * Not supported. Always throws UnsupportedOperationException.
+         * 不支持。总是抛出 UnsupportedOperationException 异常。
          * @throws UnsupportedOperationException always; {@code set}
          *         is not supported by this iterator.
          */
@@ -1162,7 +1144,7 @@ public class CopyOnWriteArrayList<E>
         }
 
         /**
-         * Not supported. Always throws UnsupportedOperationException.
+         * 不支持。总是抛出 UnsupportedOperationException 异常。
          * @throws UnsupportedOperationException always; {@code add}
          *         is not supported by this iterator.
          */
@@ -1184,14 +1166,8 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Returns a view of the portion of this list between
-     * {@code fromIndex}, inclusive, and {@code toIndex}, exclusive.
-     * The returned list is backed by this list, so changes in the
-     * returned list are reflected in this list.
-     *
-     * <p>The semantics of the list returned by this method become
-     * undefined if the backing list (i.e., this list) is modified in
-     * any way other than via the returned list.
+     * 返回列表索引从 fromIndex（包括）到 toIndex（不包括）部分的视图。
+     * 返回的列表由此列表支撑，所以返回列表的任何改变都会影响此列表。
      *
      * @param fromIndex low endpoint (inclusive) of the subList
      * @param toIndex high endpoint (exclusive) of the subList
@@ -1204,6 +1180,7 @@ public class CopyOnWriteArrayList<E>
         try {
             Object[] elements = getArray();
             int len = elements.length;
+            // 检查边界
             if (fromIndex < 0 || toIndex > len || fromIndex > toIndex)
                 throw new IndexOutOfBoundsException();
             return new COWSubList<E>(this, fromIndex, toIndex);
@@ -1213,19 +1190,9 @@ public class CopyOnWriteArrayList<E>
     }
 
     /**
-     * Sublist for CopyOnWriteArrayList.
-     * This class extends AbstractList merely for convenience, to
-     * avoid having to define addAll, etc. This doesn't hurt, but
-     * is wasteful.  This class does not need or use modCount
-     * mechanics in AbstractList, but does need to check for
-     * concurrent modification using similar mechanics.  On each
-     * operation, the array that we expect the backing list to use
-     * is checked and updated.  Since we do this for all of the
-     * base operations invoked by those defined in AbstractList,
-     * all is well.  While inefficient, this is not worth
-     * improving.  The kinds of list operations inherited from
-     * AbstractList are already so slow on COW sublists that
-     * adding a bit more space/time doesn't seem even noticeable.
+     * CopyOnWriteArrayList 的子列表。
+     *
+     * 函数实现调用父列表中相应的方法，根据 offset 偏移量计算当前索引。
      */
     private static class COWSubList<E>
             extends AbstractList<E>
@@ -1239,8 +1206,10 @@ public class CopyOnWriteArrayList<E>
         // only call this holding l's lock
         COWSubList(CopyOnWriteArrayList<E> list,
                    int fromIndex, int toIndex) {
+            // l 表示父数组
             l = list;
             expectedArray = l.getArray();
+            // offset 用于计算偏移位置，表示从哪一个位置开始
             offset = fromIndex;
             size = toIndex - fromIndex;
         }
@@ -1251,19 +1220,21 @@ public class CopyOnWriteArrayList<E>
                 throw new ConcurrentModificationException();
         }
 
-        // only call this holding l's lock
+        // 检查 index 是否在数组范围内
         private void rangeCheck(int index) {
             if (index < 0 || index >= size)
                 throw new IndexOutOfBoundsException("Index: "+index+
                         ",Size: "+size);
         }
 
+        // 设置指定索引处的值
         public E set(int index, E element) {
             final ReentrantLock lock = l.lock;
             lock.lock();
             try {
                 rangeCheck(index);
                 checkForComodification();
+                // 设置指定位置（子数组的指定位置）处的值
                 E x = l.set(index+offset, element);
                 expectedArray = l.getArray();
                 return x;
@@ -1272,6 +1243,7 @@ public class CopyOnWriteArrayList<E>
             }
         }
 
+        // 获取指定索引处的值
         public E get(int index) {
             final ReentrantLock lock = l.lock;
             lock.lock();
@@ -1284,6 +1256,7 @@ public class CopyOnWriteArrayList<E>
             }
         }
 
+        // 子数组大小
         public int size() {
             final ReentrantLock lock = l.lock;
             lock.lock();
@@ -1295,6 +1268,7 @@ public class CopyOnWriteArrayList<E>
             }
         }
 
+        // 指定索引处添加元素
         public void add(int index, E element) {
             final ReentrantLock lock = l.lock;
             lock.lock();
@@ -1310,6 +1284,7 @@ public class CopyOnWriteArrayList<E>
             }
         }
 
+        // 清空
         public void clear() {
             final ReentrantLock lock = l.lock;
             lock.lock();
@@ -1323,6 +1298,7 @@ public class CopyOnWriteArrayList<E>
             }
         }
 
+        // 删除指定索引处的值
         public E remove(int index) {
             final ReentrantLock lock = l.lock;
             lock.lock();
@@ -1338,6 +1314,7 @@ public class CopyOnWriteArrayList<E>
             }
         }
 
+        // 删除指定元素
         public boolean remove(Object o) {
             int index = indexOf(o);
             if (index == -1)

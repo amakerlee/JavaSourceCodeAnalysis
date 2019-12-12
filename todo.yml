@@ -1,7 +1,0 @@
-md:
-  JUC: ThreadPoolExecutor, ScheduledThreadPoolExecutor, Semaphore, ForkJoinPool
-    JUCCollections: CopyOnWriteArrayList
-
-src:
-  JUC: AbstractExecutorService, Semaphore, ForkJoinPool, ScheduledExecutorService, ScheduledThreadPoolExecutor
-    JUCCollections: CopyOnWriteArrayList
