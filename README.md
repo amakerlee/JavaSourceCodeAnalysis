@@ -38,7 +38,7 @@
 
 #### Concurrency Collections
 
-* [CopyOnWriteArrayList（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/CopyOnWriteArrayList.md)
+* [CopyOnWriteArrayList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/CopyOnWriteArrayList.md)
 
 #### Thread Pool
 
