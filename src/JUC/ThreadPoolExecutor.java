@@ -1279,6 +1279,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
                 return;
             c = ctl.get();
         }
+        // 线程数超过 corePoolSize
         if (isRunning(c) && workQueue.offer(command)) {
             int recheck = ctl.get();
             if (! isRunning(recheck) && remove(command))
