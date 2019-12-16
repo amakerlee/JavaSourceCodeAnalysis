@@ -42,10 +42,8 @@
 
 #### Thread Pool
 
-* [ThreadPoolExecutor（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ThreadPoolExecutor.md) | [ScheduledThreadPoolExecutor（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ScheduledThreadPoolExecutor.md)
+* [ThreadPoolExecutor](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ThreadPoolExecutor.md) | [ScheduledThreadPoolExecutor（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ScheduledThreadPoolExecutor.md)
 
 * [ForkJoinPool（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ThreadPoolExecutor.md)
-
-* [Executors（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/Executors.md)
 
 #### Atomics
