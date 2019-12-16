@@ -579,6 +579,199 @@ Worker 执行的主要操作（继承自 Runnable，实现 run 方法）在 runW
     }
 ```
 
+getTask 函数用于从任务队列中获取任务，和大多数方法一样，根据线程池状态判断能否进行目标操作。如果出现线程池已经 STOP、线程池被 SHUTDOWN 且任务队列为空、工作线程数大于能容纳的最大线程数或者线程等待超时等情况时，此方法返回 null。如果从阻塞队列中获取到任务，则返回该任务。
+
+```java
+    /**
+     * 获取等待队列中的任务。基于当前线程池的配置来决定执行任务阻塞或等待
+     * 或返回 null。在以下四种情况下会引起 worker 退出，并返回 null：
+     * 1. 工作线程数超过 maximumPoolSize。
+     * 2. 线程池已停止。
+     * 3. 线程池已经 shutdown，且等待队列为空。
+     * 4. 工作线程等待任务超时。
+     *
+     * 并不仅仅是简单地从队列中拿到任务就结束了。
+     *
+     * @return task, or null if the worker must exit, in which case
+     *         workerCount is decremented
+     */
+    private Runnable getTask() {
+        boolean timedOut = false; // Did the last poll() time out?
+
+        for (;;) {
+            // 还是首先获取线程池状态
+            int c = ctl.get();
+            int rs = runStateOf(c);
+
+            // 状态为以下两种情况时会 workerCount 减 1，并返回 null
+            // 1. 状态为 SHUTDOWN，且 workQueue 为空
+            // （说明在 SHUTDOWN 状态线程池中的线程还是会继续取任务执行）
+            // 2. 线程池状态为 STOP
+            if (rs >= SHUTDOWN && (rs >= STOP || workQueue.isEmpty())) {
+                decrementWorkerCount();
+                return null;
+                // 返回 null，runWorker 中当前线程会退出 while 循环，然后执行
+                // processWorkerExit
+            }
+
+            int wc = workerCountOf(c);
+
+            // timed 用于判断是否需要超时控制。
+            // 在 allowCoreThreadTimeOut 中设置过或者线程数超过核心线程数了
+            // 就需要超时控制。
+            boolean timed = allowCoreThreadTimeOut || wc > corePoolSize;
+
+            // 1. 线程数超过最大线程数的限制了（运行过程中修改过 maximumPoolSize）
+            // 或者已经超时（timed && timedOut 为 true 表示需要进行超时控制
+            // 且已经超时）
+            // 2. 线程数 workerCount 大于 1 或者任务队列为空
+            if ((wc > maximumPoolSize || (timed && timedOut))
+                    && (wc > 1 || workQueue.isEmpty())) {
+                if (compareAndDecrementWorkerCount(c))
+                    return null;
+                continue;
+            }
+
+            try {
+                // timed 为 true 则调用有时间控制的 poll 方法进行超时控制，否则通过
+                // take 方法获取
+                Runnable r = timed ?
+                        workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) :
+                        workQueue.take();
+                // 获取到任务，立即返回
+                if (r != null)
+                    return r;
+                // 如果 r 等于 null，说明已经超时，设置 timedOut 为 true，在下次
+                // 自旋时回收
+                timedOut = true;
+            } catch (InterruptedException retry) {
+                // 发生中断，设置成没有超时，并继续执行
+                timedOut = false;
+            }
+        }
+    }
+```
+
+从 runWorker 执行任务的循环跳出后，尝试执行 processWorkerExit 从线程集合中删除该线程，并判断是否需要补充新的线程。删除过后同样要调用 tryTerminate。
+
+```java
+    /**
+     * 为正在死亡的 worker 清理和登记。仅限工作线程调用。除非设置了 completedAbruptly，
+     * 否则假定 workCount 已经被更改了。此方法从 worker 集合中移除线程，
+     * 如果线程因任务异常而退出，或者运行的工作线程数小于 corePoolSize，
+     * 或者队列非空但没有工作线程，则可能终止线程池或替换工作线程。
+     *
+     * @param w the worker
+     * @param completedAbruptly if the worker died due to user exception
+     */
+    private void processWorkerExit(Worker w, boolean completedAbruptly) {
+        // 如果此变量为 true，需要将 workerCount 减一
+        if (completedAbruptly) // If abrupt, then workerCount wasn't adjusted
+            decrementWorkerCount();
+
+        final ReentrantLock mainLock = this.mainLock;
+        mainLock.lock();
+        try {
+            // 移除当前线程
+            completedTaskCount += w.completedTasks;
+            workers.remove(w);
+        } finally {
+            mainLock.unlock();
+        }
+
+        // 尝试终止线程池
+        tryTerminate();
+
+        int c = ctl.get();
+        // 线程池状态小于 STOP，没有终止
+        if (runStateLessThan(c, STOP)) {
+            // 如果用户任务执行异常导致线程退出（不是正常退出）
+            if (!completedAbruptly) {
+                // 如果 allowCoreThreadTimeOut 为 true，就算是核心线程，只要空闲，
+                // 都要移除
+                // min 获取当前核心线程数
+                int min = allowCoreThreadTimeOut ? 0 : corePoolSize;
+                // 等待队列不为空，且没有工作线程
+                if (min == 0 && ! workQueue.isEmpty())
+                    min = 1;
+                // 工作线程数大于核心线程数，直接返回（删了就删了，没有影响）
+                if (workerCountOf(c) >= min)
+                    return; // replacement not needed
+            }
+            // 原线程不应该被删除，应该添加新的线程替换它
+            addWorker(null, false);
+        }
+    }
+```
+
+**tryTerminate**
+
+此方法用于尝试终止线程池，但只有当严格满足线程池终止的条件时，才会完全达到终止线程池的目的，如果成功终止线程池，线程池状态会变成 TERMINATED。tryTerminate 在所有可能导致终止线程池的行为（例如减少线程数、移除队列中的任务等）之后调用。
+
+```java
+    /**
+     * 如果当前状态为（SHUTDOWN 且 线程池和队列为空）或者（STOP
+     * 且线程池为空）,转换到 TERMINATED 状态，。如果有资格终止，但 workerCount
+     * 不是零，中断空闲的线程，以确保 shutdown 的信号传播。此方法必须在
+     * 任何可能导致终止的动作之后调用——以减少工作线程数量或在 shutdown
+     * 期间从队列中删除任务。此方法是非私有的，ScheduledThreadPoolExecutor
+     * 也可以访问。
+     *
+     * 如果线程池状态为 RUNNING 或 （TIDYING 或 TERMINATED）或
+     * （SHUTDOWN 且任务队列不为空），不终止或执行任何操作，直接返回。
+     *
+     * tryTerminate 用于尝试终止线程池，在 shutdow、shutdownNow、remove
+     * 中均是通过此方法来终止线程池。此方法必须在任何可能导致终止的行为
+     * 之后被调用，例如减少工作线程数，移除队列中的任务，或者是在工作线程
+     * 运行完毕后处理工作线程退出逻辑的方法 processWorkerExit。
+     * 如果线程池可被终止（状态为SHUTDOWN并且等待队列和池任务都为空，
+     * 或池状态为STOP且池任务为空），调用此方法转换线程池状态为 TERMINATED。
+     * 如果线程池可以被终止，但是当前工作线程数大于 0，则调用
+     * interruptIdleWorkers方法先中断一个空闲的工作线程，用来保证池
+     * 关闭操作继续向下传递。
+     */
+    final void tryTerminate() {
+        for (;;) {
+            int c = ctl.get();
+            // 线程池状态为 RUNNING 或 （TIDYING 或 TERMINATED）或
+            // （SHUTDOWN 且任务队列不为空），直接返回
+            if (isRunning(c) ||
+                    runStateAtLeast(c, TIDYING) ||
+                    (runStateOf(c) == SHUTDOWN && ! workQueue.isEmpty()))
+                return;
+            // 否则如果工作线程数 workCount 不为 0，调用函数关闭所有空闲线程，
+            // 然后直接返回
+            if (workerCountOf(c) != 0) { // Eligible to terminate
+                interruptIdleWorkers(ONLY_ONE);
+                return;
+            }
+
+            // 线程数为 0 且（状态为 STOP 或者（状态为 SHUTDOWN 且
+            // 任务队列为空）），此处为线程池状态转化图中满足 SHUTDOWN
+            // 或 STOP 转化到 TIDYING 的情况。
+            final ReentrantLock mainLock = this.mainLock;
+            mainLock.lock();
+            try {
+                // 如果成功将状态转化成了 TIDYING，在调用 terminated 方法完成
+                // 将 TIDYING 转化到 TERMINATED 的后续操作
+                if (ctl.compareAndSet(c, ctlOf(TIDYING, 0))) {
+                    try {
+                        terminated();
+                    } finally {
+                        // 最后将状态设为 TERMINATED 即可
+                        ctl.set(ctlOf(TERMINATED, 0));
+                        termination.signalAll();
+                    }
+                    return;
+                }
+            } finally {
+                mainLock.unlock();
+            }
+            // else retry on failed CAS
+        }
+    }
+```
+
 ***
 > 为什么要使用线程池
 
@@ -591,15 +784,33 @@ Worker 执行的主要操作（继承自 Runnable，实现 run 方法）在 runW
 ***
 > Executors 和常用线程池
 
+Executors 类，提供了一系列工厂方法用于创建线程池，返回的线程池都实现了 ExecutorService 接口，常用以下四种线程池（不包括 ForkJoinPool）：
+
+* newCachedThreadPool: 线程数量没有限制（核心线程数设置为 0，其实有，最大限制为 Integer.MAX_VALUE），如果线程等待时间过长（默认为超过 60 秒），该空闲线程会自动终止。
+
+* newFixedThreadPool: 指定线程数量（核心线程数和最大线程数相同），在线程池没有任务可运行时，不会释放工作线程，还将占用一定的系统资源。
+
+* newSingleThreadPool: 只包含一个线程的线程池（核心线程数和最大线程数均为 1），保证任务顺序执行。
+
+* newScheduledThreadPool: 定长线程池，定时及周期性执行任务。
 
 
 ***
 > 使用 ThreadPoolExecutor 而不是 Executors 创建线程池
 
+Executors 返回的线程池对象的弊端如下：
+
+* FixedThreadPool 和 SingleThreadPool 允许的请求队列长度为 Integer.MAX_VALUE，可能会堆积大量请求，从而导致 OOM。
+
+* CacheThreadPool 和 ScheduledThreadPool 允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量线程，从而导致 OOM。
 
 ***
 > 参考
+
 * [JUC源码分析-线程池篇（一）：ThreadPoolExecutor](https://www.jianshu.com/p/7be43712ef21)
+
 * [ThreadPoolExecutor源码解析](https://www.jianshu.com/p/a977ab6704d7)
+
 * [ThreadPoolExecutor源码剖析](https://blog.csdn.net/qq_30572275/article/details/80543921)
+
 * [java多线程系列：ThreadPoolExecutor源码分析](https://www.cnblogs.com/fixzd/p/9253203.html)

@@ -46,25 +46,14 @@ import java.security.AccessControlException;
 import sun.security.util.SecurityConstants;
 
 /**
- * Factory and utility methods for {@link Executor}, {@link
- * ExecutorService}, {@link ScheduledExecutorService}, {@link
- * ThreadFactory}, and {@link Callable} classes defined in this
- * package. This class supports the following kinds of methods:
- *
- * <ul>
- *   <li> Methods that create and return an {@link ExecutorService}
- *        set up with commonly useful configuration settings.
- *   <li> Methods that create and return a {@link ScheduledExecutorService}
- *        set up with commonly useful configuration settings.
- *   <li> Methods that create and return a "wrapped" ExecutorService, that
- *        disables reconfiguration by making implementation-specific methods
- *        inaccessible.
- *   <li> Methods that create and return a {@link ThreadFactory}
- *        that sets newly created threads to a known state.
- *   <li> Methods that create and return a {@link Callable}
- *        out of other closure-like forms, so they can be used
- *        in execution methods requiring {@code Callable}.
- * </ul>
+ * 针对此包中定义的 Executor, ExecutorService, ScheduledExecutorService,
+ * ThreadFactory, Callable 的工厂和实用方法。此类支持以下类型的方法：
+ * 1. 创造常用的 ExecutorService 实例。
+ * 2. 创造常用的 ScehduledExecutorService 实例。
+ * 3. 创造“包装的” ExecutorService 实例，该方法通过使特定实现方法不可用来
+ * 重新配置。
+ * 4. 创造新的 ThreadFactory 实例。
+ * 5. 创造新的 Callable 实例。
  *
  * @since 1.5
  * @author Doug Lea
@@ -72,15 +61,12 @@ import sun.security.util.SecurityConstants;
 public class Executors {
 
     /**
-     * Creates a thread pool that reuses a fixed number of threads
-     * operating off a shared unbounded queue.  At any point, at most
-     * {@code nThreads} threads will be active processing tasks.
-     * If additional tasks are submitted when all threads are active,
-     * they will wait in the queue until a thread is available.
-     * If any thread terminates due to a failure during execution
-     * prior to shutdown, a new one will take its place if needed to
-     * execute subsequent tasks.  The threads in the pool will exist
-     * until it is explicitly {@link ExecutorService#shutdown shutdown}.
+     * 创建一个线程池，使用指定数量的线程和共享无界队列。在任何时候，
+     * 所创建的大多数的线程都在处理任务。如果所有线程都在执行任务时，
+     * 有新的任务提交到线程池，任务会被提交到队列中等待，直到有空闲线程
+     * 可以用来执行这些任务。如果任何线程在 shutdown 之前由于失败而终止，
+     * 且需要执行后续任务，则创建一个新线程来替代它。线程池中的任务将一直
+     * 存在，直到显式执行 shutdown 方法。
      *
      * @param nThreads the number of threads in the pool
      * @return the newly created thread pool
@@ -93,14 +79,10 @@ public class Executors {
     }
 
     /**
-     * Creates a thread pool that maintains enough threads to support
-     * the given parallelism level, and may use multiple queues to
-     * reduce contention. The parallelism level corresponds to the
-     * maximum number of threads actively engaged in, or available to
-     * engage in, task processing. The actual number of threads may
-     * grow and shrink dynamically. A work-stealing pool makes no
-     * guarantees about the order in which submitted tasks are
-     * executed.
+     * 创建一个线程池，维持足够多的的线程来支持给定的并行级别，并且可以
+     * 使用多个队列来减少争用。并行级别对应于积极参与或可参与任务处理的
+     * 最大线程数。线程的实际数量可能会动态地增加或减少。 work-stealing
+     * 类型的线程池不能保证所提交的任务的执行顺序。
      *
      * @param parallelism the targeted parallelism level
      * @return the newly created thread pool
@@ -115,9 +97,8 @@ public class Executors {
     }
 
     /**
-     * Creates a work-stealing thread pool using all
-     * {@link Runtime#availableProcessors available processors}
-     * as its target parallelism level.
+     * 创建一个并行度为 Runtime.getRuntime().availableProcessors() 的 work-stealing
+     * 类型的线程池。
      * @return the newly created thread pool
      * @see #newWorkStealingPool(int)
      * @since 1.8
@@ -130,17 +111,12 @@ public class Executors {
     }
 
     /**
-     * Creates a thread pool that reuses a fixed number of threads
-     * operating off a shared unbounded queue, using the provided
-     * ThreadFactory to create new threads when needed.  At any point,
-     * at most {@code nThreads} threads will be active processing
-     * tasks.  If additional tasks are submitted when all threads are
-     * active, they will wait in the queue until a thread is
-     * available.  If any thread terminates due to a failure during
-     * execution prior to shutdown, a new one will take its place if
-     * needed to execute subsequent tasks.  The threads in the pool will
-     * exist until it is explicitly {@link ExecutorService#shutdown
-     * shutdown}.
+     * 创建一个使用指定数量线程和无界队列的线程池，使用提供的线程工厂创建
+     * 新的线程。任何时候，创建的大多数线程都在执行任务。如果所有线程都在
+     * 执行任务时，有新的任务提交到线程池，任务会被提交到队列中等待，
+     * 直到有空闲线程可以用来执行这些任务。如果任何线程在 shutdown 之前
+     * 由于失败而终止，且需要执行后续任务，则创建一个新线程来替代它。
+     * 线程池中的任务将一直存在，直到显式执行 shutdown 方法。
      *
      * @param nThreads the number of threads in the pool
      * @param threadFactory the factory to use when creating new threads
@@ -156,15 +132,14 @@ public class Executors {
     }
 
     /**
-     * Creates an Executor that uses a single worker thread operating
-     * off an unbounded queue. (Note however that if this single
-     * thread terminates due to a failure during execution prior to
-     * shutdown, a new one will take its place if needed to execute
-     * subsequent tasks.)  Tasks are guaranteed to execute
-     * sequentially, and no more than one task will be active at any
-     * given time. Unlike the otherwise equivalent
-     * {@code newFixedThreadPool(1)} the returned executor is
-     * guaranteed not to be reconfigurable to use additional threads.
+     * 创建一个使用单个线程和无界队列的线程池（注意，如果这个线程在 shutdown
+     * 之前的执行过程中意外终止，且还需要执行后续任务，将使用一个新的线程
+     * 来替代它。）任务保证按顺序执行，并且在任何给定时间都不会有多个任务
+     * 处于活动状态。和 newFixedThreadPool(1) 不同的是，此方法返回的线程池
+     * 保证不可重新配置以使用更多的线程。
+     *
+     * FinalizableDelegatedExecutorService 包装类用于禁止用户配置其使用更多的
+     * 线程，线程池中永远都有且仅有一个线程。
      *
      * @return the newly created single-threaded Executor
      */
@@ -176,12 +151,9 @@ public class Executors {
     }
 
     /**
-     * Creates an Executor that uses a single worker thread operating
-     * off an unbounded queue, and uses the provided ThreadFactory to
-     * create a new thread when needed. Unlike the otherwise
-     * equivalent {@code newFixedThreadPool(1, threadFactory)} the
-     * returned executor is guaranteed not to be reconfigurable to use
-     * additional threads.
+     * 创建一个使用单个线程和无界队列的线程池。如果有必要，可以使用给定的
+     * ThreadFactory创造新的线程。和 newFixedThreadPool(1, threadFactory)
+     * 不同的是，此方法返回的线程池保证不可重新配置以使用更多的线程。
      *
      * @param threadFactory the factory to use when creating new
      * threads
@@ -198,18 +170,15 @@ public class Executors {
     }
 
     /**
-     * Creates a thread pool that creates new threads as needed, but
-     * will reuse previously constructed threads when they are
-     * available.  These pools will typically improve the performance
-     * of programs that execute many short-lived asynchronous tasks.
-     * Calls to {@code execute} will reuse previously constructed
-     * threads if available. If no existing thread is available, a new
-     * thread will be created and added to the pool. Threads that have
-     * not been used for sixty seconds are terminated and removed from
-     * the cache. Thus, a pool that remains idle for long enough will
-     * not consume any resources. Note that pools with similar
-     * properties but different details (for example, timeout parameters)
-     * may be created using {@link ThreadPoolExecutor} constructors.
+     * 创建一个线程数无限制和使用无界队列的线程池，但是会重用已经创造了的
+     * 线程，如果他们仍然可用的话。这样的线程池可以提高程序性能，执行时间
+     * 消耗较短的任务。调用 execute 会重用之前已经创造的线程，如果它们可用
+     * 的话。如果没有空闲的可用线程，将会为新的任务创造线程，并将其加入
+     * 线程池。超过 60 秒还没有执行任务的线程将会被终止，并移出线程池。
+     * 因此，一个长时间等待的线程池不会因为有任何空闲线程而消耗资源。
+     * 注意有同样属性和不同实现细节（例如，超时参数）可以使用
+     * ThreadPoolExecutor 本身的构造函数构建。
+     * 线程池中的任务将一直存在，直到显示执行 shutdown 方法。
      *
      * @return the newly created thread pool
      */
@@ -220,10 +189,8 @@ public class Executors {
     }
 
     /**
-     * Creates a thread pool that creates new threads as needed, but
-     * will reuse previously constructed threads when they are
-     * available, and uses the provided
-     * ThreadFactory to create new threads when needed.
+     * 创造一个线程数量不受限制的线程池，但是会重用之前已经创造的线程，
+     * 如果它们仍然可用的话，使用给定的 ThreadFactory 在有需要时创造新的线程。
      * @param threadFactory the factory to use when creating new threads
      * @return the newly created thread pool
      * @throws NullPointerException if threadFactory is null
@@ -236,16 +203,12 @@ public class Executors {
     }
 
     /**
-     * Creates a single-threaded executor that can schedule commands
-     * to run after a given delay, or to execute periodically.
-     * (Note however that if this single
-     * thread terminates due to a failure during execution prior to
-     * shutdown, a new one will take its place if needed to execute
-     * subsequent tasks.)  Tasks are guaranteed to execute
-     * sequentially, and no more than one task will be active at any
-     * given time. Unlike the otherwise equivalent
-     * {@code newScheduledThreadPool(1)} the returned executor is
-     * guaranteed not to be reconfigurable to use additional threads.
+     * 创建一个单线程线程池，该线程池控制给定任务在给定延迟后运行，或
+     * 周期性执行。（但是请注意，如果这个线程在 shutdown 之前由于异常而
+     * 终止，且还有后续任务需要执行，那么需要一个新的线程来替代它。）
+     * 任务保证按顺序执行，并且在任何给定时间点都不会有多个任务处于活动状态。
+     * 和 newScheduledThreadPool(1) 不同的是，此方法返回的线程池保证不可
+     * 重新配置以使用更多的线程。
      * @return the newly created scheduled executor
      */
     public static ScheduledExecutorService newSingleThreadScheduledExecutor() {
@@ -254,16 +217,12 @@ public class Executors {
     }
 
     /**
-     * Creates a single-threaded executor that can schedule commands
-     * to run after a given delay, or to execute periodically.  (Note
-     * however that if this single thread terminates due to a failure
-     * during execution prior to shutdown, a new one will take its
-     * place if needed to execute subsequent tasks.)  Tasks are
-     * guaranteed to execute sequentially, and no more than one task
-     * will be active at any given time. Unlike the otherwise
-     * equivalent {@code newScheduledThreadPool(1, threadFactory)}
-     * the returned executor is guaranteed not to be reconfigurable to
-     * use additional threads.
+     * 创建一个单线程线程池，该线程池控制给定任务在给定延迟后运行，或
+     * 周期性执行。（但是请注意，如果这个线程在 shutdown 之前由于异常而
+     * 终止，且还有后续任务需要执行，那么需要一个新的线程来替代它。）
+     * 任务保证按顺序执行，并且在任何给定时间点都不会有多个任务处于活动状态。
+     * 和 newScheduledThreadPool(1, threadFactory) 不同的是，此方法返回的线程池保证不可
+     * 重新配置以使用更多的线程。
      * @param threadFactory the factory to use when creating new
      * threads
      * @return a newly created scheduled executor
@@ -275,8 +234,7 @@ public class Executors {
     }
 
     /**
-     * Creates a thread pool that can schedule commands to run after a
-     * given delay, or to execute periodically.
+     * 创建一个新的线程池，该线程池控制给定任务在给定延迟后运行，或周期性执行。
      * @param corePoolSize the number of threads to keep in the pool,
      * even if they are idle
      * @return a newly created scheduled thread pool
@@ -287,8 +245,7 @@ public class Executors {
     }
 
     /**
-     * Creates a thread pool that can schedule commands to run after a
-     * given delay, or to execute periodically.
+     * 创建一个新的线程池，该线程池控制给定任务在给定延迟后运行，或周期性执行。
      * @param corePoolSize the number of threads to keep in the pool,
      * even if they are idle
      * @param threadFactory the factory to use when the executor
@@ -303,11 +260,7 @@ public class Executors {
     }
 
     /**
-     * Returns an object that delegates all defined {@link
-     * ExecutorService} methods to the given executor, but not any
-     * other methods that might otherwise be accessible using
-     * casts. This provides a way to safely "freeze" configuration and
-     * disallow tuning of a given concrete implementation.
+     * 使用默认配置，且不允许用户更改配置的线程池。
      * @param executor the underlying implementation
      * @return an {@code ExecutorService} instance
      * @throws NullPointerException if executor null
@@ -319,11 +272,7 @@ public class Executors {
     }
 
     /**
-     * Returns an object that delegates all defined {@link
-     * ScheduledExecutorService} methods to the given executor, but
-     * not any other methods that might otherwise be accessible using
-     * casts. This provides a way to safely "freeze" configuration and
-     * disallow tuning of a given concrete implementation.
+     * 使用默认配置，且不允许用户更改配置的线程池。
      * @param executor the underlying implementation
      * @return a {@code ScheduledExecutorService} instance
      * @throws NullPointerException if executor null
@@ -335,19 +284,7 @@ public class Executors {
     }
 
     /**
-     * Returns a default thread factory used to create new threads.
-     * This factory creates all new threads used by an Executor in the
-     * same {@link ThreadGroup}. If there is a {@link
-     * java.lang.SecurityManager}, it uses the group of {@link
-     * System#getSecurityManager}, else the group of the thread
-     * invoking this {@code defaultThreadFactory} method. Each new
-     * thread is created as a non-daemon thread with priority set to
-     * the smaller of {@code Thread.NORM_PRIORITY} and the maximum
-     * priority permitted in the thread group.  New threads have names
-     * accessible via {@link Thread#getName} of
-     * <em>pool-N-thread-M</em>, where <em>N</em> is the sequence
-     * number of this factory, and <em>M</em> is the sequence number
-     * of the thread created by this factory.
+     * 返回默认的线程工厂。
      * @return a thread factory
      */
     public static ThreadFactory defaultThreadFactory() {

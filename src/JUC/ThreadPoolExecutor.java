@@ -660,7 +660,8 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         try {
             for (Worker w : workers) {
                 Thread t = w.thread;
-                // 如果线程没有被中断且能获取到锁（能获取到说明它很闲），
+                // 如果线程没有被中断且能获取到锁（能获取到说明它很闲，因为在
+                // 正常执行任务的线程都已经获取到锁了），
                 // 则尝试中断
                 if (!t.isInterrupted() && w.tryLock()) {
                     try {
@@ -884,7 +885,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     }
 
     /**
-     * 为正在死亡的 worker 清理和登记。仅桶工作线程调用。除非设置了 completedAbruptly，
+     * 为正在死亡的 worker 清理和登记。仅限工作线程调用。除非设置了 completedAbruptly，
      * 否则假定 workCount 已经被更改了。此方法从 worker 集合中移除线程，
      * 如果线程因任务异常而退出，或者运行的工作线程数小于 corePoolSize，
      * 或者队列非空但没有工作线程，则可能终止线程池或替换工作线程。
