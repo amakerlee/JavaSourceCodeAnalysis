@@ -43,64 +43,19 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.*;
 
 /**
- * A {@link ThreadPoolExecutor} that can additionally schedule
- * commands to run after a given delay, or to execute
- * periodically. This class is preferable to {@link java.util.Timer}
- * when multiple worker threads are needed, or when the additional
- * flexibility or capabilities of {@link ThreadPoolExecutor} (which
- * this class extends) are required.
+ * 一个设置命令在指定延迟后执行或者设定任务周期性执行的 ThreadPoolExecutor。
+ * 在需要多线程执行，或者需要 ThreadPoolExecutor 额外的灵活性和功能
+ * 的时候，此类优于 java.util.Timer，
  *
- * <p>Delayed tasks execute no sooner than they are enabled, but
- * without any real-time guarantees about when, after they are
- * enabled, they will commence. Tasks scheduled for exactly the same
- * execution time are enabled in first-in-first-out (FIFO) order of
- * submission.
+ * 到达指定的延迟时间时，任务立即执行，但是没有任何关于启动后何时开始执行
+ * 的实时保证。任务以 FIFO 的顺序提交。
  *
- * <p>When a submitted task is cancelled before it is run, execution
- * is suppressed. By default, such a cancelled task is not
- * automatically removed from the work queue until its delay
- * elapses. While this enables further inspection and monitoring, it
- * may also cause unbounded retention of cancelled tasks. To avoid
- * this, set {@link #setRemoveOnCancelPolicy} to {@code true}, which
- * causes tasks to be immediately removed from the work queue at
- * time of cancellation.
+ * 当提交的任务在执行之前被取消，将禁止其执行。默认情况下，这样一个被取消
+ * 的任务不会自动从任务队列中删除，直到其延迟过期。虽然这可以进行进一步的
+ * 检查和监视，但也可能导致取消的任务被无限保留。为了表面这种情况，应该将
+ * setRemoveOnCancelPolicy 设置为 true，这将导致任务在取消时立即从工作队列
+ * 中删除。
  *
- * <p>Successive executions of a task scheduled via
- * {@code scheduleAtFixedRate} or
- * {@code scheduleWithFixedDelay} do not overlap. While different
- * executions may be performed by different threads, the effects of
- * prior executions <a
- * href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>
- * those of subsequent ones.
- *
- * <p>While this class inherits from {@link ThreadPoolExecutor}, a few
- * of the inherited tuning methods are not useful for it. In
- * particular, because it acts as a fixed-sized pool using
- * {@code corePoolSize} threads and an unbounded queue, adjustments
- * to {@code maximumPoolSize} have no useful effect. Additionally, it
- * is almost never a good idea to set {@code corePoolSize} to zero or
- * use {@code allowCoreThreadTimeOut} because this may leave the pool
- * without threads to handle tasks once they become eligible to run.
- *
- * <p><b>Extension notes:</b> This class overrides the
- * {@link ThreadPoolExecutor#execute(Runnable) execute} and
- * {@link AbstractExecutorService#submit(Runnable) submit}
- * methods to generate internal {@link ScheduledFuture} objects to
- * control per-task delays and scheduling.  To preserve
- * functionality, any further overrides of these methods in
- * subclasses must invoke superclass versions, which effectively
- * disables additional task customization.  However, this class
- * provides alternative protected extension method
- * {@code decorateTask} (one version each for {@code Runnable} and
- * {@code Callable}) that can be used to customize the concrete task
- * types used to execute commands entered via {@code execute},
- * {@code submit}, {@code schedule}, {@code scheduleAtFixedRate},
- * and {@code scheduleWithFixedDelay}.  By default, a
- * {@code ScheduledThreadPoolExecutor} uses a task type extending
- * {@link FutureTask}. However, this may be modified or replaced using
- * subclasses of the form:
- *
- *  <pre> {@code
  * public class CustomScheduledExecutor extends ScheduledThreadPoolExecutor {
  *
  *   static class CustomTask<V> implements RunnableScheduledFuture<V> { ... }
@@ -115,7 +70,7 @@ import java.util.*;
  *       return new CustomTask<V>(c, task);
  *   }
  *   // ... add constructors, etc.
- * }}</pre>
+ * }
  *
  * @since 1.5
  * @author Doug Lea
