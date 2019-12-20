@@ -244,7 +244,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     /* ---------------- Static utilities -------------- */
 
     /**
-     * spread 用来将 key 对应到桶里。
+     * spread 计算 hash 值。
+     * HASH_BITS 首位为 0，其他为 1，是为了让 hash 值为正数
      * 在后续语句中将会使用：
      * index = spread(key) & (length - 1);
      */
@@ -473,27 +474,26 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns the value to which the specified key is mapped,
-     * or {@code null} if this map contains no mapping for the key.
-     *
-     * <p>More formally, if this map contains a mapping from a key
-     * {@code k} to a value {@code v} such that {@code key.equals(k)},
-     * then this method returns {@code v}; otherwise it returns
-     * {@code null}.  (There can be at most one such mapping.)
+     * 返回指定 key 对应的 value。如果不包含指定 key，返回 null。
      *
      * @throws NullPointerException if the specified key is null
      */
     public V get(Object key) {
         Node<K,V>[] tab; Node<K,V> e, p; int n, eh; K ek;
+        // 计算 hash 值
         int h = spread(key.hashCode());
         if ((tab = table) != null && (n = tab.length) > 0 &&
                 (e = tabAt(tab, (n - 1) & h)) != null) {
+            //找到了 key 对应的映射
             if ((eh = e.hash) == h) {
                 if ((ek = e.key) == key || (ek != null && key.equals(ek)))
                     return e.val;
             }
+            // 如果头结点的 hash 小于 0，说明正在扩容，或者该位置是红黑树
             else if (eh < 0)
+                // ForwardingNode.find(int h, Object k)，TreeBin.find(int h, Object k)，Node.find(int h, Object k)
                 return (p = e.find(h, key)) != null ? p.val : null;
+            // 遍历链表，找到就返回。
             while ((e = e.next) != null) {
                 if (e.hash == h &&
                         ((ek = e.key) == key || (ek != null && key.equals(ek))))
@@ -504,7 +504,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Tests if the specified object is a key in this table.
+     * 检查指定 table 是否包含指定 key。
      *
      * @param  key possible key
      * @return {@code true} if and only if the specified object
@@ -517,9 +517,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns {@code true} if this map maps one or more keys to the
-     * specified value. Note: This method may require a full traversal
-     * of the map, and is much slower than method {@code containsKey}.
+     * 如果此 Map 中包含一个或多个 key 指向执行的 value，则返回 true。
      *
      * @param value value whose presence in this map is to be tested
      * @return {@code true} if this map maps one or more keys to the
@@ -531,6 +529,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             throw new NullPointerException();
         Node<K,V>[] t;
         if ((t = table) != null) {
+            // 遍历所有节点
             Traverser<K,V> it = new Traverser<K,V>(t, t.length, 0, t.length);
             for (Node<K,V> p; (p = it.advance()) != null; ) {
                 V v;
@@ -645,9 +644,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Copies all of the mappings from the specified map to this one.
-     * These mappings replace any mappings that this map had for any of the
-     * keys currently in the specified map.
+     * 将所有的映射从指定的 map 中复制到此 map 中。如果此 map 中的相同映射
+     * 会被覆盖。
      *
      * @param m mappings to be stored in this map
      */
@@ -658,8 +656,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Removes the key (and its corresponding value) from this map.
-     * This method does nothing if the key is not in the map.
+     * 从此 map 中删除指定 key 对应的映射。如果指定 key 不在此 map 中，不做
+     * 任何操作。
      *
      * @param  key the key that needs to be removed
      * @return the previous value associated with {@code key}, or
@@ -671,39 +669,48 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Implementation for the four public remove/replace methods:
-     * Replaces node value with v, conditional upon match of cv if
-     * non-null.  If resulting value is null, delete.
+     * 四个删除/替代方法的支撑函数：将指定 key 对应的 value 替换成指定的
+     * value，或者删除节点
      */
     final V replaceNode(Object key, V value, Object cv) {
         int hash = spread(key.hashCode());
         for (Node<K,V>[] tab = table;;) {
             Node<K,V> f; int n, i, fh;
+            // 如果 table 不存在或者 i 位置不存在任何节点，直接跳出循环
             if (tab == null || (n = tab.length) == 0 ||
                     (f = tabAt(tab, i = (n - 1) & hash)) == null)
                 break;
+            // 如果该节点正在被其他线程转移（扩容），则此线程也帮助扩容
             else if ((fh = f.hash) == MOVED)
                 tab = helpTransfer(tab, f);
             else {
                 V oldVal = null;
                 boolean validated = false;
                 synchronized (f) {
+                    // 确认，防止修改完成后其他线程继续修改
                     if (tabAt(tab, i) == f) {
+                        // 当前为链表结构
                         if (fh >= 0) {
                             validated = true;
+                            // 遍历链表
                             for (Node<K,V> e = f, pred = null;;) {
                                 K ek;
+                                // 如果找到指定 key 对应的映射
                                 if (e.hash == hash &&
                                         ((ek = e.key) == key ||
                                                 (ek != null && key.equals(ek)))) {
                                     V ev = e.val;
+                                    // 用于适应多个不同的函数调用 replaceNode 方法
                                     if (cv == null || cv == ev ||
                                             (ev != null && cv.equals(ev))) {
                                         oldVal = ev;
+                                        // 如果 value 不为 null，则用指定 value 替换该节点的 value
                                         if (value != null)
                                             e.val = value;
+                                        // value 等于 null 且 pred 不为 null，删除找到的节点
                                         else if (pred != null)
                                             pred.next = e.next;
+                                        // value 等于 null 且 pred 为 null，删除找到的节点
                                         else
                                             setTabAt(tab, i, e.next);
                                     }
@@ -714,10 +721,12 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                     break;
                             }
                         }
+                        // 如果 f 所在的桶内是树结构
                         else if (f instanceof TreeBin) {
                             validated = true;
                             TreeBin<K,V> t = (TreeBin<K,V>)f;
                             TreeNode<K,V> r, p;
+                            // 从树结构中找到指定节点
                             if ((r = t.root) != null &&
                                     (p = r.findTreeNode(hash, key, null)) != null) {
                                 V pv = p.val;
@@ -735,6 +744,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 }
                 if (validated) {
                     if (oldVal != null) {
+                        // 更新元素数量，数量减一
                         if (value == null)
                             addCount(-1L, -1);
                         return oldVal;
@@ -747,7 +757,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Removes all of the mappings from this map.
+     * 从此 map 中删除所有映射。
      */
     public void clear() {
         long delta = 0L; // negative number of deletions
@@ -755,47 +765,43 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         Node<K,V>[] tab = table;
         while (tab != null && i < tab.length) {
             int fh;
+            // 获取 i 位置的节点引用
             Node<K,V> f = tabAt(tab, i);
             if (f == null)
                 ++i;
+            // 如果 i 位置正在转移
             else if ((fh = f.hash) == MOVED) {
                 tab = helpTransfer(tab, f);
                 i = 0; // restart
             }
+            // 尝试删除
             else {
                 synchronized (f) {
                     if (tabAt(tab, i) == f) {
                         Node<K,V> p = (fh >= 0 ? f :
                                 (f instanceof TreeBin) ?
                                         ((TreeBin<K,V>)f).first : null);
+                        // delta 统计该桶内的节点个数
                         while (p != null) {
                             --delta;
                             p = p.next;
                         }
+                        // 该桶设置为 null
                         setTabAt(tab, i++, null);
                     }
                 }
             }
         }
+        // 调用 addCount 改变节点个数
         if (delta != 0L)
             addCount(delta, -1);
     }
 
     /**
-     * Returns a {@link Set} view of the keys contained in this map.
-     * The set is backed by the map, so changes to the map are
-     * reflected in the set, and vice-versa. The set supports element
-     * removal, which removes the corresponding mapping from this map,
-     * via the {@code Iterator.remove}, {@code Set.remove},
-     * {@code removeAll}, {@code retainAll}, and {@code clear}
-     * operations.  It does not support the {@code add} or
-     * {@code addAll} operations.
-     *
-     * <p>The view's iterators and spliterators are
-     * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
-     *
-     * <p>The view's {@code spliterator} reports {@link Spliterator#CONCURRENT},
-     * {@link Spliterator#DISTINCT}, and {@link Spliterator#NONNULL}.
+     * 返回包含此 map 中所有 key 的集合（Set）视图。此集合由 map 支撑，对
+     * map 的任何改变都会反应在此集合中，反之亦然。此集合支持删除，通过
+     * Iterator.remove, Set.remove, removeAll, retainAll, 和 clear 操作。
+     * 不支持 add 或者 addAll 操作。
      *
      * @return the set view
      */
@@ -805,20 +811,10 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns a {@link Collection} view of the values contained in this map.
-     * The collection is backed by the map, so changes to the map are
-     * reflected in the collection, and vice-versa.  The collection
-     * supports element removal, which removes the corresponding
-     * mapping from this map, via the {@code Iterator.remove},
-     * {@code Collection.remove}, {@code removeAll},
-     * {@code retainAll}, and {@code clear} operations.  It does not
-     * support the {@code add} or {@code addAll} operations.
-     *
-     * <p>The view's iterators and spliterators are
-     * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
-     *
-     * <p>The view's {@code spliterator} reports {@link Spliterator#CONCURRENT}
-     * and {@link Spliterator#NONNULL}.
+     * 返回包含此 map 中所有 value 的集合（Collection）视图。此集合由 map
+     * 支撑，对 map 的任何改变都会反应在此集合中，反之亦然。此集合支持
+     * 删除，通过Iterator.remove, Set.remove, removeAll, retainAll,
+     * 和 clear 操作。不支持 add 或者 addAll 操作。
      *
      * @return the collection view
      */
@@ -828,19 +824,9 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns a {@link Set} view of the mappings contained in this map.
-     * The set is backed by the map, so changes to the map are
-     * reflected in the set, and vice-versa.  The set supports element
-     * removal, which removes the corresponding mapping from the map,
-     * via the {@code Iterator.remove}, {@code Set.remove},
-     * {@code removeAll}, {@code retainAll}, and {@code clear}
-     * operations.
-     *
-     * <p>The view's iterators and spliterators are
-     * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
-     *
-     * <p>The view's {@code spliterator} reports {@link Spliterator#CONCURRENT},
-     * {@link Spliterator#DISTINCT}, and {@link Spliterator#NONNULL}.
+     * 返回包含此 map 中所有映射的集合（Set）视图。此集合由 map 支撑，对
+     * map 的任何改变都会反应在此集合中，反之亦然。此集合支持删除，通过
+     * Iterator.remove, Set.remove, removeAll, retainAll, 和 clear 操作。
      *
      * @return the set view
      */
@@ -850,9 +836,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns the hash code value for this {@link Map}, i.e.,
-     * the sum of, for each key-value pair in the map,
-     * {@code key.hashCode() ^ value.hashCode()}.
+     * 返回此 Map 的 hash 值，例如，map 中所有键值对的和，
+     * key.hashCode() ^ value.hashCode()
      *
      * @return the hash code value for this map
      */
@@ -868,13 +853,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns a string representation of this map.  The string
-     * representation consists of a list of key-value mappings (in no
-     * particular order) enclosed in braces ("{@code {}}").  Adjacent
-     * mappings are separated by the characters {@code ", "} (comma
-     * and space).  Each key-value mapping is rendered as the key
-     * followed by an equals sign ("{@code =}") followed by the
-     * associated value.
+     * 转化成字符串
      *
      * @return a string representation of this map
      */
@@ -901,11 +880,9 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Compares the specified object with this map for equality.
-     * Returns {@code true} if the given object is a map with the same
-     * mappings as this map.  This operation may return misleading
-     * results if either map is concurrently modified during execution
-     * of this method.
+     * 比较此 map 和指定对象是否相等。如果指定对象也是 Map 且和此 Map 有
+     * 相同的键值对映射，则返回 true。此方法执行过程中如果有多线程同时修改
+     * 此 map，会出现错误结果。
      *
      * @param o object to be compared for equality with this map
      * @return {@code true} if the specified object is equal to this map
@@ -960,7 +937,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * {@inheritDoc}
+     * 删除指定映射
      *
      * @throws NullPointerException if the specified key is null
      */
@@ -971,7 +948,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * {@inheritDoc}
+     * 替换指定映射的 value
      *
      * @throws NullPointerException if any of the arguments are null
      */
@@ -994,12 +971,10 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         return replaceNode(key, value, null);
     }
 
-    // Overrides of JDK8+ Map extension method defaults
+    // 实现 JDK8 即之后版本的 Map 中定义的接口
 
     /**
-     * Returns the value to which the specified key is mapped, or the
-     * given default value if this map contains no mapping for the
-     * key.
+     * 返回指定 key 对应的 value，如果不包含 key 对应的 map，则返回默认值
      *
      * @param key the key whose associated value is to be returned
      * @param defaultValue the value to return if this map contains
@@ -1043,14 +1018,11 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * If the specified key is not already associated with a value,
-     * attempts to compute its value using the given mapping function
-     * and enters it into this map unless {@code null}.  The entire
-     * method invocation is performed atomically, so the function is
-     * applied at most once per key.  Some attempted update operations
-     * on this map by other threads may be blocked while computation
-     * is in progress, so the computation should be short and simple,
-     * and must not attempt to update any other mappings of this map.
+     * 如果指定的 key 没有其对应的 value，使用给定的映射函数计算 value，
+     * 添加到该映射中（除非为 null）。整个函数的调用是自动的，所以每个 key
+     * 最多应用一次函数。在进行计算的过程中，其他线程试图对这个 map 的
+     * 更新操作可能会阻塞，因此计算应该简短，并且不能尝试更新这个 map 的
+     * 其他映射。
      *
      * @param key key with which the specified value is to be associated
      * @param mappingFunction the function to compute a value
@@ -1072,14 +1044,18 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         int binCount = 0;
         for (Node<K,V>[] tab = table;;) {
             Node<K,V> f; int n, i, fh;
+            // 如果还没有初始化 table，则进行初始化
             if (tab == null || (n = tab.length) == 0)
                 tab = initTable();
+            // 如果该位置为 null，插入一个新的节点
             else if ((f = tabAt(tab, i = (n - 1) & h)) == null) {
                 Node<K,V> r = new ReservationNode<K,V>();
                 synchronized (r) {
+                    // 将 i 位置设置为新创建的占位节点 r，表示当前位置已经被占用了
                     if (casTabAt(tab, i, null, r)) {
                         binCount = 1;
                         Node<K,V> node = null;
+                        // 创建新节点，将 i 位置设置为新的节点
                         try {
                             if ((val = mappingFunction.apply(key)) != null)
                                 node = new Node<K,V>(h, key, val, null);
@@ -1091,14 +1067,18 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 if (binCount != 0)
                     break;
             }
+            // 如果节点正在被转移，此线程也开始帮助转移
             else if ((fh = f.hash) == MOVED)
                 tab = helpTransfer(tab, f);
+            // 该位置已经存在一个节点
             else {
                 boolean added = false;
                 synchronized (f) {
                     if (tabAt(tab, i) == f) {
+                        // 链表结构
                         if (fh >= 0) {
                             binCount = 1;
+                            // 遍历链表，如果链表中存在指定 key 对应的节点，跳出循环
                             for (Node<K,V> e = f;; ++binCount) {
                                 K ek; V ev;
                                 if (e.hash == h &&
@@ -1108,6 +1088,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                     break;
                                 }
                                 Node<K,V> pred = e;
+                                // 到达链表尾部，根据 key 和 value 插入新的节点
                                 if ((e = e.next) == null) {
                                     if ((val = mappingFunction.apply(key)) != null) {
                                         added = true;
@@ -1117,10 +1098,13 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                 }
                             }
                         }
+                        // 如果当前桶内是树结构
                         else if (f instanceof TreeBin) {
                             binCount = 2;
                             TreeBin<K,V> t = (TreeBin<K,V>)f;
                             TreeNode<K,V> r, p;
+                            // 如果找到指定 key 对应的节点，说明已经存在该节点，
+                            // 不做任何操作。否则，插入新的节点
                             if ((r = t.root) != null &&
                                     (p = r.findTreeNode(h, key, null)) != null)
                                 val = p.val;
@@ -1146,13 +1130,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * If the value for the specified key is present, attempts to
-     * compute a new mapping given the key and its current mapped
-     * value.  The entire method invocation is performed atomically.
-     * Some attempted update operations on this map by other threads
-     * may be blocked while computation is in progress, so the
-     * computation should be short and simple, and must not attempt to
-     * update any other mappings of this map.
+     * 如果指定 key 对应的 value 存在，尝试为给定 key 计算新的 value。
      *
      * @param key key with which a value may be associated
      * @param remappingFunction the function to compute a value
@@ -1174,25 +1152,34 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         int binCount = 0;
         for (Node<K,V>[] tab = table;;) {
             Node<K,V> f; int n, i, fh;
+            // table 还没有初始化，先初始化
             if (tab == null || (n = tab.length) == 0)
                 tab = initTable();
+            // 不存在指定 key，跳出循环，直接退出
             else if ((f = tabAt(tab, i = (n - 1) & h)) == null)
                 break;
+            // 正在转移，此线程帮助转移
             else if ((fh = f.hash) == MOVED)
                 tab = helpTransfer(tab, f);
             else {
                 synchronized (f) {
                     if (tabAt(tab, i) == f) {
+                        // 处理链式结构
                         if (fh >= 0) {
                             binCount = 1;
                             for (Node<K,V> e = f, pred = null;; ++binCount) {
                                 K ek;
+                                // 如果存在该节点，计算新的 value 值，并将 key 对应节点
+                                // 的 value 替换成新的 value 值。
+                                // 如果计算出来的新的 value 值为 null，删除 key 对应的节点
                                 if (e.hash == h &&
                                         ((ek = e.key) == key ||
                                                 (ek != null && key.equals(ek)))) {
                                     val = remappingFunction.apply(key, e.val);
+                                    // 新的 value 不为 null
                                     if (val != null)
                                         e.val = val;
+                                    // 新的 value 为 null
                                     else {
                                         delta = -1;
                                         Node<K,V> en = e.next;
@@ -1208,10 +1195,13 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                     break;
                             }
                         }
+                        // 处理树形结构
                         else if (f instanceof TreeBin) {
                             binCount = 2;
                             TreeBin<K,V> t = (TreeBin<K,V>)f;
                             TreeNode<K,V> r, p;
+                            // 同样的方法，先找到 key 对应的节点
+                            // 然后根据计算出来的新的 value 值判断应该替换还是应该删除
                             if ((r = t.root) != null &&
                                     (p = r.findTreeNode(h, key, null)) != null) {
                                 val = remappingFunction.apply(key, p.val);
@@ -1236,13 +1226,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Attempts to compute a mapping for the specified key and its
-     * current mapped value (or {@code null} if there is no current
-     * mapping). The entire method invocation is performed atomically.
-     * Some attempted update operations on this map by other threads
-     * may be blocked while computation is in progress, so the
-     * computation should be short and simple, and must not attempt to
-     * update any other mappings of this Map.
+     * 为指定的 key 计算新的 value。
      *
      * @param key key with which the specified value is to be associated
      * @param remappingFunction the function to compute a value
@@ -1268,8 +1252,12 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             if (tab == null || (n = tab.length) == 0)
                 tab = initTable();
             else if ((f = tabAt(tab, i = (n - 1) & h)) == null) {
+                // 使用 ReservationNode 占位，其它线程无法进入 synchronized 区
+                // 甚至无法进入此 else if 区
                 Node<K,V> r = new ReservationNode<K,V>();
                 synchronized (r) {
+                    // 在此 synchronized 区里，计算出新的 val，并创建新的节点放在
+                    // i 位置，完成后跳出最外层 for 循环
                     if (casTabAt(tab, i, null, r)) {
                         binCount = 1;
                         Node<K,V> node = null;
@@ -1286,21 +1274,29 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 if (binCount != 0)
                     break;
             }
+            // 帮助节点转移
             else if ((fh = f.hash) == MOVED)
                 tab = helpTransfer(tab, f);
             else {
+                // 上面的 synchronized 区的锁释放后，有可能刚好其他线程进入
+                // 此 synchronized
                 synchronized (f) {
                     if (tabAt(tab, i) == f) {
+                        // 链式结构
                         if (fh >= 0) {
                             binCount = 1;
+                            // 遍历
                             for (Node<K,V> e = f, pred = null;; ++binCount) {
                                 K ek;
+                                // 找到指定 key 对应节点
                                 if (e.hash == h &&
                                         ((ek = e.key) == key ||
                                                 (ek != null && key.equals(ek)))) {
                                     val = remappingFunction.apply(key, e.val);
+                                    // 计算出来的 val 不为 null，直接替换
                                     if (val != null)
                                         e.val = val;
+                                    // 计算出来的 val 为 null，删除节点
                                     else {
                                         delta = -1;
                                         Node<K,V> en = e.next;
@@ -1309,8 +1305,10 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                         else
                                             setTabAt(tab, i, en);
                                     }
+                                    // 跳出遍历循环
                                     break;
                                 }
+                                // 没找到指定 key 对应节点，创建新的节点，添加在链表末尾
                                 pred = e;
                                 if ((e = e.next) == null) {
                                     val = remappingFunction.apply(key, null);
@@ -1323,24 +1321,31 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                 }
                             }
                         }
+                        // 树结构
                         else if (f instanceof TreeBin) {
                             binCount = 1;
                             TreeBin<K,V> t = (TreeBin<K,V>)f;
                             TreeNode<K,V> r, p;
+                            // 找到 key 对应的节点
                             if ((r = t.root) != null)
                                 p = r.findTreeNode(h, key, null);
                             else
                                 p = null;
                             V pv = (p == null) ? null : p.val;
+                            // 计算新的 value
                             val = remappingFunction.apply(key, pv);
+                            // 如果计算出来的 value 不为 null
                             if (val != null) {
+                                // 如果 key 存在，替换其对应的 value
                                 if (p != null)
                                     p.val = val;
+                                // 如果 key 不存在，创建新的节点
                                 else {
                                     delta = 1;
                                     t.putTreeVal(h, key, val);
                                 }
                             }
+                            // 如果计算出来的 value 为 null，且 p 已经存在，删除 p
                             else if (p != null) {
                                 delta = -1;
                                 if (t.removeTreeNode(p))
@@ -1349,6 +1354,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                         }
                     }
                 }
+                // 应该转变成树结构
                 if (binCount != 0) {
                     if (binCount >= TREEIFY_THRESHOLD)
                         treeifyBin(tab, i);
@@ -1362,15 +1368,9 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * If the specified key is not already associated with a
-     * (non-null) value, associates it with the given value.
-     * Otherwise, replaces the value with the results of the given
-     * remapping function, or removes if {@code null}. The entire
-     * method invocation is performed atomically.  Some attempted
-     * update operations on this map by other threads may be blocked
-     * while computation is in progress, so the computation should be
-     * short and simple, and must not attempt to update any other
-     * mappings of this Map.
+     * 如果指定的 key 还没有对应一个非 null 的 value，将其和指定的 value 对应。
+     * 否则，将 value 替换成指定的函数计算出来的新的 value，如果计算出来的新的
+     * value 为 null，则删除该节点。
      *
      * @param key key with which the specified value is to be associated
      * @param value the value to use if absent
@@ -1473,12 +1473,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     // Hashtable legacy methods
 
     /**
-     * Legacy method testing if some key maps into the specified value
-     * in this table.  This method is identical in functionality to
-     * {@link #containsValue(Object)}, and exists solely to ensure
-     * full compatibility with class {@link java.util.Hashtable},
-     * which supported this method prior to introduction of the
-     * Java Collections framework.
+     * 是否包含指定 value
      *
      * @param  value a value to search for
      * @return {@code true} if and only if some key maps to the
@@ -1492,7 +1487,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns an enumeration of the keys in this table.
+     * 返回所有 key 的枚举。
      *
      * @return an enumeration of the keys in this table
      * @see #keySet()
@@ -1504,7 +1499,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns an enumeration of the values in this table.
+     * 返回所有 value 的枚举。
      *
      * @return an enumeration of the values in this table
      * @see #values()
@@ -1515,14 +1510,11 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         return new ValueIterator<K,V>(t, f, 0, f, this);
     }
 
-    // ConcurrentHashMap-only methods
+    // 专属于 ConcurrentHashMap 的方法
 
     /**
-     * Returns the number of mappings. This method should be used
-     * instead of {@link #size} because a ConcurrentHashMap may
-     * contain more mappings than can be represented as an int. The
-     * value returned is an estimate; the actual count may differ if
-     * there are concurrent insertions or removals.
+     * 返回 map 中映射的数量。此方法应该被用来代替 size 方法，因为 ConcurrentHashMap
+     * 所包含的映射数量可以超过 int 的范围。返回的值是估计值。
      *
      * @return the number of mappings
      * @since 1.8
@@ -1533,8 +1525,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Creates a new {@link Set} backed by a ConcurrentHashMap
-     * from the given type to {@code Boolean.TRUE}.
+     * 创造一个由 ConcurrentHashMap 支撑的 Set。
      *
      * @param <K> the element type of the returned set
      * @return the new set
@@ -1546,8 +1537,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Creates a new {@link Set} backed by a ConcurrentHashMap
-     * from the given type to {@code Boolean.TRUE}.
+     * 创造一个由 ConcurrentHashMap 支撑的 Set。
      *
      * @param initialCapacity The implementation performs internal
      * sizing to accommodate this many elements.
@@ -1563,11 +1553,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns a {@link Set} view of the keys in this map, using the
-     * given common mapped value for any additions (i.e., {@link
-     * Collection#add} and {@link Collection#addAll(Collection)}).
-     * This is of course only appropriate if it is acceptable to use
-     * the same value for all additions from this view.
+     * 返回此 map 中所有 key 的 Set 视图。
      *
      * @param mappedValue the mapped value to use for any additions
      * @return the set view
@@ -1580,9 +1566,12 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /* ---------------- Special Nodes -------------- */
+    // 特殊节点类
 
     /**
-     * A node inserted at head of bins during transfer operations.
+     * 在 transfer 操作中，插入桶头部的节点，用于表示该桶已经处理完毕了。
+     * 在节点转移的时候用于连接两个 table。
+     * 该节点的 hash 值为 MOVED（具体为整型常量 -1）
      */
     static final class ForwardingNode<K,V> extends Node<K,V> {
         final Node<K,V>[] nextTable;
@@ -1596,11 +1585,13 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             // loop to avoid arbitrarily deep recursion on forwarding nodes
             outer: for (Node<K,V>[] tab = nextTable;;) {
                 Node<K,V> e; int n;
+                // table不存在/key不存在/桶内不存在节点，返回 null
                 if (k == null || tab == null || (n = tab.length) == 0 ||
                         (e = tabAt(tab, (n - 1) & h)) == null)
                     return null;
                 for (;;) {
                     int eh; K ek;
+                    // 找到指定 key 对应的节点，返回该节点
                     if ((eh = e.hash) == h &&
                             ((ek = e.key) == k || (ek != null && k.equals(ek))))
                         return e;
@@ -1612,6 +1603,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                         else
                             return e.find(h, k);
                     }
+                    // 到头了还没找到，返回 null
                     if ((e = e.next) == null)
                         return null;
                 }
@@ -1620,7 +1612,9 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * A place-holder node used in computeIfAbsent and compute
+     * 在 computeIfAbsent 和 compute 函数中使用的站为节点，表示该节点所在的
+     * 位置已经被占用了。
+     * 此类型节点的 hash 值为 RESERVED。
      */
     static final class ReservationNode<K,V> extends Node<K,V> {
         ReservationNode() {
@@ -1633,6 +1627,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /* ---------------- Table Initialization and Resizing -------------- */
+    // table 的初始化和扩容
 
     /**
      * 返回 n（table 大小）的标志位。
@@ -1683,11 +1678,10 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Adds to count, and if table is too small and not already
-     * resizing, initiates transfer. If already resizing, helps
-     * perform transfer if work is available.  Rechecks occupancy
-     * after a transfer to see if another resize is already needed
-     * because resizings are lagging additions.
+     * map 中节点个数的增加或减少。如果 table 太小，而且还没有开始扩容，则开始
+     * 扩容。如果已经开始扩容，调用此方法的线程帮助扩容。在扩容之后重新检查
+     * 占用情况，看看是否还需要扩容，因为可能又添加了新的内容。
+     * 根据参数 check 决定是否检查扩容
      *
      * @param x the count to add
      * @param check if <0, don't check resize, if <= 1 only check if uncontended
