@@ -34,6 +34,7 @@ package JUC.JUCCollections;
  * http://creativecommons.org/publicdomain/zero/1.0/
  */
 
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
@@ -46,35 +47,22 @@ import java.util.Spliterators;
 import java.util.Spliterator;
 
 /**
- * A bounded {@linkplain BlockingQueue blocking queue} backed by an
- * array.  This queue orders elements FIFO (first-in-first-out).  The
- * <em>head</em> of the queue is that element that has been on the
- * queue the longest time.  The <em>tail</em> of the queue is that
- * element that has been on the queue the shortest time. New elements
- * are inserted at the tail of the queue, and the queue retrieval
- * operations obtain elements at the head of the queue.
+ * 由数组支撑的有界阻塞队列。此队列中元素顺序为 FIFO（先进先出）。队列的头
+ * 部元素是所有元素中最早进入队列的元素，队列尾部的元素是队列中最晚进入队列
+ * 的元素。新元素插入到队列尾部，检索操作获取队列头部的元素。
  *
- * <p>This is a classic &quot;bounded buffer&quot;, in which a
- * fixed-sized array holds elements inserted by producers and
- * extracted by consumers.  Once created, the capacity cannot be
- * changed.  Attempts to {@code put} an element into a full queue
- * will result in the operation blocking; attempts to {@code take} an
- * element from an empty queue will similarly block.
+ * 这是一个典型的”有界缓冲区“，其中大小固定的数组保存由生产者插入并由消费者
+ * 提取的元素。一旦创建，容量就不能更改。使用 put 操作尝试在一个满的队列中
+ * 插入元素会导致操作阻塞；使用 take 操作尝试从空的队列中获取元素也会导致
+ * 操作阻塞。
  *
- * <p>This class supports an optional fairness policy for ordering
- * waiting producer and consumer threads.  By default, this ordering
- * is not guaranteed. However, a queue constructed with fairness set
- * to {@code true} grants threads access in FIFO order. Fairness
- * generally decreases throughput but reduces variability and avoids
- * starvation.
+ * 此类支持一个可选的公平性策略，用于对正在等待的生产者和消费者线程进行排序。
+ * 默认情况下，不保证顺序。但是，将公平性设置为 true 之后，将会保证以 FIFO
+ * 的顺序授予线程访问权。公平性通常会降低吞吐量，但会降低变化和避免饥饿。
  *
- * <p>This class and its iterator implement all of the
- * <em>optional</em> methods of the {@link Collection} and {@link
- * Iterator} interfaces.
+ * 此类和它的迭代器实现了 Collection 和 Iterator 的所有可选方法。
  *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此类是 Java Collections Framework 的成员。
  *
  * @since 1.5
  * @author Doug Lea
@@ -91,30 +79,29 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      */
     private static final long serialVersionUID = -817911632652898426L;
 
-    /** The queued items */
+    // 存储元素的数组
     final Object[] items;
 
-    /** items index for next take, poll, peek or remove */
+    // 下一个 take, poll, peek 或者 remove 操作的位置索引
     int takeIndex;
 
-    /** items index for next put, offer, or add */
+    // 下一个 put, offer 或者 add 操作的位置索引
     int putIndex;
 
-    /** Number of elements in the queue */
+    // 队列中元素数量
     int count;
 
-    /*
-     * Concurrency control uses the classic two-condition algorithm
-     * found in any textbook.
+    /**
+     * 使用经典的 two-condition 算法进行并发控制。
      */
 
-    /** Main lock guarding all access */
+    /** 用于所有访问控制的锁 */
     final ReentrantLock lock;
 
-    /** Condition for waiting takes */
+    // 等待 take 的 condition 队列
     private final Condition notEmpty;
 
-    /** Condition for waiting puts */
+    // 等待 put 的 condition 队列
     private final Condition notFull;
 
     /**
