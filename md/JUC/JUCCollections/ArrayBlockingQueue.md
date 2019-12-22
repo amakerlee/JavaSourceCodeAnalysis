@@ -1,10 +1,10 @@
-### ArrayBockingQueue
+## ArrayBockingQueue
 
-#### 完整源码解析
+### 完整源码解析
 
 [ArrayBlockingQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/JUCCollections/ArrayBlockingQueue.java)
 
-#### 类属性
+### 类属性
 
 ArrayBlockingQueue 的原理非常简单。使用指定容量的循环数组（不可扩容）作为底层数据结构，存储阻塞队列的元素。使用两个整型变量 takeIndex、putIndex 作为索引分别记录队列头部和队列尾部。使用变量 count 记录队列中元素个数。
 
@@ -45,7 +45,7 @@ ArrayBlockingQueue 的原理非常简单。使用指定容量的循环数组（�
     transient Itrs itrs = null;
 ```
 
-#### 成员函数
+### 成员函数
 
 **入队**
 
