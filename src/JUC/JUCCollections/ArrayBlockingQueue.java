@@ -105,23 +105,22 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     private final Condition notFull;
 
     /**
-     * Shared state for currently active iterators, or null if there
-     * are known not to be any.  Allows queue operations to update
-     * iterator state.
+     * 当前可共享的活跃迭代器。如果没有此属性的值为 null。允许队列相关操作更新
+     * 迭代器状态。
      */
     transient Itrs itrs = null;
 
-    // Internal helper methods
+    // 内部辅助函数
 
     /**
-     * Circularly decrement i.
+     * 循环数组中对 i 减一
      */
     final int dec(int i) {
         return ((i == 0) ? items.length : i) - 1;
     }
 
     /**
-     * Returns item at index i.
+     * 返回索引 i 位置的元素
      */
     @SuppressWarnings("unchecked")
     final E itemAt(int i) {
@@ -129,7 +128,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Throws NullPointerException if argument is null.
+     * 如果参数为 null，抛出 NullPointerException 异常
      *
      * @param v the element
      */
@@ -139,14 +138,15 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Inserts element at current put position, advances, and signals.
-     * Call only when holding lock.
+     * 在当前的 put 位置插入指定元素，并唤醒等待 take 的线程。
+     * 只能在持有锁时调用。
      */
     private void enqueue(E x) {
         // assert lock.getHoldCount() == 1;
         // assert items[putIndex] == null;
         final Object[] items = this.items;
         items[putIndex] = x;
+        // 在循环数组内索引增加方式（考虑到达边界）
         if (++putIndex == items.length)
             putIndex = 0;
         count++;
@@ -154,8 +154,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Extracts element at current take position, advances, and signals.
-     * Call only when holding lock.
+     * 在当前的 take 位置获取元素，并唤醒等待 put 的线程。
+     * 只有在持有锁时调用。
      */
     private E dequeue() {
         // assert lock.getHoldCount() == 1;
@@ -164,27 +164,31 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         @SuppressWarnings("unchecked")
         E x = (E) items[takeIndex];
         items[takeIndex] = null;
+        // take 位置索引变化
         if (++takeIndex == items.length)
             takeIndex = 0;
+        // 元素计数减一
         count--;
+        // 如果当前有迭代器
         if (itrs != null)
             itrs.elementDequeued();
+        // 唤醒等待 put 的线程
         notFull.signal();
         return x;
     }
 
     /**
-     * Deletes item at array index removeIndex.
-     * Utility for remove(Object) and iterator.remove.
-     * Call only when holding lock.
+     * 删除数组中 removeIndex 位置的元素。
+     * remove(Object) 和 iterator.remove 方法的实用工具。
+     * 只在持有锁时调用。
      */
     void removeAt(final int removeIndex) {
         // assert lock.getHoldCount() == 1;
         // assert items[removeIndex] != null;
         // assert removeIndex >= 0 && removeIndex < items.length;
         final Object[] items = this.items;
+        // 待删除的元素是下一个被 take 的元素，将该位置变为 null，然后改变 takeIndex 即可
         if (removeIndex == takeIndex) {
-            // removing front item; just advance
             items[takeIndex] = null;
             if (++takeIndex == items.length)
                 takeIndex = 0;
@@ -192,10 +196,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             if (itrs != null)
                 itrs.elementDequeued();
         } else {
-            // an "interior" remove
-
-            // slide over all others up through putIndex.
             final int putIndex = this.putIndex;
+            // 将 removeIndex 及之后的元素依次向前移动一位
             for (int i = removeIndex;;) {
                 int next = i + 1;
                 if (next == items.length)
@@ -213,12 +215,12 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             if (itrs != null)
                 itrs.removedAt(removeIndex);
         }
+        // 唤醒等待 put 的线程
         notFull.signal();
     }
 
     /**
-     * Creates an {@code ArrayBlockingQueue} with the given (fixed)
-     * capacity and default access policy.
+     * 使用给定的容量和默认的访问策略创建一个 ArrayBlockingQueue。
      *
      * @param capacity the capacity of this queue
      * @throws IllegalArgumentException if {@code capacity < 1}
@@ -228,8 +230,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Creates an {@code ArrayBlockingQueue} with the given (fixed)
-     * capacity and the specified access policy.
+     * 使用给定的容量和默认的访问策略创建一个 ArrayBlockingQueue。
      *
      * @param capacity the capacity of this queue
      * @param fair if {@code true} then queue accesses for threads blocked
@@ -247,10 +248,9 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Creates an {@code ArrayBlockingQueue} with the given (fixed)
-     * capacity, the specified access policy and initially containing the
-     * elements of the given collection,
-     * added in traversal order of the collection's iterator.
+     * 使用给定的容量和默认的访问策略创建一个 ArrayBlockingQueue，并将指定
+     * 集合中的所有元素添加到此阻塞队列中，添加的顺序与集合迭代器返回的顺序
+     * 相同。
      *
      * @param capacity the capacity of this queue
      * @param fair if {@code true} then queue accesses for threads blocked
@@ -275,6 +275,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                     checkNotNull(e);
                     items[i++] = e;
                 }
+                //超出数组容量抛出异常
             } catch (ArrayIndexOutOfBoundsException ex) {
                 throw new IllegalArgumentException();
             }
@@ -286,10 +287,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Inserts the specified element at the tail of this queue if it is
-     * possible to do so immediately without exceeding the queue's capacity,
-     * returning {@code true} upon success and throwing an
-     * {@code IllegalStateException} if this queue is full.
+     * 将指定元素插入到队列尾部，如果这样做不会超出队列的容量的话。成功返回
+     * true，如果队列已满则抛出 IllegalStateException 异常。
      *
      * @param e the element to add
      * @return {@code true} (as specified by {@link Collection#add})
@@ -301,11 +300,10 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Inserts the specified element at the tail of this queue if it is
-     * possible to do so immediately without exceeding the queue's capacity,
-     * returning {@code true} upon success and {@code false} if this queue
-     * is full.  This method is generally preferable to method {@link #add},
-     * which can fail to insert an element only by throwing an exception.
+     * 将指定元素插入到队列尾部，如果这样做不会超出队列的容量的话。成功返回
+     * true，如果队列已满则抛出 IllegalStateException 异常。此方法通常比 add
+     * 更可取，add 在插入失败时只会抛出异常。
+     * 插入成功返回 true，插入失败返回 false。
      *
      * @throws NullPointerException if the specified element is null
      */
@@ -326,8 +324,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Inserts the specified element at the tail of this queue, waiting
-     * for space to become available if the queue is full.
+     * 将指定元素插入到队列末尾，如果队列已满，线程进入等待，直到可以执行插入操作。
      *
      * @throws InterruptedException {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
@@ -337,8 +334,10 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         final ReentrantLock lock = this.lock;
         lock.lockInterruptibly();
         try {
+            // 队列已满，进入 condition 等待
             while (count == items.length)
                 notFull.await();
+            // 线程被唤醒且可以插入，则执行插入操作
             enqueue(e);
         } finally {
             lock.unlock();
@@ -346,9 +345,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Inserts the specified element at the tail of this queue, waiting
-     * up to the specified wait time for space to become available if
-     * the queue is full.
+     * 将指定元素插入到队列末尾，等待指定时间长度。在指定时间长度内如果可以
+     * 执行插入操作则执行，否则时间到期返回 false。
      *
      * @throws InterruptedException {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
@@ -361,11 +359,14 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         final ReentrantLock lock = this.lock;
         lock.lockInterruptibly();
         try {
+            // 等待指定时间
             while (count == items.length) {
+                // 没有剩余时间了
                 if (nanos <= 0)
                     return false;
                 nanos = notFull.awaitNanos(nanos);
             }
+            // 插入到队列中
             enqueue(e);
             return true;
         } finally {
@@ -373,6 +374,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         }
     }
 
+    // 从队列头部取出
     public E poll() {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -383,6 +385,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         }
     }
 
+    // 从队列头部取出，如果队列中没有元素，进入 condition 等待
     public E take() throws InterruptedException {
         final ReentrantLock lock = this.lock;
         lock.lockInterruptibly();
@@ -395,6 +398,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         }
     }
 
+    // 从队列头部取出，如果队列为空，进入 condition 等待指定时间。指定时间到期则退出、
     public E poll(long timeout, TimeUnit unit) throws InterruptedException {
         long nanos = unit.toNanos(timeout);
         final ReentrantLock lock = this.lock;
@@ -411,6 +415,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         }
     }
 
+    // 获取队列头部元素。
     public E peek() {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -421,10 +426,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         }
     }
 
-    // this doc comment is overridden to remove the reference to collections
-    // greater in size than Integer.MAX_VALUE
     /**
-     * Returns the number of elements in this queue.
+     * 返回队列中元素个数。
      *
      * @return the number of elements in this queue
      */
@@ -438,13 +441,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         }
     }
 
-    // this doc comment is a modified copy of the inherited doc comment,
-    // without the reference to unlimited queues.
     /**
-     * Returns the number of additional elements that this queue can ideally
-     * (in the absence of memory or resource constraints) accept without
-     * blocking. This is always equal to the initial capacity of this queue
-     * less the current {@code size} of this queue.
+     * 返回队列中剩余的空间。
      *
      * <p>Note that you <em>cannot</em> always tell if an attempt to insert
      * an element will succeed by inspecting {@code remainingCapacity}
@@ -462,18 +460,8 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Removes a single instance of the specified element from this queue,
-     * if it is present.  More formally, removes an element {@code e} such
-     * that {@code o.equals(e)}, if this queue contains one or more such
-     * elements.
-     * Returns {@code true} if this queue contained the specified element
-     * (or equivalently, if this queue changed as a result of the call).
-     *
-     * <p>Removal of interior elements in circular array based queues
-     * is an intrinsically slow and disruptive operation, so should
-     * be undertaken only in exceptional circumstances, ideally
-     * only when the queue is known not to be accessible by other
-     * threads.
+     * 从队列中删除指定元素，如果它存在的话。删除成功返回 true
+     * 由于此操作全程加锁，将会耗费大量时间。
      *
      * @param o element to be removed from this queue, if present
      * @return {@code true} if this queue changed as a result of the call
@@ -487,7 +475,9 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             if (count > 0) {
                 final int putIndex = this.putIndex;
                 int i = takeIndex;
+                // 遍历所有元素
                 do {
+                    // 找到指定元素，删除并返回 true
                     if (o.equals(items[i])) {
                         removeAt(i);
                         return true;
@@ -503,9 +493,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns {@code true} if this queue contains the specified element.
-     * More formally, returns {@code true} if and only if this queue contains
-     * at least one element {@code e} such that {@code o.equals(e)}.
+     * 如果队列包含指定元素返回 true。
      *
      * @param o object to be checked for containment in this queue
      * @return {@code true} if this queue contains the specified element
@@ -519,6 +507,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             if (count > 0) {
                 final int putIndex = this.putIndex;
                 int i = takeIndex;
+                // 遍历
                 do {
                     if (o.equals(items[i]))
                         return true;
@@ -533,15 +522,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns an array containing all of the elements in this queue, in
-     * proper sequence.
-     *
-     * <p>The returned array will be "safe" in that no references to it are
-     * maintained by this queue.  (In other words, this method must allocate
-     * a new array).  The caller is thus free to modify the returned array.
-     *
-     * <p>This method acts as bridge between array-based and collection-based
-     * APIs.
+     * 返回包含队列所有元素的数组，以正确的顺序。
      *
      * @return an array containing all of the elements in this queue
      */
@@ -553,8 +534,10 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             final int count = this.count;
             a = new Object[count];
             int n = items.length - takeIndex;
+            // 正常的顺序
             if (count <= n)
                 System.arraycopy(items, takeIndex, a, 0, count);
+            // 元素的存储分成了两部分，两部分按顺序分别复制
             else {
                 System.arraycopy(items, takeIndex, a, 0, n);
                 System.arraycopy(items, 0, a, n, count - n);
@@ -566,30 +549,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns an array containing all of the elements in this queue, in
-     * proper sequence; the runtime type of the returned array is that of
-     * the specified array.  If the queue fits in the specified array, it
-     * is returned therein.  Otherwise, a new array is allocated with the
-     * runtime type of the specified array and the size of this queue.
-     *
-     * <p>If this queue fits in the specified array with room to spare
-     * (i.e., the array has more elements than this queue), the element in
-     * the array immediately following the end of the queue is set to
-     * {@code null}.
-     *
-     * <p>Like the {@link #toArray()} method, this method acts as bridge between
-     * array-based and collection-based APIs.  Further, this method allows
-     * precise control over the runtime type of the output array, and may,
-     * under certain circumstances, be used to save allocation costs.
-     *
-     * <p>Suppose {@code x} is a queue known to contain only strings.
-     * The following code can be used to dump the queue into a newly
-     * allocated array of {@code String}:
-     *
-     *  <pre> {@code String[] y = x.toArray(new String[0]);}</pre>
-     *
-     * Note that {@code toArray(new Object[0])} is identical in function to
-     * {@code toArray()}.
+     * 返回包含队列所有元素的数组，以正确的顺序。
      *
      * @param a the array into which the elements of the queue are to
      *          be stored, if it is big enough; otherwise, a new array of the
@@ -626,6 +586,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         return a;
     }
 
+    // 转化成字符串
     public String toString() {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -652,8 +613,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Atomically removes all of the elements from this queue.
-     * The queue will be empty after this call returns.
+     * 清除队列中所有元素。此方法执行后队列为空。
      */
     public void clear() {
         final Object[] items = this.items;
@@ -664,6 +624,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
             if (k > 0) {
                 final int putIndex = this.putIndex;
                 int i = takeIndex;
+                // 遍历
                 do {
                     items[i] = null;
                     if (++i == items.length)
@@ -671,6 +632,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 } while (i != putIndex);
                 takeIndex = putIndex;
                 count = 0;
+                // 迭代器相应的操作
                 if (itrs != null)
                     itrs.queueIsEmpty();
                 for (; k > 0 && lock.hasWaiters(notFull); k--)
@@ -692,6 +654,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
+     * 将指定数量（maxElements）的元素批量转移到指定集合（c）中。
      * @throws UnsupportedOperationException {@inheritDoc}
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
@@ -742,11 +705,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns an iterator over the elements in this queue in proper sequence.
-     * The elements will be returned in order from first (head) to last (tail).
-     *
-     * <p>The returned iterator is
-     * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
+     * 返回迭代器。
      *
      * @return an iterator over the elements in this queue in proper sequence
      */
@@ -755,60 +714,12 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Shared data between iterators and their queue, allowing queue
-     * modifications to update iterators when elements are removed.
-     *
-     * This adds a lot of complexity for the sake of correctly
-     * handling some uncommon operations, but the combination of
-     * circular-arrays and supporting interior removes (i.e., those
-     * not at head) would cause iterators to sometimes lose their
-     * places and/or (re)report elements they shouldn't.  To avoid
-     * this, when a queue has one or more iterators, it keeps iterator
-     * state consistent by:
-     *
-     * (1) keeping track of the number of "cycles", that is, the
-     *     number of times takeIndex has wrapped around to 0.
-     * (2) notifying all iterators via the callback removedAt whenever
-     *     an interior element is removed (and thus other elements may
-     *     be shifted).
-     *
-     * These suffice to eliminate iterator inconsistencies, but
-     * unfortunately add the secondary responsibility of maintaining
-     * the list of iterators.  We track all active iterators in a
-     * simple linked list (accessed only when the queue's lock is
-     * held) of weak references to Itr.  The list is cleaned up using
-     * 3 different mechanisms:
-     *
-     * (1) Whenever a new iterator is created, do some O(1) checking for
-     *     stale list elements.
-     *
-     * (2) Whenever takeIndex wraps around to 0, check for iterators
-     *     that have been unused for more than one wrap-around cycle.
-     *
-     * (3) Whenever the queue becomes empty, all iterators are notified
-     *     and this entire data structure is discarded.
-     *
-     * So in addition to the removedAt callback that is necessary for
-     * correctness, iterators have the shutdown and takeIndexWrapped
-     * callbacks that help remove stale iterators from the list.
-     *
-     * Whenever a list element is examined, it is expunged if either
-     * the GC has determined that the iterator is discarded, or if the
-     * iterator reports that it is "detached" (does not need any
-     * further state updates).  Overhead is maximal when takeIndex
-     * never advances, iterators are discarded before they are
-     * exhausted, and all removals are interior removes, in which case
-     * all stale iterators are discovered by the GC.  But even in this
-     * case we don't increase the amortized complexity.
-     *
-     * Care must be taken to keep list sweeping methods from
-     * reentrantly invoking another such method, causing subtle
-     * corruption bugs.
+     * 所有的迭代器构成的集合，迭代器创建的时候加入到此 Itrs 中。
      */
     class Itrs {
 
         /**
-         * Node in a linked list of weak iterator references.
+         * 每个迭代器都是一个节点
          */
         private class Node extends WeakReference<Itr> {
             Node next;

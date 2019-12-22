@@ -1,6 +1,11 @@
 ### CopyOnWriteArrayList
 
 ***
+> 完整源码解析
+
+[CopyOnWriteArrayList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/JUCCollections/CopyOnWriteArrayList.java)
+
+***
 > 类属性
 
 CopyOnWriteArrayList 类是 ArrayList 类的并发版本，类中仅有两个属性，一个是用于更改操作避免并发修改的 ReentrantLock 实例，一个是存储列表元素的对象数组。
