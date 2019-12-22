@@ -1,14 +1,12 @@
-### CountDownLatch
+## CountDownLatch
 
 主线程等待固定数量的子线程运行完成之后，继续运行后面的操作。
 
-***
-> 完整源码解析
+### 完整源码解析
 
 [CountDownLatch](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/CountDownLatch.java)
 
-***
-> 内部类 Sync
+### 内部类 Sync
 
 同步控制器 Sync 类中实现获取共享锁的 tryAcquireShared 方法和释放共享锁的 tryReleaseShared 方法
 
@@ -38,8 +36,7 @@ tryAcquireShared 方法中仅仅判断当前状态（状态用于判断是否打
         }
 ```
 
-***
-> 成员函数
+### 成员函数
 
 此类的一个常用场景是，主线程等待固定数量的子线程运行完成之后，继续运行后面的操作。使用方法 await 阻塞主线程，直到所有的线程都完成调用 countDown 方法，将状态计数减到 0 之后，被阻塞的主线程才开始继续运行。
 
@@ -79,8 +76,7 @@ tryAcquireShared 方法中仅仅判断当前状态（状态用于判断是否打
     }
 ```
 
-***
-> 应用实例
+### 应用实例
 
 CountDownLatch 创建时指定 count 为 3，main 主线程在 latch.await 处等待三个子线程完成 latch.countDown 操作之后，才继续执行后面的操作。
 
@@ -116,7 +112,6 @@ public class test {
 }
 ```
 
-***
-> 总结
+### 总结
 
 CountDownLatch 底层实现依赖于 AQS 共享锁的实现机制，首先初始化计数器 count，调用 countDown 方法时，计数器 count 减 1，当计数器 count 等于 0 时，会唤醒 AQS 等待队列中的线程。调用 await 方法，线程会被挂起，它会等待直到 count 值为 0 才继续执行，否则会加入到等待队列中，等待被唤醒。

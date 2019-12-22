@@ -1,14 +1,12 @@
-### CyclicBarrier
+## CyclicBarrier
 
  允许一组线程全部等待彼此达到共同屏障点的同步辅助。
 
-***
-> 完整源码解析
+### 完整源码解析
 
 [CyclicBarrier](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/CyclicBarrier.java)
 
-***
-> 类变量
+### 类变量
 
 当线程执行完毕，进入 await 方法中，将 count 计数减 1，并且进入 Condition 队列中等待被唤醒。当所有线程到达屏障处时，屏障被打开，所有线程被唤醒，此 generation 结束。开启下一个 generation 时 count 被重置为 parties。
 
@@ -32,8 +30,7 @@
     private int count;
 ```
 
-***
-> 成员函数
+### 成员函数
 
 调用 **await** 方法让线程在屏障前等待，此类的核心成员是在 await 中调用的 **dowait** 方法。
 
@@ -164,8 +161,7 @@
     }
 ```
 
-***
-> CountDownLatch 和 CyclicBarrier 的区别
+### CountDownLatch 和 CyclicBarrier 的区别
 
 CountDownLatch 让一个或多个线程等待其他线程完成执行；CyclicBarrier 不存在主线程（等待）子线程的情况，它是多个线程之间的相互等待。
 
