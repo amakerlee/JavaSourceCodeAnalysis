@@ -1,14 +1,14 @@
 ### Java Collections in java.util
 
----
-
 #### List, Stack and Queue
 
 * [ArrayList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/ArrayList.md) | [LinkedList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/LinkedList.md)
 
 * [Stack](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Stack.md)
 
-* [ArrayDeque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/ArrayDeque.md) | [PriorityQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/PriorityQueue.md)
+* [ArrayDeque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/ArrayDeque.md)
+
+* [PriorityQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/PriorityQueue.md)
 
 #### Set
 
@@ -22,11 +22,11 @@
 
 ### Java Concurrency Tools in java.util.concurrent
 
----
-
 #### CAS, AQS and ThreadLocal
 
-* [CAS](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CASAndAQS.md) | [AQS](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CASAndAQS.md)
+* [CAS](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CASAndAQS.md)
+
+* [AQS](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CASAndAQS.md)
 
 * [ThreadLocal](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ThreadLocal.md)
 
@@ -43,6 +43,8 @@
 * [ConcurrentHashMap（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentHashMap.md) | [ConcurrentSkipListMap（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentSkipListMap.md)
 
 * [ArrayBlockingQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ArrayBlockingQueue.md)
+
+* [ConcurrentLinkedQueue（未完成）](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentLinkedQueue.md)
 
 #### Thread Pool
 

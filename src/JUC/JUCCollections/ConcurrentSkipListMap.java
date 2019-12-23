@@ -60,53 +60,26 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 /**
- * A scalable concurrent {@link ConcurrentNavigableMap} implementation.
- * The map is sorted according to the {@linkplain Comparable natural
- * ordering} of its keys, or by a {@link Comparator} provided at map
- * creation time, depending on which constructor is used.
+ * 一个可伸缩的并发 ConcurrentNavigableMap 的实现。此 Map 根据 key 的自然顺序
+ * 排序，或者构造 Map 时指定的 Comparator 比较器排序。
  *
- * <p>This class implements a concurrent variant of <a
- * href="http://en.wikipedia.org/wiki/Skip_list" target="_top">SkipLists</a>
- * providing expected average <i>log(n)</i> time cost for the
- * {@code containsKey}, {@code get}, {@code put} and
- * {@code remove} operations and their variants.  Insertion, removal,
- * update, and access operations safely execute concurrently by
- * multiple threads.
+ * 此类实现了一个 SkipList（跳跃表），为 containsKey, get, put 和 remove
+ * 方法提供了预期平均 log(n) 的时间开销。插入、删除、更新和检索操作可以由
+ * 多线程安全地并发执行。
  *
- * <p>Iterators and spliterators are
- * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
+ * 此类中的方法返回的所有 Map.Entry 和视图都是创建时的快照。它们不支持
+ * Entry.setValue 方法。
  *
- * <p>Ascending key ordered views and their iterators are faster than
- * descending ones.
+ * 和大多数集合不同，size 方法不是在常数时间内就能完成。由于这些键值对的
+ * 异步性，确定当前元素的数量需要遍历集合，因此如果遍历过程中发生了并发修改，
+ * 可能会返回不准确的结果。此外，批量操作函数 addAll, removeAll, retainAll,
+ * containsAll, equals,和 toArray 不能保证自动执行。例如，与 addAll 操作
+ * 并发执行的迭代器只能查看添加的元素中的某一部分。
  *
- * <p>All {@code Map.Entry} pairs returned by methods in this class
- * and its views represent snapshots of mappings at the time they were
- * produced. They do <em>not</em> support the {@code Entry.setValue}
- * method. (Note however that it is possible to change mappings in the
- * associated map using {@code put}, {@code putIfAbsent}, or
- * {@code replace}, depending on exactly which effect you need.)
+ * 此类和它的迭代器实现了 Map 和 Iterator 接口的所有可选操作。和其它
+ * 大多数集合一样，此类不支持 null 的 key 或者 value。
  *
- * <p>Beware that, unlike in most collections, the {@code size}
- * method is <em>not</em> a constant-time operation. Because of the
- * asynchronous nature of these maps, determining the current number
- * of elements requires a traversal of the elements, and so may report
- * inaccurate results if this collection is modified during traversal.
- * Additionally, the bulk operations {@code putAll}, {@code equals},
- * {@code toArray}, {@code containsValue}, and {@code clear} are
- * <em>not</em> guaranteed to be performed atomically. For example, an
- * iterator operating concurrently with a {@code putAll} operation
- * might view only some of the added elements.
- *
- * <p>This class and its views and iterators implement all of the
- * <em>optional</em> methods of the {@link Map} and {@link Iterator}
- * interfaces. Like most other concurrent collections, this class does
- * <em>not</em> permit the use of {@code null} keys or values because some
- * null return values cannot be reliably distinguished from the absence of
- * elements.
- *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此类是 Java Collections Framework 的成员。
  *
  * @author Doug Lea
  * @param <K> the type of keys maintained by this map
@@ -358,19 +331,17 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     private static final long serialVersionUID = -8627078645895051609L;
 
     /**
-     * Special value used to identify base-level header
+     * 最底层（base-level）的头结点
      */
     private static final Object BASE_HEADER = new Object();
 
     /**
-     * The topmost head index of the skiplist.
+     * 最高层的头结点
      */
     private transient volatile HeadIndex<K,V> head;
 
     /**
-     * The comparator used to maintain order in this map, or null if
-     * using natural ordering.  (Non-private to simplify access in
-     * nested classes.)
+     * 比较器
      * @serial
      */
     final Comparator<? super K> comparator;
@@ -408,11 +379,10 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /* ---------------- Nodes -------------- */
 
     /**
-     * Nodes hold keys and values, and are singly linked in sorted
-     * order, possibly with some intervening marker nodes. The list is
-     * headed by a dummy node accessible as head.node. The value field
-     * is declared only as Object because it takes special non-V
-     * values for marker and header nodes.
+     * 存储键值对数据的节点，按照顺序排序，单向连接，可能中间有一些标记
+     * 节点。列表由一个可以作为 head.node 访问的虚拟节点作为头。 value 字段
+     * 声明为 Object，因为作为头节点和标记节点（删除时将 value 指向自身）
+     * 可以接受特殊的非 V 类型的对象。
      */
     static final class Node<K,V> {
         final K key;
@@ -420,7 +390,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         volatile Node<K,V> next;
 
         /**
-         * Creates a new regular node.
+         * 创造一个普通节点
          */
         Node(K key, Object value, Node<K,V> next) {
             this.key = key;
@@ -429,11 +399,9 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         }
 
         /**
-         * Creates a new marker node. A marker is distinguished by
-         * having its value field point to itself.  Marker nodes also
-         * have null keys, a fact that is exploited in a few places,
-         * but this doesn't distinguish markers from the base-level
-         * header node (head.node), which also has a null key.
+         * 创造一个新的标记节点。标记节点和普通节点的区别在于标记节点的 value
+         * 字段指向自己。标记节点也有 null 的 key，但这不能将标记节点和
+         * 最底层的头结点（head.node）区分开，后者也有 null 的 key。
          */
         Node(Node<K,V> next) {
             this.key = null;
@@ -442,25 +410,23 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         }
 
         /**
-         * compareAndSet value field
+         * CAS 方式改变 value
          */
         boolean casValue(Object cmp, Object val) {
             return UNSAFE.compareAndSwapObject(this, valueOffset, cmp, val);
         }
 
         /**
-         * compareAndSet next field
+         * CAS 方式改变 next 的引用
          */
         boolean casNext(Node<K,V> cmp, Node<K,V> val) {
             return UNSAFE.compareAndSwapObject(this, nextOffset, cmp, val);
         }
 
         /**
-         * Returns true if this node is a marker. This method isn't
-         * actually called in any current code checking for markers
-         * because callers will have already read value field and need
-         * to use that read (not another done here) and so directly
-         * test if value points to node.
+         * 如果节点是标记节点返回 true。此方法实际上并没有在标记节点的
+         * 任何当前的代码检查中被调用，因为调用者已经读取了 value 字段，
+         * 并且需要使用这个读操作，所以直接测试 value 是否指向 node。
          *
          * @return true if this node is a marker node
          */
@@ -469,7 +435,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         }
 
         /**
-         * Returns true if this node is the header of base-level list.
+         * 如果此节点是最底层链表的头结点返回 true。
          * @return true if this node is header node
          */
         boolean isBaseHeader() {
@@ -477,7 +443,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         }
 
         /**
-         * Tries to append a deletion marker to this node.
+         * 如果 f 节点是当前节点的后继节点，在当前节点和 f 之间插入一个标记节点
          * @param f the assumed current successor of this node
          * @return true if successful
          */
@@ -486,34 +452,32 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         }
 
         /**
-         * Helps out a deletion by appending marker or unlinking from
-         * predecessor. This is called during traversals when value
-         * field seen to be null.
+         * 辅助删除，通过添加 marker 或者和前驱节点取消关联。遍历过程中若 value
+         * 为 null 时调用。
          * @param b predecessor
          * @param f successor
          */
         void helpDelete(Node<K,V> b, Node<K,V> f) {
-            /*
-             * Rechecking links and then doing only one of the
-             * help-out stages per call tends to minimize CAS
-             * interference among helping threads.
-             */
+            // 如果 this 节点在 b 和 f 中间
             if (f == next && this == b.next) {
+                // 如果 f 等于 null 或者 f 不是标记节点，在 n 和 f 中间插入一个标记节点
                 if (f == null || f.value != f) // not already marked
                     casNext(f, new Node<K,V>(f));
+                // f 不等于 null 且 f 是标记节点，将 b 的 next 指向 f 的 next，
+                // 即删除 b 和 f.next 之间的两个节点（n 和 n 后面的标记节点）
                 else
                     b.casNext(this, f.next);
             }
         }
 
         /**
-         * Returns value if this node contains a valid key-value pair,
-         * else null.
+         * 如果此节点中是一个有效的 key-value 对，返回其 value，否则返回 null。
          * @return this node's value if it isn't a marker or header or
          * is deleted, else null
          */
         V getValidValue() {
             Object v = value;
+            // 此节点是标记节点或者是最底层的头结点
             if (v == this || v == BASE_HEADER)
                 return null;
             @SuppressWarnings("unchecked") V vv = (V)v;
@@ -521,8 +485,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         }
 
         /**
-         * Creates and returns a new SimpleImmutableEntry holding current
-         * mapping if this node holds a valid value, else null.
+         * 如果此节点中是一个有效的 key-value 对，创建并返回一个包含 key-value 的
+         * SimpleImmutableEntry 对象（快照），否则返回 null。
          * @return new entry or null
          */
         AbstractMap.SimpleImmutableEntry<K,V> createSnapshot() {
@@ -556,6 +520,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /* ---------------- Indexing -------------- */
 
     /**
+     * 索引节点包含了调表的层数。
      * Index nodes represent the levels of the skip list.  Note that
      * even though both Nodes and Indexes have forward-pointing
      * fields, they have different types and are handled in different

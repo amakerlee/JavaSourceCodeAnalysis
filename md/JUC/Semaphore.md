@@ -48,13 +48,13 @@ Semaphore 和 CountDownLatch 基本一样，同样是基于 AQS 实现一个公�
         }
 ```
 
-公平版本的 tryAcquire 在非公平的基础上多了一个步骤，在获取之前，检查当前线程是否有前继节点，如果有，说明公平模式下当前线程并没有资格获取许可证，返回获取失败。
+公平版本的 tryAcquire 在非公平的基础上多了一个步骤，在获取之前，检查当前线程是否有前驱节点，如果有，说明公平模式下当前线程并没有资格获取许可证，返回获取失败。
 
 ```java
         // 公平版 tryAcquire
         protected int tryAcquireShared(int acquires) {
             for (;;) {
-                // 和公平版本不同的是，需要判断是否有前继节点，如果有，返回 -1，
+                // 和公平版本不同的是，需要判断是否有前驱节点，如果有，返回 -1，
                 // 即不允许获取
                 if (hasQueuedPredecessors())
                     return -1;
