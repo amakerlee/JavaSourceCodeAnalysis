@@ -1,6 +1,6 @@
 ## ConcurrentLinkedQueue
 
-ConcurrentLinkedQueue 是无界并发队列，主要利用 CAS 实现所线程环境下的并发安全，元素入队出队规则为 FIFO (first-in-first-out 先入先出) 。
+ConcurrentLinkedQueue 是非阻塞无界并发队列，主要利用 CAS 实现多线程环境下的并发安全，元素入队出队规则为 FIFO (first-in-first-out 先入先出) 。
 
 ### 完整源码解析
 
