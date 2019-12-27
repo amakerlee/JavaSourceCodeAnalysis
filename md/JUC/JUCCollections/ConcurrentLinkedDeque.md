@@ -184,7 +184,7 @@ unlink 是删除元素最核心的方法，流程较复杂。
 
 首先分为三种情况，前两种是删除节点为第一个节点或最后一个节点的情况，分别调用 unlinkFirst 或 unlinkLast 函数完成。
 
-第三种情况是
+第三种情况是删除节点为中间节点。首先从删除节点的前一个节点开始往前扫描，找到即退出循环，然后从删除节点的后一个节点开始往后扫描，找到即退出循环（遇到自链接节点直接返回），最后清除范围内的无效节点，并更新 head、tail 等。
 
 ```java
     /**
@@ -270,7 +270,7 @@ unlink 是删除元素最核心的方法，流程较复杂。
             // 完成删除操作后，原 x 左右不存在无效节点（除非第一个节点到 x
             // 而且/或者 x 到最后一个节点之间为无效节点）
 
-            // 第一个或最后一个节点是无效节点，
+            // 处理范围包括第一个或最后一个节点
             if ((isFirst | isLast) &&
 
                     // 再次检查是否连接上，且是否满足条件（已经删除 x 及前后无效节点）
@@ -294,6 +294,12 @@ unlink 是删除元素最核心的方法，流程较复杂。
 ```
 
 **unlinkFirst/unlinkLast**
+
+unlinkFirst 在删除节点为 first 节点时调用，用来清除 first 节点之后的连续无效节点（此处不涉及到 head，所以不需要两层循环）。方法的思路为从 first.next 开始往后查找，找到有效节点为止，然后将 first.next 指向该有效节点。unlinkLast 基本一样。
+
+注意使用到 CAS 方式的更新仅为设置 first 的 next，且允许失败。
+
+注意函数执行完之后，first 节点依然是原来的 first 节点，不管它有效还是无效。
 
 ```java
     /**
@@ -374,6 +380,8 @@ unlink 是删除元素最核心的方法，流程较复杂。
 
 **skipDeletedPredecessors/skipDeletedSuccessors**
 
+skipDeletedPredecessors 和 skipDeletedSuccessors 用于删除指定节点之前/之后的连续无效节点。
+
 ```java
     // 删除 x 之前的连续无效节点
     private void skipDeletedPredecessors(Node<E> x) {
@@ -446,6 +454,8 @@ unlink 是删除元素最核心的方法，流程较复杂。
 
 **updateHead/updateTail**
 
+updateHead 和 updateTail 用于更新 head 和 tail，同样使用两层循环，用于不断应对多线程对 head/tail 的修改。在更新 head/tail 的时候使用 CAS 保证线程安全。不允许更新失败，更新失败会自旋重新进入更新流程。
+
 ```java
     /**
      * 确保在调用此方法之前未链接的节点在返回后无法从 head 访问。不保证消除
@@ -509,6 +519,10 @@ unlink 是删除元素最核心的方法，流程较复杂。
 ```
 
 ####其它
+
+succ 用于获取当前节点的下一个节点，pred 用于获取当前节点的上一个节点（不一定是有效节点）。
+
+first 用于获取第一个节点（从 head 开始向前扫描），last 用于获取最后一个节点（从 tail 开始向后扫描）。
 
 **succ/pred/first/last**
 
