@@ -120,5 +120,7 @@ TreeMap 基本数据结构为红黑树，与红黑树相关内容参照 [HashMap
 > TreeMap 小结
 
 * TreeMap 是基于红黑树和 NavigableMap 实现的映射。所有的键值对节点组织成一个红黑树结构。
+
 * TreeMap 完全基于红黑树结构，而红黑树是二叉检索树，所以相比 HashMap 完全无序的结构，TreeMap 的成员函数和内部类中，包含大量和节点顺序相关的操作。
+
 * 对查询，插入，删除操作而言，HashMap 效率均高于 TreeMap。

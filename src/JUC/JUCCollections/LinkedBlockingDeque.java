@@ -47,29 +47,14 @@ import java.util.Spliterators;
 import java.util.function.Consumer;
 
 /**
- * An optionally-bounded {@linkplain BlockingDeque blocking deque} based on
- * linked nodes.
+ * LinkedBlockingDeque 是基于链表的有界双向阻塞队列。
  *
- * <p>The optional capacity bound constructor argument serves as a
- * way to prevent excessive expansion. The capacity, if unspecified,
- * is equal to {@link Integer#MAX_VALUE}.  Linked nodes are
- * dynamically created upon each insertion unless this would bring the
- * deque above capacity.
+ * 构造函数参数中指定可选的容量，防止过度的队列扩散。未指定时容量等于
+ * Integer.MAX_VALUE。在每次插入时动态创建链接节点，除非超出容量。
  *
- * <p>Most operations run in constant time (ignoring time spent
- * blocking).  Exceptions include {@link #remove(Object) remove},
- * {@link #removeFirstOccurrence removeFirstOccurrence}, {@link
- * #removeLastOccurrence removeLastOccurrence}, {@link #contains
- * contains}, {@link #iterator iterator.remove()}, and the bulk
- * operations, all of which run in linear time.
+ * 此类和它的迭代器实现了 Collection 和 Iterator 的所有可选操作。
  *
- * <p>This class and its iterator implement all of the
- * <em>optional</em> methods of the {@link Collection} and {@link
- * Iterator} interfaces.
- *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此类是 Java Collections Framework 的成员。
  *
  * @since 1.6
  * @author  Doug Lea
@@ -79,54 +64,20 @@ public class LinkedBlockingDeque<E>
         extends AbstractQueue<E>
         implements BlockingDeque<E>, java.io.Serializable {
 
-    /*
-     * Implemented as a simple doubly-linked list protected by a
-     * single lock and using conditions to manage blocking.
-     *
-     * To implement weakly consistent iterators, it appears we need to
-     * keep all Nodes GC-reachable from a predecessor dequeued Node.
-     * That would cause two problems:
-     * - allow a rogue Iterator to cause unbounded memory retention
-     * - cause cross-generational linking of old Nodes to new Nodes if
-     *   a Node was tenured while live, which generational GCs have a
-     *   hard time dealing with, causing repeated major collections.
-     * However, only non-deleted Nodes need to be reachable from
-     * dequeued Nodes, and reachability does not necessarily have to
-     * be of the kind understood by the GC.  We use the trick of
-     * linking a Node that has just been dequeued to itself.  Such a
-     * self-link implicitly means to jump to "first" (for next links)
-     * or "last" (for prev links).
-     */
-
-    /*
-     * We have "diamond" multiple interface/abstract class inheritance
-     * here, and that introduces ambiguities. Often we want the
-     * BlockingDeque javadoc combined with the AbstractQueue
-     * implementation, so a lot of method specs are duplicated here.
-     */
-
-    private static final long serialVersionUID = -387911632671998426L;
-
-    /** Doubly-linked list node class */
+    /** 双向链表中的节点类 */
     static final class Node<E> {
         /**
-         * The item, or null if this node has been removed.
+         * 如果节点被删除，item 为 null
          */
         E item;
 
         /**
-         * One of:
-         * - the real predecessor Node
-         * - this Node, meaning the predecessor is tail
-         * - null, meaning there is no predecessor
+         * 前一个节点
          */
         Node<E> prev;
 
         /**
-         * One of:
-         * - the real successor Node
-         * - this Node, meaning the successor is head
-         * - null, meaning there is no successor
+         * 后一个节点
          */
         Node<E> next;
 
@@ -136,44 +87,39 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Pointer to first node.
-     * Invariant: (first == null && last == null) ||
-     *            (first.prev == null && first.item != null)
+     * 指向第一个节点
      */
     transient Node<E> first;
 
     /**
-     * Pointer to last node.
-     * Invariant: (first == null && last == null) ||
-     *            (last.next == null && last.item != null)
+     * 指向最后一个节点
      */
     transient Node<E> last;
 
-    /** Number of items in the deque */
+    /** 队列中元素（item）个数 */
     private transient int count;
 
-    /** Maximum number of items in the deque */
+    /** 队列最大容量 */
     private final int capacity;
 
-    /** Main lock guarding all access */
+    /** 管理所有访问操作的可重入锁 */
     final ReentrantLock lock = new ReentrantLock();
 
-    /** Condition for waiting takes */
+    /** 等待 take 操作线程的 condition */
     private final Condition notEmpty = lock.newCondition();
 
-    /** Condition for waiting puts */
+    /** 等待 put 操作线程的 condition */
     private final Condition notFull = lock.newCondition();
 
     /**
-     * Creates a {@code LinkedBlockingDeque} with a capacity of
-     * {@link Integer#MAX_VALUE}.
+     * 设置容量为 Integer.MAX_VALUE
      */
     public LinkedBlockingDeque() {
         this(Integer.MAX_VALUE);
     }
 
     /**
-     * Creates a {@code LinkedBlockingDeque} with the given (fixed) capacity.
+     * 构造给定容量的双向队列
      *
      * @param capacity the capacity of this deque
      * @throws IllegalArgumentException if {@code capacity} is less than 1
@@ -184,10 +130,8 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Creates a {@code LinkedBlockingDeque} with a capacity of
-     * {@link Integer#MAX_VALUE}, initially containing the elements of
-     * the given collection, added in traversal order of the
-     * collection's iterator.
+     * 构造容量为 Integer.MAX_VALUE 的双向队列，将指定集合中所有元素
+     * 加入到队列中，以集合迭代器返回的顺序。
      *
      * @param c the collection of elements to initially contain
      * @throws NullPointerException if the specified collection or any
@@ -209,14 +153,12 @@ public class LinkedBlockingDeque<E>
         }
     }
 
-
-    // Basic linking and unlinking operations, called only while holding lock
+    // 基本的 link 和 unlink 操作，只在持有锁时调用
 
     /**
-     * Links node as first element, or returns false if full.
+     * 将节点添加到队列头部作为第一个元素，如果队列已满返回 false。
      */
     private boolean linkFirst(Node<E> node) {
-        // assert lock.isHeldByCurrentThread();
         if (count >= capacity)
             return false;
         Node<E> f = first;
@@ -227,15 +169,15 @@ public class LinkedBlockingDeque<E>
         else
             f.prev = node;
         ++count;
+        // 队列不为空，可以唤醒等待 take 的线程了
         notEmpty.signal();
         return true;
     }
 
     /**
-     * Links node as last element, or returns false if full.
+     * 将节点添加到队列尾部作为最后一个元素，如果队列已满返回 false。
      */
     private boolean linkLast(Node<E> node) {
-        // assert lock.isHeldByCurrentThread();
         if (count >= capacity)
             return false;
         Node<E> l = last;
@@ -251,10 +193,9 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Removes and returns first element, or null if empty.
+     * 删除并返回第一个元素，如果队列为空返回 null
      */
     private E unlinkFirst() {
-        // assert lock.isHeldByCurrentThread();
         Node<E> f = first;
         if (f == null)
             return null;
@@ -273,10 +214,9 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Removes and returns last element, or null if empty.
+     * 删除并返回最后一个元素，如果队列为空返回 null。
      */
     private E unlinkLast() {
-        // assert lock.isHeldByCurrentThread();
         Node<E> l = last;
         if (l == null)
             return null;
@@ -295,10 +235,9 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Unlinks x.
+     * 删除节点 x
      */
     void unlink(Node<E> x) {
-        // assert lock.isHeldByCurrentThread();
         Node<E> p = x.prev;
         Node<E> n = x.next;
         if (p == null) {
@@ -309,14 +248,12 @@ public class LinkedBlockingDeque<E>
             p.next = n;
             n.prev = p;
             x.item = null;
-            // Don't mess with x's links.  They may still be in use by
-            // an iterator.
             --count;
             notFull.signal();
         }
     }
 
-    // BlockingDeque methods
+    // 阻塞队列的方法
 
     /**
      * @throws IllegalStateException if this deque is full
@@ -618,7 +555,7 @@ public class LinkedBlockingDeque<E>
         }
     }
 
-    // BlockingQueue methods
+    // 阻塞队列的方法
 
     /**
      * Inserts the specified element at the end of this deque unless it would
@@ -660,9 +597,7 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Retrieves and removes the head of the queue represented by this deque.
-     * This method differs from {@link #poll poll} only in that it throws an
-     * exception if this deque is empty.
+     * 检索并删除队列头部元素。此方法和 poll 的区别在于如果队列为空将会抛出异常。
      *
      * <p>This method is equivalent to {@link #removeFirst() removeFirst}.
      *
@@ -686,9 +621,7 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Retrieves, but does not remove, the head of the queue represented by
-     * this deque.  This method differs from {@link #peek peek} only in that
-     * it throws an exception if this deque is empty.
+     * 检索第一个元素，不删除。
      *
      * <p>This method is equivalent to {@link #getFirst() getFirst}.
      *
@@ -704,15 +637,7 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Returns the number of additional elements that this deque can ideally
-     * (in the absence of memory or resource constraints) accept without
-     * blocking. This is always equal to the initial capacity of this deque
-     * less the current {@code size} of this deque.
-     *
-     * <p>Note that you <em>cannot</em> always tell if an attempt to insert
-     * an element will succeed by inspecting {@code remainingCapacity}
-     * because it may be the case that another thread is about to
-     * insert or remove an element.
+     * 返回剩余容量
      */
     public int remainingCapacity() {
         final ReentrantLock lock = this.lock;
@@ -761,7 +686,7 @@ public class LinkedBlockingDeque<E>
         }
     }
 
-    // Stack methods
+    // 栈方法
 
     /**
      * @throws IllegalStateException if this deque is full
@@ -781,15 +706,7 @@ public class LinkedBlockingDeque<E>
     // Collection methods
 
     /**
-     * Removes the first occurrence of the specified element from this deque.
-     * If the deque does not contain the element, it is unchanged.
-     * More formally, removes the first element {@code e} such that
-     * {@code o.equals(e)} (if such an element exists).
-     * Returns {@code true} if this deque contained the specified element
-     * (or equivalently, if this deque changed as a result of the call).
-     *
-     * <p>This method is equivalent to
-     * {@link #removeFirstOccurrence(Object) removeFirstOccurrence}.
+     * 删除第一次出现的指定元素
      *
      * @param o element to be removed from this deque, if present
      * @return {@code true} if this deque changed as a result of the call
@@ -799,7 +716,7 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Returns the number of elements in this deque.
+     * 返回队列元素个数
      *
      * @return the number of elements in this deque
      */
@@ -814,9 +731,7 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Returns {@code true} if this deque contains the specified element.
-     * More formally, returns {@code true} if and only if this deque contains
-     * at least one element {@code e} such that {@code o.equals(e)}.
+     * 判断是否包含指定对象
      *
      * @param o object to be checked for containment in this deque
      * @return {@code true} if this deque contains the specified element
@@ -877,15 +792,7 @@ public class LinkedBlockingDeque<E>
 //     }
 
     /**
-     * Returns an array containing all of the elements in this deque, in
-     * proper sequence (from first to last element).
-     *
-     * <p>The returned array will be "safe" in that no references to it are
-     * maintained by this deque.  (In other words, this method must allocate
-     * a new array).  The caller is thus free to modify the returned array.
-     *
-     * <p>This method acts as bridge between array-based and collection-based
-     * APIs.
+     * 返回数组
      *
      * @return an array containing all of the elements in this deque
      */
@@ -905,30 +812,7 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Returns an array containing all of the elements in this deque, in
-     * proper sequence; the runtime type of the returned array is that of
-     * the specified array.  If the deque fits in the specified array, it
-     * is returned therein.  Otherwise, a new array is allocated with the
-     * runtime type of the specified array and the size of this deque.
-     *
-     * <p>If this deque fits in the specified array with room to spare
-     * (i.e., the array has more elements than this deque), the element in
-     * the array immediately following the end of the deque is set to
-     * {@code null}.
-     *
-     * <p>Like the {@link #toArray()} method, this method acts as bridge between
-     * array-based and collection-based APIs.  Further, this method allows
-     * precise control over the runtime type of the output array, and may,
-     * under certain circumstances, be used to save allocation costs.
-     *
-     * <p>Suppose {@code x} is a deque known to contain only strings.
-     * The following code can be used to dump the deque into a newly
-     * allocated array of {@code String}:
-     *
-     *  <pre> {@code String[] y = x.toArray(new String[0]);}</pre>
-     *
-     * Note that {@code toArray(new Object[0])} is identical in function to
-     * {@code toArray()}.
+     * 返回数组
      *
      * @param a the array into which the elements of the deque are to
      *          be stored, if it is big enough; otherwise, a new array of the
@@ -959,6 +843,7 @@ public class LinkedBlockingDeque<E>
         }
     }
 
+    // 转化成字符串
     public String toString() {
         final ReentrantLock lock = this.lock;
         lock.lock();
@@ -983,8 +868,7 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Atomically removes all of the elements from this deque.
-     * The deque will be empty after this call returns.
+     * 清除所有元素。
      */
     public void clear() {
         final ReentrantLock lock = this.lock;
@@ -1006,11 +890,7 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Returns an iterator over the elements in this deque in proper sequence.
-     * The elements will be returned in order from first (head) to last (tail).
-     *
-     * <p>The returned iterator is
-     * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
+     * 返回迭代器。
      *
      * @return an iterator over the elements in this deque in proper sequence
      */
@@ -1019,9 +899,7 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Returns an iterator over the elements in this deque in reverse
-     * sequential order.  The elements will be returned in order from
-     * last (tail) to first (head).
+     * 返回逆序的迭代器
      *
      * <p>The returned iterator is
      * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
@@ -1033,7 +911,7 @@ public class LinkedBlockingDeque<E>
     }
 
     /**
-     * Base class for Iterators for LinkedBlockingDeque
+     * 迭代器抽象类
      */
     private abstract class AbstractItr implements Iterator<E> {
         /**
@@ -1144,191 +1022,6 @@ public class LinkedBlockingDeque<E>
     private class DescendingItr extends AbstractItr {
         Node<E> firstNode() { return last; }
         Node<E> nextNode(Node<E> n) { return n.prev; }
-    }
-
-    /** A customized variant of Spliterators.IteratorSpliterator */
-    static final class LBDSpliterator<E> implements Spliterator<E> {
-        static final int MAX_BATCH = 1 << 25;  // max batch array size;
-        final LinkedBlockingDeque<E> queue;
-        Node<E> current;    // current node; null until initialized
-        int batch;          // batch size for splits
-        boolean exhausted;  // true when no more nodes
-        long est;           // size estimate
-        LBDSpliterator(LinkedBlockingDeque<E> queue) {
-            this.queue = queue;
-            this.est = queue.size();
-        }
-
-        public long estimateSize() { return est; }
-
-        public Spliterator<E> trySplit() {
-            Node<E> h;
-            final LinkedBlockingDeque<E> q = this.queue;
-            int b = batch;
-            int n = (b <= 0) ? 1 : (b >= MAX_BATCH) ? MAX_BATCH : b + 1;
-            if (!exhausted &&
-                    ((h = current) != null || (h = q.first) != null) &&
-                    h.next != null) {
-                Object[] a = new Object[n];
-                final ReentrantLock lock = q.lock;
-                int i = 0;
-                Node<E> p = current;
-                lock.lock();
-                try {
-                    if (p != null || (p = q.first) != null) {
-                        do {
-                            if ((a[i] = p.item) != null)
-                                ++i;
-                        } while ((p = p.next) != null && i < n);
-                    }
-                } finally {
-                    lock.unlock();
-                }
-                if ((current = p) == null) {
-                    est = 0L;
-                    exhausted = true;
-                }
-                else if ((est -= i) < 0L)
-                    est = 0L;
-                if (i > 0) {
-                    batch = i;
-                    return Spliterators.spliterator
-                            (a, 0, i, Spliterator.ORDERED | Spliterator.NONNULL |
-                                    Spliterator.CONCURRENT);
-                }
-            }
-            return null;
-        }
-
-        public void forEachRemaining(Consumer<? super E> action) {
-            if (action == null) throw new NullPointerException();
-            final LinkedBlockingDeque<E> q = this.queue;
-            final ReentrantLock lock = q.lock;
-            if (!exhausted) {
-                exhausted = true;
-                Node<E> p = current;
-                do {
-                    E e = null;
-                    lock.lock();
-                    try {
-                        if (p == null)
-                            p = q.first;
-                        while (p != null) {
-                            e = p.item;
-                            p = p.next;
-                            if (e != null)
-                                break;
-                        }
-                    } finally {
-                        lock.unlock();
-                    }
-                    if (e != null)
-                        action.accept(e);
-                } while (p != null);
-            }
-        }
-
-        public boolean tryAdvance(Consumer<? super E> action) {
-            if (action == null) throw new NullPointerException();
-            final LinkedBlockingDeque<E> q = this.queue;
-            final ReentrantLock lock = q.lock;
-            if (!exhausted) {
-                E e = null;
-                lock.lock();
-                try {
-                    if (current == null)
-                        current = q.first;
-                    while (current != null) {
-                        e = current.item;
-                        current = current.next;
-                        if (e != null)
-                            break;
-                    }
-                } finally {
-                    lock.unlock();
-                }
-                if (current == null)
-                    exhausted = true;
-                if (e != null) {
-                    action.accept(e);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public int characteristics() {
-            return Spliterator.ORDERED | Spliterator.NONNULL |
-                    Spliterator.CONCURRENT;
-        }
-    }
-
-    /**
-     * Returns a {@link Spliterator} over the elements in this deque.
-     *
-     * <p>The returned spliterator is
-     * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
-     *
-     * <p>The {@code Spliterator} reports {@link Spliterator#CONCURRENT},
-     * {@link Spliterator#ORDERED}, and {@link Spliterator#NONNULL}.
-     *
-     * @implNote
-     * The {@code Spliterator} implements {@code trySplit} to permit limited
-     * parallelism.
-     *
-     * @return a {@code Spliterator} over the elements in this deque
-     * @since 1.8
-     */
-    public Spliterator<E> spliterator() {
-        return new LBDSpliterator<E>(this);
-    }
-
-    /**
-     * Saves this deque to a stream (that is, serializes it).
-     *
-     * @param s the stream
-     * @throws java.io.IOException if an I/O error occurs
-     * @serialData The capacity (int), followed by elements (each an
-     * {@code Object}) in the proper order, followed by a null
-     */
-    private void writeObject(java.io.ObjectOutputStream s)
-            throws java.io.IOException {
-        final ReentrantLock lock = this.lock;
-        lock.lock();
-        try {
-            // Write out capacity and any hidden stuff
-            s.defaultWriteObject();
-            // Write out all elements in the proper order.
-            for (Node<E> p = first; p != null; p = p.next)
-                s.writeObject(p.item);
-            // Use trailing null as sentinel
-            s.writeObject(null);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    /**
-     * Reconstitutes this deque from a stream (that is, deserializes it).
-     * @param s the stream
-     * @throws ClassNotFoundException if the class of a serialized object
-     *         could not be found
-     * @throws java.io.IOException if an I/O error occurs
-     */
-    private void readObject(java.io.ObjectInputStream s)
-            throws java.io.IOException, ClassNotFoundException {
-        s.defaultReadObject();
-        count = 0;
-        first = null;
-        last = null;
-        // Read in all elements and place in queue
-        for (;;) {
-            @SuppressWarnings("unchecked")
-            E item = (E)s.readObject();
-            if (item == null)
-                break;
-            add(item);
-        }
     }
 
 }
