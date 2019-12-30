@@ -66,7 +66,7 @@
 
 * [~~ConcurrentHashMap~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentHashMap.md) | [~~ConcurrentSkipListMap~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentSkipListMap.md)
 
-    > ConcurrentHashMap 对应于常用集合中的 HashMap，ConcurrentSkipListMap 是基于跳跃表（SkipList）的 Map 集合。
+    > ConcurrentHashMap 对应于常用集合中的 HashMap，JDK 1.8 中不再使用分段锁，改用 CAS 保障线程安全。ConcurrentSkipListMap 是基于跳跃表（SkipList）实现的 Map 集合，当跳跃表索引接近平衡二叉树时，在此集合中检索的时间复杂度为 O(log n)。
 
 * [ArrayBlockingQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ArrayBlockingQueue.md) | [LinkedBlockingQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/LinkedBlockingQueue.md) | [LinkedBlockingDeque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/LinkedBlockingDeque.md) | [PriorityBlockingQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/PriorityBlockingQueue.md)
 
@@ -75,6 +75,18 @@
 * [ConcurrentLinkedQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentLinkedQueue.md) | [ConcurrentLinkedDeque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentLinkedDeque.md)
 
     > 单向/双向无界非阻塞队列。抛弃显式锁，使用 CAS 构建，不需要阻塞线程就能实现线程安全。基础数据结构为链表。
+
+* [~~LinkedTransferQueue~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/LinkedTransferQueue.md)
+
+
+
+* [~~SynchronousQueue~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/SynchronousQueue.md)
+
+
+
+* [~~DelayQueue~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/DelayQueue.md)
+
+
 
 #### Thread Pool
 
