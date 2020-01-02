@@ -356,9 +356,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     private transient ConcurrentNavigableMap<K,V> descendingMap;
 
     /**
-     * Initializes or resets state. Needed by constructors, clone,
-     * clear, readObject. and ConcurrentSkipListSet.clone.
-     * (Note that comparator must be separately initialized.)
+     * 初始化。
      */
     private void initialize() {
         keySet = null;
@@ -370,7 +368,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * compareAndSet head node
+     * CAS 修改 head
      */
     private boolean casHead(HeadIndex<K,V> cmp, HeadIndex<K,V> val) {
         return UNSAFE.compareAndSwapObject(this, headOffset, cmp, val);
@@ -520,12 +518,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /* ---------------- Indexing -------------- */
 
     /**
-     * 索引节点包含了跳表的层数。
-     * Index nodes represent the levels of the skip list.  Note that
-     * even though both Nodes and Indexes have forward-pointing
-     * fields, they have different types and are handled in different
-     * ways, that can't nicely be captured by placing field in a
-     * shared abstract class.
+     * 索引节点
      */
     static class Index<K,V> {
         final Node<K,V> node;
@@ -665,45 +658,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns node holding key or null if no such, clearing out any
-     * deleted nodes seen along the way.  Repeatedly traverses at
-     * base-level looking for key starting at predecessor returned
-     * from findPredecessor, processing base-level deletions as
-     * encountered. Some callers rely on this side-effect of clearing
-     * deleted nodes.
-     *
-     * Restarts occur, at traversal step centered on node n, if:
-     *
-     *   (1) After reading n's next field, n is no longer assumed
-     *       predecessor b's current successor, which means that
-     *       we don't have a consistent 3-node snapshot and so cannot
-     *       unlink any subsequent deleted nodes encountered.
-     *
-     *   (2) n's value field is null, indicating n is deleted, in
-     *       which case we help out an ongoing structural deletion
-     *       before retrying.  Even though there are cases where such
-     *       unlinking doesn't require restart, they aren't sorted out
-     *       here because doing so would not usually outweigh cost of
-     *       restarting.
-     *
-     *   (3) n is a marker or n's predecessor's value field is null,
-     *       indicating (among other possibilities) that
-     *       findPredecessor returned a deleted node. We can't unlink
-     *       the node because we don't know its predecessor, so rely
-     *       on another call to findPredecessor to notice and return
-     *       some earlier predecessor, which it will do. This check is
-     *       only strictly needed at beginning of loop, (and the
-     *       b.value check isn't strictly needed at all) but is done
-     *       each iteration to help avoid contention with other
-     *       threads by callers that will fail to be able to change
-     *       links, and so will retry anyway.
-     *
-     * The traversal loops in doPut, doRemove, and findNear all
-     * include the same three kinds of checks. And specialized
-     * versions appear in findFirst, and findLast and their
-     * variants. They can't easily share code because each uses the
-     * reads of fields held in locals occurring in the orders they
-     * were performed.
+     * 返回指定 key 对应的节点，没有返回 null，清除查找路径上遇到的失效节点。
      *
      * @param key the key
      * @return node holding key, or null if no such
@@ -713,19 +668,25 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             throw new NullPointerException(); // don't postpone errors
         Comparator<? super K> cmp = comparator;
         outer: for (;;) {
+            // 找到指定 key 的前继节点
             for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
                 Object v; int c;
+                // 到头了
                 if (n == null)
                     break outer;
                 Node<K,V> f = n.next;
-                if (n != b.next)                // inconsistent read
+                // 有其他线程，重新循环
+                if (n != b.next)
                     break;
-                if ((v = n.value) == null) {    // n is deleted
+                // 已经被标记删除，调用 helpDelete 删除
+                if ((v = n.value) == null) {
                     n.helpDelete(b, f);
                     break;
                 }
-                if (b.value == null || v == n)  // b is deleted
+                // b 已经被删除
+                if (b.value == null || v == n)
                     break;
+                // 找到了
                 if ((c = cpr(cmp, key, n.key)) == 0)
                     return n;
                 if (c < 0)
@@ -738,8 +699,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Gets value for key. Almost the same as findNode, but returns
-     * the found value (to avoid retries during re-reads)
+     * 执行 get 操作。几乎和 findNode 一样。
      *
      * @param key the key
      * @return the value, or null if absent
@@ -749,25 +709,32 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             throw new NullPointerException();
         Comparator<? super K> cmp = comparator;
         outer: for (;;) {
+            // 找到 key 的前驱节点
             for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
                 Object v; int c;
+                // 链表到头，跳出外层循环
                 if (n == null)
                     break outer;
                 Node<K,V> f = n.next;
+                // 有其他线程，重新循环
                 if (n != b.next)                // inconsistent read
                     break;
+                // 被标记删除，删除，再重试
                 if ((v = n.value) == null) {    // n is deleted
                     n.helpDelete(b, f);
                     break;
                 }
+                // b 已经被删除
                 if (b.value == null || v == n)  // b is deleted
                     break;
+                // 找到了，返回 value
                 if ((c = cpr(cmp, key, n.key)) == 0) {
                     @SuppressWarnings("unchecked") V vv = (V)v;
                     return vv;
                 }
                 if (c < 0)
                     break outer;
+                // 继续找
                 b = n;
                 n = f;
             }
@@ -964,18 +931,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /* ---------------- Deletion -------------- */
 
     /**
-     * Main deletion method. Locates node, nulls value, appends a
-     * deletion marker, unlinks predecessor, removes associated index
-     * nodes, and possibly reduces head index level.
-     *
-     * Index nodes are cleared out simply by calling findPredecessor.
-     * which unlinks indexes to deleted nodes found along path to key,
-     * which will include the indexes to this node.  This is done
-     * unconditionally. We can't check beforehand whether there are
-     * index nodes because it might be the case that some or all
-     * indexes hadn't been inserted yet for this node during initial
-     * search for it, and we'd like to ensure lack of garbage
-     * retention, so must call to be sure.
+     * 执行删除操作的主要函数。定位节点，value 置为 null，添加一个删除的标记，
+     * 前驱节点取消连接，删除关联的索引节点，可能还会减少索引的层数。
      *
      * @param key the key
      * @param value if non-null, the value that must be
@@ -987,37 +944,58 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             throw new NullPointerException();
         Comparator<? super K> cmp = comparator;
         outer: for (;;) {
+            // 找到目标节点的前驱节点 b
             for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
                 Object v; int c;
+                // 链表中不存在目标节点，直接退出
                 if (n == null)
                     break outer;
+                // f 当前节点的后继节点
                 Node<K,V> f = n.next;
+                // 再次检查 n 不是 b.next，说明被其他线程修改过，重新开始
                 if (n != b.next)                    // inconsistent read
                     break;
+                // n 被标记为删除状态
                 if ((v = n.value) == null) {        // n is deleted
+                    // 辅助删除，然后跳出内层循环
                     n.helpDelete(b, f);
                     break;
                 }
+                // b 已经个被删除，这时候表示 n 是 marker 节点，b 是应该被
+                // 删除的节点
                 if (b.value == null || v == n)      // b is deleted
                     break;
+                // 没找到元素，退出
                 if ((c = cpr(cmp, key, n.key)) < 0)
                     break outer;
+                // 继续往右找
                 if (c > 0) {
                     b = n;
                     n = f;
                     continue;
                 }
+                // 进行到这里说明 c == 0，找到了要删除的节点 n
+                // value 不等于 v，说明其他线程把 value 修改了
                 if (value != null && !value.equals(v))
                     break outer;
+                // 完成所有的检查，执行删除节点 n
+                // CAS 将 n 的 value 设置为 null
                 if (!n.casValue(v, null))
                     break;
+                // 尝试在 n 节点后添加标记节点（失败直接进入 if）
+                // 尝试将 n 的前驱节点 b 的 next 设置成 n 的下一个节点
                 if (!n.appendMarker(f) || !b.casNext(n, f))
-                    findNode(key);                  // retry via findNode
+                    // 上面有其中一个失败，都会进入这个 if
+                    // 调用 findNode 清除已删除的节点
+                    findNode(key);
                 else {
+                    // 说明节点一定删除了，通过 findPredecessor 删除索引节点
                     findPredecessor(key, cmp);      // clean index
+                    // 如果删除索引节点之后，最高层没有 right 了，则删除最高层
                     if (head.right == null)
                         tryReduceLevel();
                 }
+                // 返回删除的元素值
                 @SuppressWarnings("unchecked") V vv = (V)v;
                 return vv;
             }
@@ -1026,29 +1004,16 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Possibly reduce head level if it has no nodes.  This method can
-     * (rarely) make mistakes, in which case levels can disappear even
-     * though they are about to contain index nodes. This impacts
-     * performance, not correctness.  To minimize mistakes as well as
-     * to reduce hysteresis, the level is reduced by one only if the
-     * topmost three levels look empty. Also, if the removed level
-     * looks non-empty after CAS, we try to change it back quick
-     * before anyone notices our mistake! (This trick works pretty
-     * well because this method will practically never make mistakes
-     * unless current thread stalls immediately before first CAS, in
-     * which case it is very unlikely to stall again immediately
-     * afterwards, so will recover.)
-     *
-     * We put up with all this rather than just let levels grow
-     * because otherwise, even a small map that has undergone a large
-     * number of insertions and removals will have a lot of levels,
-     * slowing down access more than would an occasional unwanted
-     * reduction.
+     * 降级。
      */
     private void tryReduceLevel() {
         HeadIndex<K,V> h = head;
         HeadIndex<K,V> d;
         HeadIndex<K,V> e;
+        // 层级大于 3，head.down 存在，head.down.down 存在
+        // 且他们的 right 都等于 null 时才会尝试修改 head（最上面三层都空了的
+        // 时候，才会降级）
+        // 然后再次检查，如果 h 的 right 又不为 null 了，尝试还原
         if (h.level > 3 &&
                 (d = (HeadIndex<K,V>)h.down) != null &&
                 (e = (HeadIndex<K,V>)d.down) != null &&
@@ -1063,7 +1028,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /* ---------------- Finding and removing first element -------------- */
 
     /**
-     * Specialized variant of findNode to get first valid node.
+     * 获取第一个有效的节点
+     *
      * @return first node or null if empty
      */
     final Node<K,V> findFirst() {
@@ -1077,7 +1043,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Removes first entry; returns its snapshot.
+     * 删除 head 所代表节点的 next 节点。
+     *
      * @return null if empty, else snapshot of first entry
      */
     private Map.Entry<K,V> doRemoveFirstEntry() {
@@ -1085,15 +1052,19 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
             if ((n = (b = head.node).next) == null)
                 return null;
             Node<K,V> f = n.next;
+            // 其他线程修改，重新循环
             if (n != b.next)
                 continue;
             Object v = n.value;
+            // 如果 n 节点已经被标记删除，将其删除，然后重新循环
             if (v == null) {
                 n.helpDelete(b, f);
                 continue;
             }
+            // CAS 将 v 的 value 设置为 null，失败重新循环
             if (!n.casValue(v, null))
                 continue;
+            // n 后加入标记节点，然后将 n 的前驱节点的 next 指向 n 的后继节点（删除 n）
             if (!n.appendMarker(f) || !b.casNext(n, f))
                 findFirst(); // retry
             clearIndexToFirst();
@@ -1103,14 +1074,16 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Clears out index nodes associated with deleted first entry.
+     * 将删除节点相关的索引节点清除
      */
     private void clearIndexToFirst() {
         for (;;) {
             for (Index<K,V> q = head;;) {
                 Index<K,V> r = q.right;
+                // 删除 q.right
                 if (r != null && r.indexesDeletedNode() && !q.unlink(r))
                     break;
+                // q 继续往下移
                 if ((q = q.down) == null) {
                     if (head.right == null)
                         tryReduceLevel();
@@ -1121,8 +1094,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Removes last entry; returns its snapshot.
-     * Specialized variant of doRemove.
+     * 删除最后一个节点
+     *
      * @return null if empty, else snapshot of last entry
      */
     private Map.Entry<K,V> doRemoveLastEntry() {
@@ -1170,7 +1143,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /* ---------------- Finding and removing last element -------------- */
 
     /**
-     * Specialized version of find to get last valid node.
+     * 获取最后一个有效节点
+     *
      * @return last node or null if empty
      */
     final Node<K,V> findLast() {
@@ -1214,10 +1188,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Specialized variant of findPredecessor to get predecessor of last
-     * valid node.  Needed when removing the last entry.  It is possible
-     * that all successors of returned node will have been deleted upon
-     * return, in which case this method can be retried.
+     * 获取最后一个有效节点的前继节点
+     *
      * @return likely predecessor of last node
      */
     private Node<K,V> findPredecessorOfLast() {
@@ -1252,7 +1224,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     private static final int GT = 0; // Actually checked as !LT
 
     /**
-     * Utility for ceiling, floor, lower, higher methods.
+     * ceiling, floor, lower, higher 方法的辅助工具。
      * @param key the key
      * @param rel the relation -- OR'ed combination of EQ, LT, GT
      * @return nearest node fitting relation, or null if no such
@@ -1307,8 +1279,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /* ---------------- Constructors -------------- */
 
     /**
-     * Constructs a new, empty map, sorted according to the
-     * {@linkplain Comparable natural ordering} of the keys.
+     * 构造函数
      */
     public ConcurrentSkipListMap() {
         this.comparator = null;
@@ -1316,8 +1287,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Constructs a new, empty map, sorted according to the specified
-     * comparator.
+     * 构造函数
      *
      * @param comparator the comparator that will be used to order this map.
      *        If {@code null}, the {@linkplain Comparable natural
@@ -1329,9 +1299,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Constructs a new map containing the same mappings as the given map,
-     * sorted according to the {@linkplain Comparable natural ordering} of
-     * the keys.
+     * 构造函数
      *
      * @param  m the map whose mappings are to be placed in this map
      * @throws ClassCastException if the keys in {@code m} are not
@@ -1346,8 +1314,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Constructs a new map containing the same mappings and using the
-     * same ordering as the specified sorted map.
+     * 构造函数
      *
      * @param m the sorted map whose mappings are to be placed in this
      *        map, and whose comparator is to be used to sort this map
@@ -1361,8 +1328,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns a shallow copy of this {@code ConcurrentSkipListMap}
-     * instance. (The keys and values themselves are not cloned.)
+     * 返回浅拷贝
      *
      * @return a shallow copy of this map
      */
@@ -1380,9 +1346,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Streamlined bulk insertion to initialize from elements of
-     * given sorted map.  Call only from constructor or clone
-     * method.
+     * 从给定 SortedMap 构造
      */
     private void buildFromSorted(SortedMap<K, ? extends V> map) {
         if (map == null)
@@ -1444,8 +1408,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /* ------ Map API methods ------ */
 
     /**
-     * Returns {@code true} if this map contains a mapping for the specified
-     * key.
+     * 是否包含指定 key
      *
      * @param key key whose presence in this map is to be tested
      * @return {@code true} if this map contains a mapping for the specified key
@@ -1458,14 +1421,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns the value to which the specified key is mapped,
-     * or {@code null} if this map contains no mapping for the key.
-     *
-     * <p>More formally, if this map contains a mapping from a key
-     * {@code k} to a value {@code v} such that {@code key} compares
-     * equal to {@code k} according to the map's ordering, then this
-     * method returns {@code v}; otherwise it returns {@code null}.
-     * (There can be at most one such mapping.)
+     * 返回 key 对应的 value
      *
      * @throws ClassCastException if the specified key cannot be compared
      *         with the keys currently in the map
@@ -1476,8 +1432,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns the value to which the specified key is mapped,
-     * or the given defaultValue if this map contains no mapping for the key.
+     * 获取指定 key 的 value
      *
      * @param key the key
      * @param defaultValue the value to return if this map contains
@@ -1509,7 +1464,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Removes the mapping for the specified key from this map if present.
+     * 删除指定 key 对应的节点
      *
      * @param  key key for which mapping should be removed
      * @return the previous value associated with the specified key, or
@@ -1523,11 +1478,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns {@code true} if this map maps one or more keys to the
-     * specified value.  This operation requires time linear in the
-     * map size. Additionally, it is possible for the map to change
-     * during execution of this method, in which case the returned
-     * result may be inaccurate.
+     * 是否包含指定 value
      *
      * @param value value whose presence in this map is to be tested
      * @return {@code true} if a mapping to {@code value} exists;
@@ -1546,18 +1497,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns the number of key-value mappings in this map.  If this map
-     * contains more than {@code Integer.MAX_VALUE} elements, it
-     * returns {@code Integer.MAX_VALUE}.
-     *
-     * <p>Beware that, unlike in most collections, this method is
-     * <em>NOT</em> a constant-time operation. Because of the
-     * asynchronous nature of these maps, determining the current
-     * number of elements requires traversing them all to count them.
-     * Additionally, it is possible for the size to change during
-     * execution of this method, in which case the returned result
-     * will be inaccurate. Thus, this method is typically not very
-     * useful in concurrent applications.
+     * 返回大小
      *
      * @return the number of elements in this map
      */
@@ -1571,7 +1511,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns {@code true} if this map contains no key-value mappings.
+     * 判断是否为空
+     *
      * @return {@code true} if this map contains no key-value mappings
      */
     public boolean isEmpty() {
@@ -1579,7 +1520,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Removes all of the mappings from this map.
+     * 删除所有映射
      */
     public void clear() {
         for (;;) {
@@ -1603,11 +1544,9 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * If the specified key is not already associated with a value,
-     * attempts to compute its value using the given mapping function
-     * and enters it into this map unless {@code null}.  The function
-     * is <em>NOT</em> guaranteed to be applied once atomically only
-     * if the value is not present.
+     * 如果指定的 key 没有和对应的 value（或者映射到 null），使用给定的
+     * mapping function 计算它的 value，如果计算出来的 value 不为 null，则
+     * 将其插入到 map 中。
      *
      * @param key key with which the specified value is to be associated
      * @param mappingFunction the function to compute a value
@@ -1629,10 +1568,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * If the value for the specified key is present, attempts to
-     * compute a new mapping given the key and its current mapped
-     * value. The function is <em>NOT</em> guaranteed to be applied
-     * once atomically.
+     * 如果 map 中指定的 key 存在对应的 value 且不为 null，使用 function
+     * 计算出新的 value。
      *
      * @param key key with which a value may be associated
      * @param remappingFunction the function to compute a value
@@ -1662,10 +1599,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Attempts to compute a mapping for the specified key and its
-     * current mapped value (or {@code null} if there is no current
-     * mapping). The function is <em>NOT</em> guaranteed to be applied
-     * once atomically.
+     * 利用指定的 key 和它当前的 value（如果当前不存在映射则 value 为 null）
+     * 计算对应的映射。
      *
      * @param key key with which the specified value is to be associated
      * @param remappingFunction the function to compute a value
@@ -1700,11 +1635,9 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * If the specified key is not already associated with a value,
-     * associates it with the given value.  Otherwise, replaces the
-     * value with the results of the given remapping function, or
-     * removes if {@code null}. The function is <em>NOT</em>
-     * guaranteed to be applied once atomically.
+     * 如果指定的 key 没有关联的 value 或者关联的 value 为 null，把它和
+     * 给定的非 null 值关联起来。如果有关联的 value，用给定的 function 的
+     * 返回值替换原来的 value，如果 function 的结果为 null，那么删除此映射。
      *
      * @param key key with which the specified value is to be associated
      * @param value the value to use if absent
@@ -1748,30 +1681,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      */
 
     /**
-     * Returns a {@link NavigableSet} view of the keys contained in this map.
-     *
-     * <p>The set's iterator returns the keys in ascending order.
-     * The set's spliterator additionally reports {@link Spliterator#CONCURRENT},
-     * {@link Spliterator#NONNULL}, {@link Spliterator#SORTED} and
-     * {@link Spliterator#ORDERED}, with an encounter order that is ascending
-     * key order.  The spliterator's comparator (see
-     * {@link java.util.Spliterator#getComparator()}) is {@code null} if
-     * the map's comparator (see {@link #comparator()}) is {@code null}.
-     * Otherwise, the spliterator's comparator is the same as or imposes the
-     * same total ordering as the map's comparator.
-     *
-     * <p>The set is backed by the map, so changes to the map are
-     * reflected in the set, and vice-versa.  The set supports element
-     * removal, which removes the corresponding mapping from the map,
-     * via the {@code Iterator.remove}, {@code Set.remove},
-     * {@code removeAll}, {@code retainAll}, and {@code clear}
-     * operations.  It does not support the {@code add} or {@code addAll}
-     * operations.
-     *
-     * <p>The view's iterators and spliterators are
-     * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
-     *
-     * <p>This method is equivalent to method {@code navigableKeySet}.
+     * 返回集合
      *
      * @return a navigable set view of the keys in this map
      */
@@ -1786,23 +1696,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns a {@link Collection} view of the values contained in this map.
-     * <p>The collection's iterator returns the values in ascending order
-     * of the corresponding keys. The collections's spliterator additionally
-     * reports {@link Spliterator#CONCURRENT}, {@link Spliterator#NONNULL} and
-     * {@link Spliterator#ORDERED}, with an encounter order that is ascending
-     * order of the corresponding keys.
-     *
-     * <p>The collection is backed by the map, so changes to the map are
-     * reflected in the collection, and vice-versa.  The collection
-     * supports element removal, which removes the corresponding
-     * mapping from the map, via the {@code Iterator.remove},
-     * {@code Collection.remove}, {@code removeAll},
-     * {@code retainAll} and {@code clear} operations.  It does not
-     * support the {@code add} or {@code addAll} operations.
-     *
-     * <p>The view's iterators and spliterators are
-     * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
+     * 返回 value 集合
      */
     public Collection<V> values() {
         Values<V> vs = values;
@@ -1810,28 +1704,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns a {@link Set} view of the mappings contained in this map.
-     *
-     * <p>The set's iterator returns the entries in ascending key order.  The
-     * set's spliterator additionally reports {@link Spliterator#CONCURRENT},
-     * {@link Spliterator#NONNULL}, {@link Spliterator#SORTED} and
-     * {@link Spliterator#ORDERED}, with an encounter order that is ascending
-     * key order.
-     *
-     * <p>The set is backed by the map, so changes to the map are
-     * reflected in the set, and vice-versa.  The set supports element
-     * removal, which removes the corresponding mapping from the map,
-     * via the {@code Iterator.remove}, {@code Set.remove},
-     * {@code removeAll}, {@code retainAll} and {@code clear}
-     * operations.  It does not support the {@code add} or
-     * {@code addAll} operations.
-     *
-     * <p>The view's iterators and spliterators are
-     * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
-     *
-     * <p>The {@code Map.Entry} elements traversed by the {@code iterator}
-     * or {@code spliterator} do <em>not</em> support the {@code setValue}
-     * operation.
+     * 返回 entry 集合
      *
      * @return a set view of the mappings contained in this map,
      *         sorted in ascending key order
@@ -1854,13 +1727,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /* ---------------- AbstractMap Overrides -------------- */
 
     /**
-     * Compares the specified object with this map for equality.
-     * Returns {@code true} if the given object is also a map and the
-     * two maps represent the same mappings.  More formally, two maps
-     * {@code m1} and {@code m2} represent the same mappings if
-     * {@code m1.entrySet().equals(m2.entrySet())}.  This
-     * operation may return misleading results if either map is
-     * concurrently modified during execution of this method.
+     * 判断指定集合和此集合是否相等
      *
      * @param o object to be compared for equality with this map
      * @return {@code true} if the specified object is equal to this map
@@ -1892,7 +1759,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /* ------ ConcurrentMap API methods ------ */
 
     /**
-     * {@inheritDoc}
+     * 如果不存在则添加
      *
      * @return the previous value associated with the specified key,
      *         or {@code null} if there was no mapping for the key
@@ -1907,7 +1774,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * {@inheritDoc}
+     * 删除
      *
      * @throws ClassCastException if the specified key cannot be compared
      *         with the keys currently in the map
@@ -1920,7 +1787,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * {@inheritDoc}
+     * 替换
      *
      * @throws ClassCastException if the specified key cannot be compared
      *         with the keys currently in the map
@@ -1943,7 +1810,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * {@inheritDoc}
+     * 替换
      *
      * @return the previous value associated with the specified key,
      *         or {@code null} if there was no mapping for the key
