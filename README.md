@@ -64,7 +64,7 @@
     
     > 对应于常用集合中的 ArrayList，使用 COW（Copy On Write，写时复制）保证线程安全。
 
-* [~~ConcurrentHashMap~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentHashMap.md) | [~~ConcurrentSkipListMap~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentSkipListMap.md)
+* [~~ConcurrentHashMap~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentHashMap.md) | [ConcurrentSkipListMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentSkipListMap.md)
 
     > ConcurrentHashMap 对应于常用集合中的 HashMap，JDK 1.8 中不再使用分段锁，改用 CAS 保障线程安全。ConcurrentSkipListMap 是基于跳跃表（SkipList）实现的 Map 集合，当跳跃表索引接近平衡二叉树时，在此集合中检索的时间复杂度为 O(log n)。
 
@@ -96,4 +96,4 @@
 
 * [~~ForkJoinPool~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ThreadPoolExecutor.md)
 
-    > 太复杂了...
+    > 太难了...
