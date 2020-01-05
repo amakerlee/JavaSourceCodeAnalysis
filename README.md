@@ -1,6 +1,6 @@
-### Java Collections in java.util
+## Java Collections in java.util
 
-#### List, Stack and Queue
+### List, Stack and Queue
 
 * [ArrayList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/ArrayList.md) | [LinkedList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/LinkedList.md)
 
@@ -18,13 +18,13 @@
 
     > 基于堆（底层为数组）的优先队列，可指定比较器。
 
-#### Set
+### Set
 
 * [HashSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/HashSet.md) | [TreeSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/TreeSet.md)
 
     > 集合类，不允许出现重复元素。HashSet 完全基于 HashMap 实现（将 HashMap 实例作为一个属性），将 Map 中的 key 用来存储元素。TreeSet 完全基于 TreeMap 实现。
 
-#### Map
+### Map
 
 * [HashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/HashMap.md) | [TreeMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/TreeMap.md) | [~~LinkedHashMap~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/LinkedHashMap.md)
 
@@ -32,23 +32,19 @@
 
 &nbsp;
 
-### Java Concurrency Tools in java.util.concurrent
+## Java Concurrency Tools in java.util.concurrent
 
-#### CAS, AbstractQueuedSynchronizer and ThreadLocal
-
-* [CAS](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CAS.md)
-
-    > CAS（Compare And Swap，比较和交换），是基于乐观锁的操作，不需要阻塞就可以实现原子操作的一种方式。
-
-* [AbstractQueuedSynchronizer](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/AbstractQueuedSynchronizer.md)
-
-    > AQS（AbstractQueuedSynchronizer）抽象类，队列同步控制器，是 Java 并发用来控制锁和其他同步组件的基础框架
+### ThreadLocal
 
 * [ThreadLocal](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ThreadLocal.md)
 
     > ThreadLocal 是属于 java.lang 包的类。它为每个使用该变量的线程提供独立的变量副本，所以每一个线程都可以独立地改变自己的副本，而不会影响其它线程所对应的副本。可以简单地理解为为指定线程存储数据，只有指定线程可以读取。
 
-#### Lock
+### Synchronizer
+
+* [AbstractQueuedSynchronizer](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/AbstractQueuedSynchronizer.md)
+
+    > AQS（AbstractQueuedSynchronizer）抽象类，队列同步控制器，是 Java 并发用来控制锁和其他同步组件的基础框架
 
 * [ReentrantLock](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ReentrantLock.md) | [ReentrantReadWriteLock](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ReentrantReadWriteLock.md)
 
@@ -58,7 +54,11 @@
 
     > 基于 AQS 实现的三个同步辅助类，用于线程计数、线程等待、线程间协作等场景下的线程控制。
 
-#### Concurrency Collections
+### Concurrency Collections
+
+* [CAS](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CAS.md)
+
+    > CAS（Compare And Swap，比较和交换），是基于乐观锁的操作，不需要阻塞就可以实现原子操作的一种方式。
 
 * [CopyOnWriteArrayList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/CopyOnWriteArrayList.md)
     
@@ -78,17 +78,13 @@
 
 * [~~LinkedTransferQueue~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/LinkedTransferQueue.md)
 
-
-
 * [~~SynchronousQueue~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/SynchronousQueue.md)
 
+* [DelayQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/DelayQueue.md)
 
+    > 无界延时阻塞队列。使用显式锁保证线程安全。使用优先队列对延迟时间排序。只有当队列头部元素延迟时间到期，才允许被取出，否则线程一直等待。
 
-* [~~DelayQueue~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/DelayQueue.md)
-
-
-
-#### Thread Pool
+### Thread Pool
 
 * [ThreadPoolExecutor](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ThreadPoolExecutor.md) | [~~ScheduledThreadPoolExecutor~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ScheduledThreadPoolExecutor.md)
 

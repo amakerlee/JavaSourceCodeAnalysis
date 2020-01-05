@@ -62,7 +62,10 @@ import java.util.*;
 public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
         implements BlockingQueue<E> {
 
+    // 保证线程安全的锁
     private final transient ReentrantLock lock = new ReentrantLock();
+
+    // 用于排序的优先队列
     private final PriorityQueue<E> q = new PriorityQueue<E>();
 
     /**
@@ -196,9 +199,10 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
                 else {
                     // 获取剩余时间
                     long delay = first.getDelay(NANOSECONDS);
-                    // 没有剩余时间，出队列
+                    // 没有剩余时间，可以出队列了
                     if (delay <= 0)
                         return q.poll();
+                    // 如果等待时间还没到期
                     // 释放 first 的引用，避免内存泄露
                     first = null;
                     // leader 不为 null，说明有其他线程已经获取到 leader，进入
@@ -213,6 +217,8 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
                             // 在 available 中等待 delay 时间
                             available.awaitNanos(delay);
                         } finally {
+                            // 检查是否被其他线程改变了 leader，如果改变了 leader，
+                            // 将 leader 置为 null，重新循环
                             if (leader == thisThread)
                                 leader = null;
                         }
@@ -251,6 +257,7 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
                     long delay = first.getDelay(NANOSECONDS);
                     if (delay <= 0)
                         return q.poll();
+                    // 获取失败，返回 null
                     if (nanos <= 0)
                         return null;
                     first = null; // don't retain ref while waiting
