@@ -37,50 +37,17 @@ package JUC.JUCCollections;
 import java.util.AbstractQueue;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.util.Queue;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TransferQueue;
 import java.util.concurrent.locks.LockSupport;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.function.Consumer;
 
 /**
- * An unbounded {@link TransferQueue} based on linked nodes.
- * This queue orders elements FIFO (first-in-first-out) with respect
- * to any given producer.  The <em>head</em> of the queue is that
- * element that has been on the queue the longest time for some
- * producer.  The <em>tail</em> of the queue is that element that has
- * been on the queue the shortest time for some producer.
+ * LinkedTransferQueue 是基于链表的无界 TransferQueue。按照 FIFO 的
+ * 顺序对元素排序。
  *
- * <p>Beware that, unlike in most collections, the {@code size} method
- * is <em>NOT</em> a constant-time operation. Because of the
- * asynchronous nature of these queues, determining the current number
- * of elements requires a traversal of the elements, and so may report
- * inaccurate results if this collection is modified during traversal.
- * Additionally, the bulk operations {@code addAll},
- * {@code removeAll}, {@code retainAll}, {@code containsAll},
- * {@code equals}, and {@code toArray} are <em>not</em> guaranteed
- * to be performed atomically. For example, an iterator operating
- * concurrently with an {@code addAll} operation might view only some
- * of the added elements.
- *
- * <p>This class and its iterator implement all of the
- * <em>optional</em> methods of the {@link Collection} and {@link
- * Iterator} interfaces.
- *
- * <p>Memory consistency effects: As with other concurrent
- * collections, actions in a thread prior to placing an object into a
- * {@code LinkedTransferQueue}
- * <a href="package-summary.html#MemoryVisibility"><i>happen-before</i></a>
- * actions subsequent to the access or removal of that element from
- * the {@code LinkedTransferQueue} in another thread.
- *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此类是 Java Collections Framework 的成员。
  *
  * @since 1.7
  * @author Doug Lea
@@ -411,7 +378,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * self-linked.
      */
 
-    /** True if on multiprocessor */
+    /** 如果是多处理器则为 true */
     private static final boolean MP =
             Runtime.getRuntime().availableProcessors() > 1;
 
@@ -444,30 +411,29 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     static final int SWEEP_THRESHOLD = 32;
 
     /**
-     * Queue nodes. Uses Object, not E, for items to allow forgetting
-     * them after use.  Relies heavily on Unsafe mechanics to minimize
-     * unnecessary ordering constraints: Writes that are intrinsically
-     * ordered wrt other accesses or CASes use simple relaxed forms.
+     * 队列的节点
      */
     static final class Node {
-        final boolean isData;   // false if this is a request node
-        volatile Object item;   // initially non-null if isData; CASed to match
+        // 如果这是一个请求数据的节点，值为 false
+        // 如果这是一个已经有数据的节点，值为 true
+        final boolean isData;
+        volatile Object item;
         volatile Node next;
+        // 等待数据的线程
         volatile Thread waiter; // null until waiting
 
-        // CAS methods for fields
+        // CAS 修改 next
         final boolean casNext(Node cmp, Node val) {
             return UNSAFE.compareAndSwapObject(this, nextOffset, cmp, val);
         }
 
+        // CAS 修改 Item
         final boolean casItem(Object cmp, Object val) {
-            // assert cmp == null || cmp.getClass() != Node.class;
             return UNSAFE.compareAndSwapObject(this, itemOffset, cmp, val);
         }
 
         /**
-         * Constructs a new node.  Uses relaxed write because item can
-         * only be seen after publication via casNext.
+         * 构造函数
          */
         Node(Object item, boolean isData) {
             UNSAFE.putObject(this, itemOffset, item); // relaxed write
@@ -475,21 +441,14 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         }
 
         /**
-         * Links node to itself to avoid garbage retention.  Called
-         * only after CASing head field, so uses relaxed write.
+         * 将节点的 next 设置成自身。
          */
         final void forgetNext() {
             UNSAFE.putObject(this, nextOffset, this);
         }
 
         /**
-         * Sets item to self and waiter to null, to avoid garbage
-         * retention after matching or cancelling. Uses relaxed writes
-         * because order is already constrained in the only calling
-         * contexts: item is forgotten only after volatile/atomic
-         * mechanics that extract items.  Similarly, clearing waiter
-         * follows either CAS or return from park (if ever parked;
-         * else we don't care).
+         * CAS 将节点的 item 设置成自身，将 waiter 设置成 null。
          */
         final void forgetContents() {
             UNSAFE.putObject(this, itemOffset, this);
@@ -497,16 +456,19 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         }
 
         /**
-         * Returns true if this node has been matched, including the
-         * case of artificial matches due to cancellation.
+         * 如果此节点已经匹配，返回 true
          */
         final boolean isMatched() {
             Object x = item;
+            // 如果节点是自链接节点，或者
+            // 节点是数据节点但 x == null，或者
+            // 节点是请求节点但 x != null，
+            // 表示节点不符合原本的设定，已经被匹配过了
             return (x == this) || ((x == null) == isData);
         }
 
         /**
-         * Returns true if this is an unmatched request node.
+         * 如果节点是未匹配的请求节点，返回 true。
          */
         final boolean isUnmatchedRequest() {
             return !isData && item == null;
@@ -524,11 +486,15 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         }
 
         /**
-         * Tries to artificially match a data node -- used by remove.
+         * 尝试匹配节点
          */
         final boolean tryMatchData() {
             // assert isData;
             Object x = item;
+            // 1. item 不为 null
+            // 2. 不是自链接节点
+            // 3. 成功将 item 变成 null
+            // 那么可以唤醒线程，节点匹配成功
             if (x != null && x != this && casItem(x, null)) {
                 LockSupport.unpark(waiter);
                 return true;
@@ -559,16 +525,16 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         }
     }
 
-    /** head of the queue; null until first enqueue */
+    /** 头节点；在第一次 enqueue 操作之前为 null */
     transient volatile Node head;
 
-    /** tail of the queue; null until first append */
+    /** 尾节点；在第一次 append 操作之前为 null */
     private transient volatile Node tail;
 
     /** The number of apparent failures to unsplice removed nodes */
     private transient volatile int sweepVotes;
 
-    // CAS methods for fields
+    // CAS 方法改变头结点/尾节点/sweepVotes
     private boolean casTail(Node cmp, Node val) {
         return UNSAFE.compareAndSwapObject(this, tailOffset, cmp, val);
     }
@@ -581,22 +547,34 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         return UNSAFE.compareAndSwapInt(this, sweepVotesOffset, cmp, val);
     }
 
-    /*
-     * Possible values for "how" argument in xfer method.
+    /**
+     * xfer 方法中 how 参数可能有 NOW, ASYNC, SYNC, TIMED 四个值
      */
-    private static final int NOW   = 0; // for untimed poll, tryTransfer
-    private static final int ASYNC = 1; // for offer, put, add
-    private static final int SYNC  = 2; // for transfer, take
-    private static final int TIMED = 3; // for timed poll, tryTransfer
+    // 用于没有等待时间限制的 poll，tryTransfer
+    private static final int NOW   = 0;
+    // 用于 offer, put, add
+    private static final int ASYNC = 1;
+    // 用于 transfer, take
+    private static final int SYNC  = 2;
+    // 用于有等待时间限制的 poll, tryTransfer
+    private static final int TIMED = 3;
 
     @SuppressWarnings("unchecked")
+    // 返回 item
     static <E> E cast(Object item) {
         // assert item == null || item.getClass() != Node.class;
         return (E) item;
     }
 
     /**
-     * Implements all queuing methods. See above for explanation.
+     * 所有队列方法实现的基础。
+     *
+     * take 操作的 e 为 null，否则为 item
+     * put 操作的 haveData 为 true，take 操作为 false
+     * how 参数有四个可能的值，分别为 NOW, ASYNC, SYNC, or TIMED
+     * nanos 在模式为 TIMED 时使用
+     *
+     * 如果匹配成功返回 item，否则返回 e
      *
      * @param e the item or null for take
      * @param haveData true if this is a put, else a take
@@ -612,47 +590,78 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
         retry:
         for (;;) {                            // restart on append race
-
+            // 两层循环，内层从 head 开始
             for (Node h = head, p = h; p != null;) { // find & match first node
+                // p 节点的类型
                 boolean isData = p.isData;
+                // p 节点的数据类型
                 Object item = p.item;
+                // 1. p 不是自链接节点
+                // 2. isData 为 true 的时候如果 item 不等于 null（数据节点）
+                // 或者 isData 为 false 且 item 等于 null（请求节点）
+                // 满足以上两点表示找到有效节点，进入匹配
                 if (item != p && (item != null) == isData) { // unmatched
+                    // 已经有数据节点但是是 put 操作
+                    // 没有数据但是是 take 操作
+                    // 以上两者为匹配失败，跳出内层循环
                     if (isData == haveData)   // can't match
                         break;
-                    if (p.casItem(item, e)) { // match
+                    // 尝试 CAS 方式修改 item 为指定的 e
+                    if (p.casItem(item, e)) {
                         for (Node q = p; q != h;) {
-                            Node n = q.next;  // update by 2 unless singleton
+                            Node n = q.next;
+                            // 更新 head 为匹配节点 p 的 next 节点
                             if (head == h && casHead(h, n == null ? q : n)) {
+                                // 旧的节点指向自身等待回收
+                                // 然后跳出循环
                                 h.forgetNext();
                                 break;
-                            }                 // advance and retry
+                            }
+                            // CAS 失败
+                            // head != null 且 head.next ！= null 且 head.next 已经被匹配过了
+                            // 即松弛度大于等于 2，重新循环（重新循环时 h 是新的 head，
+                            // q 是 head.next）
+                            // 否则跳出
                             if ((h = head)   == null ||
                                     (q = h.next) == null || !q.isMatched())
-                                break;        // unless slack < 2
+                                break;
                         }
+                        // 唤醒 p 节点上等待的线程
                         LockSupport.unpark(p.waiter);
                         return LinkedTransferQueue.<E>cast(item);
                     }
                 }
+                // 继续往后
                 Node n = p.next;
+                // 遇到自链接节点重新获取 head
                 p = (p != n) ? n : (h = head); // Use head if p offlist
             }
 
-            if (how != NOW) {                 // No matches available
+            // 没有匹配到
+            // 如果操作是 NOW 类型，不进入 if，直接返回 e
+            // 如果这个操作不是 NOW 类型，进入 if
+            if (how != NOW) {
+                // 如果是第一次进入这里
                 if (s == null)
                     s = new Node(e, haveData);
+                // 尝试将创建的节点添加到尾部，并返回其上一个节点
                 Node pred = tryAppend(s, haveData);
+                // 如果上一个节点为 null，与其它不同模式线程竞争失败
+                // 重新外层循环
                 if (pred == null)
                     continue retry;           // lost race vs opposite mode
+                // 如果不是 ASYNC，自旋/让步/阻塞当前线程直到节点被匹配或者
+                // 取消返回（如果是 TIMED，超时返回）
+                // 如果是 ASYNC，if 执行完毕，直接 return e
                 if (how != ASYNC)
                     return awaitMatch(s, pred, e, (how == TIMED), nanos);
             }
-            return e; // not waiting
+            return e;
         }
     }
 
     /**
-     * Tries to append node s as tail.
+     * 尝试在尾部添加节点
      *
      * @param s the node to append
      * @param haveData true if appending in data mode
@@ -687,7 +696,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Spins/yields/blocks until node s is matched or caller gives up.
+     * 自旋/让步/阻塞直到节点 s 被匹配或者调用者放弃。
      *
      * @param s the waiting node
      * @param pred the predecessor of s, or s itself if it has no
@@ -759,9 +768,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     /* -------------- Traversal methods -------------- */
 
     /**
-     * Returns the successor of p, or the head node if p.next has been
-     * linked to self, which will only be true if traversing with a
-     * stale pointer that is now off the list.
+     * 返回 p 的后继节点，如果 p 的 next 指向自身，返回 head 节点。
      */
     final Node succ(Node p) {
         Node next = p.next;
@@ -769,33 +776,12 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns the first unmatched node of the given mode, or null if
-     * none.  Used by methods isEmpty, hasWaitingConsumer.
+     * 返回给定模式第一个未匹配的节点，如果没有返回 null。
      */
     private Node firstOfMode(boolean isData) {
         for (Node p = head; p != null; p = succ(p)) {
             if (!p.isMatched())
                 return (p.isData == isData) ? p : null;
-        }
-        return null;
-    }
-
-    /**
-     * Version of firstOfMode used by Spliterator. Callers must
-     * recheck if the returned node's item field is null or
-     * self-linked before using.
-     */
-    final Node firstDataNode() {
-        for (Node p = head; p != null;) {
-            Object item = p.item;
-            if (p.isData) {
-                if (item != null && item != p)
-                    return p;
-            }
-            else if (item == null)
-                break;
-            if (p == (p = p.next))
-                p = head;
         }
         return null;
     }
@@ -818,8 +804,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Traverses and counts unmatched nodes of the given mode.
-     * Used by methods size and getWaitingConsumerCount.
+     * 遍历并统计给定模式下未匹配的节点数量。
      */
     private int countOfMode(boolean data) {
         int count = 0;
@@ -839,209 +824,6 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             }
         }
         return count;
-    }
-
-    final class Itr implements Iterator<E> {
-        private Node nextNode;   // next node to return item for
-        private E nextItem;      // the corresponding item
-        private Node lastRet;    // last returned node, to support remove
-        private Node lastPred;   // predecessor to unlink lastRet
-
-        /**
-         * Moves to next node after prev, or first node if prev null.
-         */
-        private void advance(Node prev) {
-            /*
-             * To track and avoid buildup of deleted nodes in the face
-             * of calls to both Queue.remove and Itr.remove, we must
-             * include variants of unsplice and sweep upon each
-             * advance: Upon Itr.remove, we may need to catch up links
-             * from lastPred, and upon other removes, we might need to
-             * skip ahead from stale nodes and unsplice deleted ones
-             * found while advancing.
-             */
-
-            Node r, b; // reset lastPred upon possible deletion of lastRet
-            if ((r = lastRet) != null && !r.isMatched())
-                lastPred = r;    // next lastPred is old lastRet
-            else if ((b = lastPred) == null || b.isMatched())
-                lastPred = null; // at start of list
-            else {
-                Node s, n;       // help with removal of lastPred.next
-                while ((s = b.next) != null &&
-                        s != b && s.isMatched() &&
-                        (n = s.next) != null && n != s)
-                    b.casNext(s, n);
-            }
-
-            this.lastRet = prev;
-
-            for (Node p = prev, s, n;;) {
-                s = (p == null) ? head : p.next;
-                if (s == null)
-                    break;
-                else if (s == p) {
-                    p = null;
-                    continue;
-                }
-                Object item = s.item;
-                if (s.isData) {
-                    if (item != null && item != s) {
-                        nextItem = LinkedTransferQueue.<E>cast(item);
-                        nextNode = s;
-                        return;
-                    }
-                }
-                else if (item == null)
-                    break;
-                // assert s.isMatched();
-                if (p == null)
-                    p = s;
-                else if ((n = s.next) == null)
-                    break;
-                else if (s == n)
-                    p = null;
-                else
-                    p.casNext(s, n);
-            }
-            nextNode = null;
-            nextItem = null;
-        }
-
-        Itr() {
-            advance(null);
-        }
-
-        public final boolean hasNext() {
-            return nextNode != null;
-        }
-
-        public final E next() {
-            Node p = nextNode;
-            if (p == null) throw new NoSuchElementException();
-            E e = nextItem;
-            advance(p);
-            return e;
-        }
-
-        public final void remove() {
-            final Node lastRet = this.lastRet;
-            if (lastRet == null)
-                throw new IllegalStateException();
-            this.lastRet = null;
-            if (lastRet.tryMatchData())
-                unsplice(lastPred, lastRet);
-        }
-    }
-
-    /** A customized variant of Spliterators.IteratorSpliterator */
-    static final class LTQSpliterator<E> implements Spliterator<E> {
-        static final int MAX_BATCH = 1 << 25;  // max batch array size;
-        final LinkedTransferQueue<E> queue;
-        Node current;    // current node; null until initialized
-        int batch;          // batch size for splits
-        boolean exhausted;  // true when no more nodes
-        LTQSpliterator(LinkedTransferQueue<E> queue) {
-            this.queue = queue;
-        }
-
-        public Spliterator<E> trySplit() {
-            Node p;
-            final LinkedTransferQueue<E> q = this.queue;
-            int b = batch;
-            int n = (b <= 0) ? 1 : (b >= MAX_BATCH) ? MAX_BATCH : b + 1;
-            if (!exhausted &&
-                    ((p = current) != null || (p = q.firstDataNode()) != null) &&
-                    p.next != null) {
-                Object[] a = new Object[n];
-                int i = 0;
-                do {
-                    Object e = p.item;
-                    if (e != p && (a[i] = e) != null)
-                        ++i;
-                    if (p == (p = p.next))
-                        p = q.firstDataNode();
-                } while (p != null && i < n && p.isData);
-                if ((current = p) == null)
-                    exhausted = true;
-                if (i > 0) {
-                    batch = i;
-                    return Spliterators.spliterator
-                            (a, 0, i, Spliterator.ORDERED | Spliterator.NONNULL |
-                                    Spliterator.CONCURRENT);
-                }
-            }
-            return null;
-        }
-
-        @SuppressWarnings("unchecked")
-        public void forEachRemaining(Consumer<? super E> action) {
-            Node p;
-            if (action == null) throw new NullPointerException();
-            final LinkedTransferQueue<E> q = this.queue;
-            if (!exhausted &&
-                    ((p = current) != null || (p = q.firstDataNode()) != null)) {
-                exhausted = true;
-                do {
-                    Object e = p.item;
-                    if (e != null && e != p)
-                        action.accept((E)e);
-                    if (p == (p = p.next))
-                        p = q.firstDataNode();
-                } while (p != null && p.isData);
-            }
-        }
-
-        @SuppressWarnings("unchecked")
-        public boolean tryAdvance(Consumer<? super E> action) {
-            Node p;
-            if (action == null) throw new NullPointerException();
-            final LinkedTransferQueue<E> q = this.queue;
-            if (!exhausted &&
-                    ((p = current) != null || (p = q.firstDataNode()) != null)) {
-                Object e;
-                do {
-                    if ((e = p.item) == p)
-                        e = null;
-                    if (p == (p = p.next))
-                        p = q.firstDataNode();
-                } while (e == null && p != null && p.isData);
-                if ((current = p) == null)
-                    exhausted = true;
-                if (e != null) {
-                    action.accept((E)e);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public long estimateSize() { return Long.MAX_VALUE; }
-
-        public int characteristics() {
-            return Spliterator.ORDERED | Spliterator.NONNULL |
-                    Spliterator.CONCURRENT;
-        }
-    }
-
-    /**
-     * Returns a {@link Spliterator} over the elements in this queue.
-     *
-     * <p>The returned spliterator is
-     * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
-     *
-     * <p>The {@code Spliterator} reports {@link Spliterator#CONCURRENT},
-     * {@link Spliterator#ORDERED}, and {@link Spliterator#NONNULL}.
-     *
-     * @implNote
-     * The {@code Spliterator} implements {@code trySplit} to permit limited
-     * parallelism.
-     *
-     * @return a {@code Spliterator} over the elements in this queue
-     * @since 1.8
-     */
-    public Spliterator<E> spliterator() {
-        return new LTQSpliterator<E>(this);
     }
 
     /* -------------- Removal methods -------------- */
@@ -1116,7 +898,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Main implementation of remove(Object)
+     * remove(Object) 函数的主要实现
      */
     private boolean findAndRemove(Object e) {
         if (e != null) {
@@ -1142,15 +924,13 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Creates an initially empty {@code LinkedTransferQueue}.
+     * 构造函数
      */
     public LinkedTransferQueue() {
     }
 
     /**
-     * Creates a {@code LinkedTransferQueue}
-     * initially containing the elements of the given collection,
-     * added in traversal order of the collection's iterator.
+     * 构造函数
      *
      * @param c the collection of elements to initially contain
      * @throws NullPointerException if the specified collection or any
@@ -1162,8 +942,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Inserts the specified element at the tail of this queue.
-     * As the queue is unbounded, this method will never block.
+     * 元素添加到末尾
      *
      * @throws NullPointerException if the specified element is null
      */
@@ -1172,9 +951,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Inserts the specified element at the tail of this queue.
-     * As the queue is unbounded, this method will never block or
-     * return {@code false}.
+     * 元素添加到末尾
      *
      * @return {@code true} (as specified by
      *  {@link java.util.concurrent.BlockingQueue#offer(Object,long,TimeUnit)
@@ -1187,8 +964,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Inserts the specified element at the tail of this queue.
-     * As the queue is unbounded, this method will never return {@code false}.
+     * 元素添加到末尾
      *
      * @return {@code true} (as specified by {@link Queue#offer})
      * @throws NullPointerException if the specified element is null
@@ -1199,9 +975,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Inserts the specified element at the tail of this queue.
-     * As the queue is unbounded, this method will never throw
-     * {@link IllegalStateException} or return {@code false}.
+     * 元素添加到队列末尾
      *
      * @return {@code true} (as specified by {@link Collection#add})
      * @throws NullPointerException if the specified element is null
@@ -1212,12 +986,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Transfers the element to a waiting consumer immediately, if possible.
-     *
-     * <p>More precisely, transfers the specified element immediately
-     * if there exists a consumer already waiting to receive it (in
-     * {@link #take} or timed {@link #poll(long,TimeUnit) poll}),
-     * otherwise returning {@code false} without enqueuing the element.
+     * 如果可以的话，立即将元素转移给正在等待的消费者。
      *
      * @throws NullPointerException if the specified element is null
      */
@@ -1226,13 +995,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Transfers the element to a consumer, waiting if necessary to do so.
-     *
-     * <p>More precisely, transfers the specified element immediately
-     * if there exists a consumer already waiting to receive it (in
-     * {@link #take} or timed {@link #poll(long,TimeUnit) poll}),
-     * else inserts the specified element at the tail of this queue
-     * and waits until the element is received by a consumer.
+     * 将元素转移给消费者，如果需要的话等待，直到元素被消费者接收。
      *
      * @throws NullPointerException if the specified element is null
      */
@@ -1244,16 +1007,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Transfers the element to a consumer if it is possible to do so
-     * before the timeout elapses.
-     *
-     * <p>More precisely, transfers the specified element immediately
-     * if there exists a consumer already waiting to receive it (in
-     * {@link #take} or timed {@link #poll(long,TimeUnit) poll}),
-     * else inserts the specified element at the tail of this queue
-     * and waits until the element is received by a consumer,
-     * returning {@code false} if the specified wait time elapses
-     * before the element can be transferred.
+     * 将元素转移给消费者，如果需要的话等待，直到时间到期或者元素被
+     * 消费者接收。
      *
      * @throws NullPointerException if the specified element is null
      */
@@ -1349,19 +1104,13 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         return true;
     }
 
+    // 有消费者在等待返回 true
     public boolean hasWaitingConsumer() {
         return firstOfMode(false) != null;
     }
 
     /**
-     * Returns the number of elements in this queue.  If this queue
-     * contains more than {@code Integer.MAX_VALUE} elements, returns
-     * {@code Integer.MAX_VALUE}.
-     *
-     * <p>Beware that, unlike in most collections, this method is
-     * <em>NOT</em> a constant-time operation. Because of the
-     * asynchronous nature of these queues, determining the current
-     * number of elements requires an O(n) traversal.
+     * 返回元素个数。
      *
      * @return the number of elements in this queue
      */
@@ -1369,17 +1118,13 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         return countOfMode(true);
     }
 
+    // 返回等待的消费者人数
     public int getWaitingConsumerCount() {
         return countOfMode(false);
     }
 
     /**
-     * Removes a single instance of the specified element from this queue,
-     * if it is present.  More formally, removes an element {@code e} such
-     * that {@code o.equals(e)}, if this queue contains one or more such
-     * elements.
-     * Returns {@code true} if this queue contained the specified element
-     * (or equivalently, if this queue changed as a result of the call).
+     * 删除指定元素
      *
      * @param o element to be removed from this queue, if present
      * @return {@code true} if this queue changed as a result of the call
@@ -1389,9 +1134,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns {@code true} if this queue contains the specified element.
-     * More formally, returns {@code true} if and only if this queue contains
-     * at least one element {@code e} such that {@code o.equals(e)}.
+     * 是否包含指定元素
      *
      * @param o object to be checked for containment in this queue
      * @return {@code true} if this queue contains the specified element
@@ -1411,8 +1154,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Always returns {@code Integer.MAX_VALUE} because a
-     * {@code LinkedTransferQueue} is not capacity constrained.
+     * 没有容量限制
      *
      * @return {@code Integer.MAX_VALUE} (as specified by
      *         {@link java.util.concurrent.BlockingQueue#remainingCapacity()
@@ -1420,43 +1162,6 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      */
     public int remainingCapacity() {
         return Integer.MAX_VALUE;
-    }
-
-    /**
-     * Saves this queue to a stream (that is, serializes it).
-     *
-     * @param s the stream
-     * @throws java.io.IOException if an I/O error occurs
-     * @serialData All of the elements (each an {@code E}) in
-     * the proper order, followed by a null
-     */
-    private void writeObject(java.io.ObjectOutputStream s)
-            throws java.io.IOException {
-        s.defaultWriteObject();
-        for (E e : this)
-            s.writeObject(e);
-        // Use trailing null as sentinel
-        s.writeObject(null);
-    }
-
-    /**
-     * Reconstitutes this queue from a stream (that is, deserializes it).
-     * @param s the stream
-     * @throws ClassNotFoundException if the class of a serialized object
-     *         could not be found
-     * @throws java.io.IOException if an I/O error occurs
-     */
-    private void readObject(java.io.ObjectInputStream s)
-            throws java.io.IOException, ClassNotFoundException {
-        s.defaultReadObject();
-        for (;;) {
-            @SuppressWarnings("unchecked")
-            E item = (E) s.readObject();
-            if (item == null)
-                break;
-            else
-                offer(item);
-        }
     }
 
     // Unsafe mechanics
