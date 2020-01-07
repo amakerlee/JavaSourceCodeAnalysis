@@ -383,21 +383,12 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             Runtime.getRuntime().availableProcessors() > 1;
 
     /**
-     * The number of times to spin (with randomly interspersed calls
-     * to Thread.yield) on multiprocessor before blocking when a node
-     * is apparently the first waiter in the queue.  See above for
-     * explanation. Must be a power of two. The value is empirically
-     * derived -- it works pretty well across a variety of processors,
-     * numbers of CPUs, and OSes.
+     * 用于计算自旋次数
      */
     private static final int FRONT_SPINS   = 1 << 7;
 
     /**
-     * The number of times to spin before blocking when a node is
-     * preceded by another node that is apparently spinning.  Also
-     * serves as an increment to FRONT_SPINS on phase changes, and as
-     * base average frequency for yielding during spins. Must be a
-     * power of two.
+     * 用于计算自旋次数
      */
     private static final int CHAINED_SPINS = FRONT_SPINS >>> 1;
 
@@ -475,6 +466,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
         }
 
         /**
+         * 由于匹配失败，模式冲突而不能将给定模式添加到节点中，返回 true
          * Returns true if a node with the given mode cannot be
          * appended to this node because this node is unmatched and
          * has opposite data mode.
@@ -590,11 +582,11 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
 
         retry:
         for (;;) {                            // restart on append race
-            // 两层循环，内层从 head 开始
+            // 两层循环，内层从 head 开始匹配
             for (Node h = head, p = h; p != null;) { // find & match first node
-                // p 节点的类型
+                // p 节点的模式
                 boolean isData = p.isData;
-                // p 节点的数据类型
+                // p 节点的值
                 Object item = p.item;
                 // 1. p 不是自链接节点
                 // 2. isData 为 true 的时候如果 item 不等于 null（数据节点）
@@ -603,11 +595,12 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 if (item != p && (item != null) == isData) { // unmatched
                     // 已经有数据节点但是是 put 操作
                     // 没有数据但是是 take 操作
-                    // 以上两者为匹配失败，跳出内层循环
+                    // 两者的模式一样，无法匹配，跳出内层循环
                     if (isData == haveData)   // can't match
                         break;
-                    // 尝试 CAS 方式修改 item 为指定的 e
+                    // 尝试 CAS 方式修改 item 为指定的 e（e 可能为 null，可能为具体的值）
                     if (p.casItem(item, e)) {
+                        // 匹配成功
                         for (Node q = p; q != h;) {
                             Node n = q.next;
                             // 更新 head 为匹配节点 p 的 next 节点
@@ -628,6 +621,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                         }
                         // 唤醒 p 节点上等待的线程
                         LockSupport.unpark(p.waiter);
+                        // 返回匹配到的元素
                         return LinkedTransferQueue.<E>cast(item);
                     }
                 }
@@ -670,26 +664,39 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * predecessor
      */
     private Node tryAppend(Node s, boolean haveData) {
+        // 从 tail 开始往后查找
         for (Node t = tail, p = t;;) {        // move p to last node and append
             Node n, u;                        // temps for reads of next & tail
+            // tail 和 head 都为 null，链表中没有节点
             if (p == null && (p = head) == null) {
+                // 如果 CAS 设置 head 为 s 成功，就返回
+                // 返回的不是前驱节点（没有前驱节点），返回自身
                 if (casHead(null, s))
                     return s;                 // initialize
             }
+            // 队列中永远只有一种类型的操作，要么是 put，要么是 take
+            // 如果模式冲突，不允许添加，返回 null
             else if (p.cannotPrecede(haveData))
                 return null;                  // lost race vs opposite mode
+            // 没到最后一个节点，继续往后
             else if ((n = p.next) != null)    // not last; keep traversing
+                // p 重新指向 tail 节点
                 p = p != t && t != (u = tail) ? (t = u) : // stale tail
                         (p != n) ? n : null;      // restart if off list
+            // CAS 将 s 设置为 p 的下一个节点
+            // 设置失败说明 p 的 next 已经被修改
             else if (!p.casNext(null, s))
                 p = p.next;                   // re-read on CAS failure
+            // s 入队成功
             else {
+                // 更新 tail
                 if (p != t) {                 // update if slack now >= 2
                     while ((tail != t || !casTail(t, s)) &&
                             (t = tail)   != null &&
                             (s = t.next) != null && // advance and retry
                             (s = s.next) != null && s != t);
                 }
+                // 返回
                 return p;
             }
         }
@@ -708,50 +715,66 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @return matched item, or e if unmatched on interrupt or timeout
      */
     private E awaitMatch(Node s, Node pred, E e, boolean timed, long nanos) {
+        // 计算超时时间
         final long deadline = timed ? System.nanoTime() + nanos : 0L;
+        // 当前线程
         Thread w = Thread.currentThread();
+        // 自旋次数
         int spins = -1; // initialized after first item and cancel checks
+        // 随机数，随机让一些自旋的线程让出时间片
         ThreadLocalRandom randomYields = null; // bound if needed
 
         for (;;) {
             Object item = s.item;
+            // 如果 s 节点的值被修改了，说明它被匹配到了
             if (item != e) {                  // matched
-                // assert item != s;
+                // s 变成自链接节点
                 s.forgetContents();           // avoid garbage
+                // 返回匹配到的元素
                 return LinkedTransferQueue.<E>cast(item);
             }
+            // 响应中断
             if ((w.isInterrupted() || (timed && nanos <= 0)) &&
                     s.casItem(e, s)) {        // cancel
+                // 删除 s
                 unsplice(pred, s);
                 return e;
             }
 
+            // 如果自旋次数小于 0
             if (spins < 0) {                  // establish spins at/near front
+                // spinsFor 计算自旋次数
                 if ((spins = spinsFor(pred, s.isData)) > 0)
+                    // 初始化随机数
                     randomYields = ThreadLocalRandom.current();
             }
             else if (spins > 0) {             // spin
+                // 剩余自旋次数减一
                 --spins;
+                // 随机让出时间片
                 if (randomYields.nextInt(CHAINED_SPINS) == 0)
                     Thread.yield();           // occasionally yield
             }
             else if (s.waiter == null) {
+                // 更新 s 的 waiter 为当前线程
                 s.waiter = w;                 // request unpark then recheck
             }
             else if (timed) {
+                // 有超时限制
                 nanos = deadline - System.nanoTime();
                 if (nanos > 0L)
                     LockSupport.parkNanos(this, nanos);
             }
             else {
+                // 没有自旋次数了
+                // 直接阻塞，等待被唤醒
                 LockSupport.park(this);
             }
         }
     }
 
     /**
-     * Returns spin/yield value for a node with given predecessor and
-     * data mode. See above for explanation.
+     * 根据给定的前驱节点和数据模式返回 spin/yield 的值。
      */
     private static int spinsFor(Node pred, boolean haveData) {
         if (MP && pred != null) {
@@ -829,8 +852,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     /* -------------- Removal methods -------------- */
 
     /**
-     * Unsplices (now or later) the given deleted/cancelled node with
-     * the given predecessor.
+     * 解除指定的删除/取消节点和前驱节点的链接。
      *
      * @param pred a node that was at one time known to be the
      * predecessor of s, or null or s itself if s is/was at head
@@ -1075,11 +1097,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns an iterator over the elements in this queue in proper sequence.
-     * The elements will be returned in order from first (head) to last (tail).
-     *
-     * <p>The returned iterator is
-     * <a href="package-summary.html#Weakly"><i>weakly consistent</i></a>.
+     * 返回迭代器
      *
      * @return an iterator over the elements in this queue in proper sequence
      */
@@ -1092,7 +1110,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * Returns {@code true} if this queue contains no elements.
+     * 队列为空返回 true
      *
      * @return {@code true} if this queue contains no elements
      */

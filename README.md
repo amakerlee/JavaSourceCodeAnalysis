@@ -76,7 +76,9 @@
 
     > 单向/双向无界非阻塞队列。抛弃显式锁，使用 CAS 构建，不需要阻塞线程就能实现线程安全。基础数据结构为链表。
 
-* [~~LinkedTransferQueue~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/LinkedTransferQueue.md)
+* [LinkedTransferQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/LinkedTransferQueue.md)
+
+    > 无界阻塞队列。基于链表实现，通过 CAS 保证线程安全。其中还用到了 LockSupport 阻塞线程。
 
 * [~~SynchronousQueue~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/SynchronousQueue.md)
 

@@ -43,40 +43,18 @@ import java.util.Spliterator;
 import java.util.Spliterators;
 
 /**
- * A {@linkplain BlockingQueue blocking queue} in which each insert
- * operation must wait for a corresponding remove operation by another
- * thread, and vice versa.  A synchronous queue does not have any
- * internal capacity, not even a capacity of one.  You cannot
- * {@code peek} at a synchronous queue because an element is only
- * present when you try to remove it; you cannot insert an element
- * (using any method) unless another thread is trying to remove it;
- * you cannot iterate as there is nothing to iterate.  The
- * <em>head</em> of the queue is the element that the first queued
- * inserting thread is trying to add to the queue; if there is no such
- * queued thread then no element is available for removal and
- * {@code poll()} will return {@code null}.  For purposes of other
- * {@code Collection} methods (for example {@code contains}), a
- * {@code SynchronousQueue} acts as an empty collection.  This queue
- * does not permit {@code null} elements.
+ * 一个实现 BlockingQueue 接口的阻塞队列，每个插入操作必须等待另一个线程
+ * 相应的删除操作，反之亦然。SynchronousQueue 没有任何内部容量。不能使用
+ * peek 方法，因为一个元素只有在试图删除它的时候才会出现；不能插入元素，
+ * 除非有其他线程想要删除它；不能迭代，因为没有任何元素可以迭代。队列的
+ * head 是第一个插入线程试图添加到队列的元素；如果没有这样的线程，那么也
+ * 不存在删除，poll 操作会返回 null。对于其它 Collection 的方法，例如 contains，
+ * SynchronousQueue 完全是空集合。此队列不允许 null 元素。
  *
- * <p>Synchronous queues are similar to rendezvous channels used in
- * CSP and Ada. They are well suited for handoff designs, in which an
- * object running in one thread must sync up with an object running
- * in another thread in order to hand it some information, event, or
- * task.
+ * 此类支持可选的公平性策略，用来对等待的生产者和消费者排序。默认情况下，
+ * 使用公平的方式，遵循 FIFO 的顺序。
  *
- * <p>This class supports an optional fairness policy for ordering
- * waiting producer and consumer threads.  By default, this ordering
- * is not guaranteed. However, a queue constructed with fairness set
- * to {@code true} grants threads access in FIFO order.
- *
- * <p>This class and its iterator implement all of the
- * <em>optional</em> methods of the {@link Collection} and {@link
- * Iterator} interfaces.
- *
- * <p>This class is a member of the
- * <a href="{@docRoot}/../technotes/guides/collections/index.html">
- * Java Collections Framework</a>.
+ * 此类是 Java Collections Framework 的成员。
  *
  * @since 1.5
  * @author Doug Lea and Bill Scherer and Michael Scott
