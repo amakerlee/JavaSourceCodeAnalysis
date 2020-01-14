@@ -37,10 +37,7 @@ package JUC.JUCCollections;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.LockSupport;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.*;
-import java.util.Spliterator;
-import java.util.Spliterators;
 
 /**
  * 一个实现 BlockingQueue 接口的阻塞队列，每个插入操作必须等待另一个线程
@@ -280,6 +277,11 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
         /** 栈的头节点（top）节点 */
         volatile SNode head;
 
+        // head 是栈中最重要的属性，表示头结点，只有用 CAS 方式才能更新
+        // 因为每一次操作在有多线程并发的时候，可能会处理同一个/不同的节点，
+        // 随时可能发生不同步的情况，此时需要重新定位到栈顶（或栈底），
+        // 而 head 就是每一次失败操作重新开始的地方（正是由于 head 的修改
+        // 是原子操作，所以 head 可以作为并发条件下定位此队列的临界变量。）
         boolean casHead(SNode h, SNode nh) {
             return h == head &&
                     UNSAFE.compareAndSwapObject(this, headOffset, h, nh);
@@ -507,16 +509,17 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
              * find sentinel.
              */
 
+            // 后面的两步操作都遍历到 past 为止
             SNode past = s.next;
             if (past != null && past.isCancelled())
                 past = past.next;
 
-            // Absorb cancelled nodes at head
+            // 找到第一个有效的 head
             SNode p;
             while ((p = head) != null && p != past && p.isCancelled())
                 casHead(p, p.next);
 
-            // Unsplice embedded nodes
+            // 将 p 节点的 next 设置成下一个有效节点
             while (p != null && p != past) {
                 SNode n = p.next;
                 if (n != null && n.isCancelled())
@@ -582,14 +585,13 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                 UNSAFE.compareAndSwapObject(this, itemOffset, cmp, this);
             }
 
+            // 节点是否已经失效
             boolean isCancelled() {
                 return item == this;
             }
 
             /**
-             * Returns true if this node is known to be off the queue
-             * because its next pointer has been forgotten due to
-             * an advanceHead operation.
+             * 如果节点已经离开了队列。
              */
             boolean isOffList() {
                 return next == this;
@@ -614,9 +616,9 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
             }
         }
 
-        /** Head of queue */
+        /** 队列头 */
         transient volatile QNode head;
-        /** Tail of queue */
+        /** 队列尾 */
         transient volatile QNode tail;
         /**
          * Reference to a cancelled node that might not yet have been
@@ -632,8 +634,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
         }
 
         /**
-         * Tries to cas nh as new head; if successful, unlink
-         * old head's next node to avoid garbage retention.
+         * 将 nh 设置成新的头结点，将原来的节点删除（自链接）。
          */
         void advanceHead(QNode h, QNode nh) {
             if (h == head &&
@@ -642,7 +643,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
         }
 
         /**
-         * Tries to cas nt as new tail.
+         * 设置尾结点。
          */
         void advanceTail(QNode t, QNode nt) {
             if (tail == t)
@@ -650,7 +651,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
         }
 
         /**
-         * Tries to CAS cleanMe slot.
+         * 设置 cleanMe
          */
         boolean casCleanMe(QNode cmp, QNode val) {
             return cleanMe == cmp &&
@@ -658,7 +659,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
         }
 
         /**
-         * Puts or takes an item.
+         * put 或者 take 的核心操作
          */
         @SuppressWarnings("unchecked")
         E transfer(E e, boolean timed, long nanos) {
@@ -690,56 +691,75 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
             QNode s = null; // constructed/reused as needed
             boolean isData = (e != null);
 
+            // 自旋
             for (;;) {
                 QNode t = tail;
                 QNode h = head;
+                // 未初始化
                 if (t == null || h == null)         // saw uninitialized value
                     continue;                       // spin
 
-                if (h == t || t.isData == isData) { // empty or same-mode
+                // 队列为空或者模式相同
+                if (h == t || t.isData == isData) {
                     QNode tn = t.next;
-                    if (t != tail)                  // inconsistent read
+                    // 重新读取 tail
+                    if (t != tail)
                         continue;
-                    if (tn != null) {               // lagging tail
+                    // 还没有到达尾结点，tail 向后移动（tail 节点需要 CAS）
+                    if (tn != null) {
                         advanceTail(t, tn);
                         continue;
                     }
                     if (timed && nanos <= 0)        // can't wait
                         return null;
+                    // 创造新节点
                     if (s == null)
                         s = new QNode(e, isData);
-                    if (!t.casNext(null, s))        // failed to link in
+                    // 添加节点
+                    if (!t.casNext(null, s))
                         continue;
 
-                    advanceTail(t, s);              // swing tail and wait
+                    // 将尾结点设置成新添加的节点
+                    advanceTail(t, s);
+                    // 自旋/等待
                     Object x = awaitFulfill(s, e, timed, nanos);
-                    if (x == s) {                   // wait was cancelled
+                    // 等待结束，删除节点
+                    if (x == s) {
                         clean(t, s);
                         return null;
                     }
 
-                    if (!s.isOffList()) {           // not already unlinked
-                        advanceHead(t, s);          // unlink if head
-                        if (x != null)              // and forget fields
+                    // s 没有离开队列
+                    if (!s.isOffList()) {
+                        advanceHead(t, s);
+                        if (x != null)
                             s.item = s;
                         s.waiter = null;
                     }
                     return (x != null) ? (E)x : e;
-
-                } else {                            // complementary-mode
+                } else {
+                    // 模式不同，进入此程序段
+                    // 从 head 节点开始查找
                     QNode m = h.next;               // node to fulfill
+                    // 重新获取 head/tail
                     if (t != tail || m == null || h != head)
                         continue;                   // inconsistent read
 
                     Object x = m.item;
-                    if (isData == (x != null) ||    // m already fulfilled
-                            x == m ||                   // m cancelled
-                            !m.casItem(x, e)) {         // lost CAS
-                        advanceHead(h, m);          // dequeue and retry
+                    // 如果模式相同（其他线程已经进行了处理）
+                    // 或者节点被取消
+                    // 或者匹配失败（CAS 失败，说明有其他线程已经处理了）
+                    if (isData == (x != null) ||
+                            x == m ||
+                            !m.casItem(x, e)) {
+                        // 继续往后查找，head 往后移动
+                        advanceHead(h, m);
                         continue;
                     }
 
-                    advanceHead(h, m);              // successfully fulfilled
+                    // 匹配成功，head 出列
+                    advanceHead(h, m);
+                    // 唤醒匹配成功节点里的线程
                     LockSupport.unpark(m.waiter);
                     return (x != null) ? (E)x : e;
                 }
@@ -747,7 +767,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
         }
 
         /**
-         * Spins/blocks until node s is fulfilled.
+         * 自旋/阻塞直到节点被填满
          *
          * @param s the waiting node
          * @param e the comparison value for checking match
@@ -786,7 +806,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
         }
 
         /**
-         * Gets rid of cancelled node s with original predecessor pred.
+         * 清除节点 s
          */
         void clean(QNode pred, QNode s) {
             s.waiter = null; // forget thread
@@ -800,30 +820,42 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
              */
             while (pred.next == s) { // Return early if already unlinked
                 QNode h = head;
-                QNode hn = h.next;   // Absorb cancelled first node as head
+                QNode hn = h.next;
+                // 找到有效的 head 节点
                 if (hn != null && hn.isCancelled()) {
                     advanceHead(h, hn);
                     continue;
                 }
                 QNode t = tail;      // Ensure consistent read for tail
+                // 队列为空，直接返回
                 if (t == h)
                     return;
                 QNode tn = t.next;
+                // tail 被修改，重新获取
                 if (t != tail)
                     continue;
+                // 找到新的 tail 节点
                 if (tn != null) {
                     advanceTail(t, tn);
                     continue;
                 }
+                // 如果要删除的节点不是 tail，直接修改 pred 的 next，然后返回
                 if (s != t) {        // If not tail, try to unsplice
                     QNode sn = s.next;
                     if (sn == s || pred.casNext(s, sn))
                         return;
                 }
+                // s 是尾结点
+                // 不能直接删除尾结点，此时可能有其它线程正在执行入队操作，
+                // 而入队是放在队尾的，因此直接删除队尾，可能会导致其它线程
+                // 入队操作不能正确的加入队列
+               // cleanMe 表示需要删除节点的前驱
                 QNode dp = cleanMe;
+                // 有需要删除的节点
                 if (dp != null) {    // Try unlinking previous cancelled node
                     QNode d = dp.next;
                     QNode dn;
+                    // 删除 d
                     if (d == null ||               // d is gone or
                             d == dp ||                 // d is off list or
                             !d.isCancelled() ||        // d not cancelled or
@@ -831,9 +863,11 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                                     (dn = d.next) != null &&  //   has successor
                                     dn != d &&                //   that is on list
                                     dp.casNext(d, dn)))       // d unspliced
+                        // 将 cleanMe 设置为 null
                         casCleanMe(dp, null);
                     if (dp == pred)
                         return;      // s is already saved node
+                    // 将 cleanMe 设置为 pred
                 } else if (casCleanMe(null, pred))
                     return;          // Postpone cleaning s
             }
@@ -860,11 +894,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
     }
 
     /**
-     * The transferer. Set only in constructor, but cannot be declared
-     * as final without further complicating serialization.  Since
-     * this is accessed only at most once per public method, there
-     * isn't a noticeable performance penalty for using volatile
-     * instead of final here.
+     * 只能在构造函数中设置。
      */
     private transient volatile Transferer<E> transferer;
 
