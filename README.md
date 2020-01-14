@@ -82,6 +82,8 @@
 
 * [~~SynchronousQueue~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/SynchronousQueue.md)
 
+    > 没有容量的阻塞队列，每个插入操作都要等待其他线程的删除操作，每个删除操作都要等待插入操作，实际相当于将数据从一个线程传递到另一个线程。包括公平和非公平两种模式。
+
 * [DelayQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/DelayQueue.md)
 
     > 无界延时阻塞队列。使用显式锁保证线程安全。使用优先队列对延迟时间排序。只有当队列头部元素延迟时间到期，才允许被取出，否则线程一直等待。
