@@ -80,9 +80,9 @@
 
     > 无界阻塞队列。基于链表实现，通过 CAS 保证线程安全。其中还用到了 LockSupport 阻塞线程。
 
-* [~~SynchronousQueue~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/SynchronousQueue.md)
+* [SynchronousQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/SynchronousQueue.md)
 
-    > 没有容量的阻塞队列，每个插入操作都要等待其他线程的删除操作，每个删除操作都要等待插入操作，实际相当于将数据从一个线程传递到另一个线程。包括公平和非公平两种模式。
+    > 没有容量的阻塞队列，每个插入操作都要等待其他线程的删除操作，每个删除操作都要等待插入操作，实际相当于将数据从一个线程传递到另一个线程。和 LinkedTransferQueue 类似，但包括了公平和非公平两种模式。
 
 * [DelayQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/DelayQueue.md)
 

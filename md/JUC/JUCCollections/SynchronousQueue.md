@@ -334,6 +334,8 @@ clean 用于删除指定节点。
 
 ### 内部类
 
+此节点类和 LinkedTransferQueue 中的节点类一样。isData 属性表示节点类别。
+
 ```java
         /** Node class for TransferQueue. */
         static final class QNode {
@@ -399,9 +401,9 @@ clean 用于删除指定节点。
 
 ### 类属性
 
+由于是单向队列结构，此类主要有两个属性， 代表头结点的 head 和代表尾节点的 tail，需要用 CAS 的方式修改。
 
-
-
+除此之外，cleanMe 属性在 clean 函数中使用，用于保存上一个需要删除的节点。
 
 ```java
         /** 队列头 */
@@ -416,9 +418,13 @@ clean 用于删除指定节点。
         transient volatile QNode cleanMe;
 ```
 
-
 ### 成员函数
 
+核心成员函数依然是 transfer，每一次自旋分为以下两种情况：
+
+1. 队列为空或者模式相同，此时创建新的节点添加到队列尾部。
+
+2. 模式相同，尝试从头结点开始匹配。
 
 ```java
         /**
@@ -530,48 +536,7 @@ clean 用于删除指定节点。
         }
 ```
 
-
-```java
-        /**
-         * 自旋/阻塞直到节点被填满
-         *
-         * @param s the waiting node
-         * @param e the comparison value for checking match
-         * @param timed true if timed wait
-         * @param nanos timeout value
-         * @return matched item, or s if cancelled
-         */
-        Object awaitFulfill(QNode s, E e, boolean timed, long nanos) {
-            /* Same idea as TransferStack.awaitFulfill */
-            final long deadline = timed ? System.nanoTime() + nanos : 0L;
-            Thread w = Thread.currentThread();
-            int spins = ((head.next == s) ?
-                    (timed ? maxTimedSpins : maxUntimedSpins) : 0);
-            for (;;) {
-                if (w.isInterrupted())
-                    s.tryCancel(e);
-                Object x = s.item;
-                if (x != e)
-                    return x;
-                if (timed) {
-                    nanos = deadline - System.nanoTime();
-                    if (nanos <= 0L) {
-                        s.tryCancel(e);
-                        continue;
-                    }
-                }
-                if (spins > 0)
-                    --spins;
-                else if (s.waiter == null)
-                    s.waiter = w;
-                else if (!timed)
-                    LockSupport.park(this);
-                else if (nanos > spinForTimeoutThreshold)
-                    LockSupport.parkNanos(this, nanos);
-            }
-        }
-```
-
+clean 函数和栈中的 clean 有一定区别，主要是在尾节点的删除操作上，增加了一个逻辑：如果删除的节点不是尾节点，可以直接删除，如果是尾节点，那么用 cleanMe 标记需要删除节点的前驱节点，在下一轮的 clean 中才根据情况决定是否删除。
 
 ```java
         /**
