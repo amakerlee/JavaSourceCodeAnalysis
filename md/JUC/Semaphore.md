@@ -115,3 +115,99 @@ public class test {
     }
 }
 ```
+
+### 实现消费者生产者模式
+
+```java
+public class test {
+    public static void main(String[] args) {
+        SharedData shared = new SharedData();
+
+        Thread producer1 = new Thread(new Producer(shared),"producer1");
+        Thread producer2 = new Thread(new Producer(shared),"producer2");
+        Thread consumer1 = new Thread(new Consumer(shared),"consumer1");
+        Thread consumer2 = new Thread(new Consumer(shared),"consumer2");
+
+        consumer1.start();
+        consumer2.start();
+        producer1.start();
+        producer2.start();
+    }
+
+    private static test t = new test();
+
+    static class SharedData {
+        private LinkedList<Integer> l = new LinkedList<>();
+        private Lock lock = new ReentrantLock();
+        private Semaphore semProducer = new Semaphore(3);
+        private Semaphore semConsumer = new Semaphore(0);
+        Random rn = new Random();
+
+        public void get() throws InterruptedException{
+            try {
+                semConsumer.acquire();
+                lock.lock();
+                int val = l.removeFirst();
+                System.out.println(Thread.currentThread().getName() + " 正在消费数据为：" + val + "    缓冲区目前大小为：" + l.size());
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
+                semProducer.release();
+            }
+        }
+
+        public void put() throws InterruptedException{
+            try {
+                semProducer.acquire();
+                lock.lock();
+                int val = rn.nextInt(100);
+                l.add(val);
+                System.out.println(Thread.currentThread().getName() + " 正在生产数据为：" + val + "    缓冲区目前大小为：" + l.size());
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                lock.unlock();
+                semConsumer.release();
+            }
+        }
+    }
+
+    static class Consumer implements Runnable{
+        private SharedData data;
+        public Consumer(SharedData data) {
+            this.data = data;
+        }
+        @Override
+        public void run() {
+            for(int i = 0; i < 10; i++) {
+                try {
+                    data.get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    static class Producer implements Runnable{
+        private SharedData data;
+        public Producer(SharedData data) {
+            this.data = data;
+        }
+        @Override
+        public void run() {
+            for(int i = 0; i < 10; i++) {
+                try {
+                    data.put();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+```
+
