@@ -587,7 +587,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 synchronized (f) {
                     // 监测 i 位置是否还是 f，如果是 f 才能进行后续操作，否则继续循环
                     if (tabAt(tab, i) == f) {
-                        // f.hash >= 0，说明 f 是链表的头结点？
+                        // f.hash >= 0，说明是链式结构
                         // 对 f 开启的链表进行遍历
                         if (fh >= 0) {
                             binCount = 1;
@@ -1688,9 +1688,11 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      */
     private final void addCount(long x, int check) {
         CounterCell[] as; long b, s;
-        // 如果 counterCells 不为 null，或者修改 baseCount 失败，进入 if 块，
-        // 放弃修改 baseCount
-        // 即，有 counterCells 的时候优先使用 counterCells。
+        // 如果 counterCells 不为 null，直接进入 if 块，使用 counterCells；
+        // 否则尝试 CAS 修改 baseCount，如果成功了，就不管 counterCells 了，
+        // 失败了也进入 if 块
+        // 由此可以看出，计算元素个数其实同时使用到了 counterCells 和 baseCount 两个变量
+        // 说明，有 counterCells 的时候优先使用 counterCells。
         if ((as = counterCells) != null ||
                 !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
             CounterCell a; long v; int m;
@@ -1912,10 +1914,10 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                     return;
                 }
                 // 当前线程 return 之后可能还有其他线程正在转移
-                // 每个线程万恒扩容操作后对 sizeCtl 减一
+                // 每个线程完成扩容操作后对 sizeCtl 减一
                 if (U.compareAndSwapInt(this, SIZECTL, sc = sizeCtl, sc - 1)) {
                     // sc 初值为 （rs << RESIZE_STAMP_SHIFT) + 2）
-                    // 如果还有其他线程正在操作，直接返回，否则重新初始化
+                    // 如果还有其他线程正在操作，直接返回，不改变 finishing，否则改变
                     // i, finishing 和 advance，再检查一遍 table
                     if ((sc - 2) != resizeStamp(n) << RESIZE_STAMP_SHIFT)
                         return;
@@ -1942,8 +1944,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                             // 只可能是 0 或者 n。
                             // 根据这个把链表节点分成两类，为 0 说明原来的索引小于 n，
                             // 则位置保持不变，为 n 说明已经超过了原来的 n，新的位置
-                            // 应该是 n + i（n 的某一位为 1，超过的那些索引的该 bit 位也
-                            // 必定为 1）
+                            // 应该是 n + i（n 的某一位为 1，如果需要移动，该 bit 位也
+                            // 必定为 1，不然将会待在原桶，位置不变）
                             int runBit = fh & n;
                             Node<K,V> lastRun = f;
 
@@ -2115,7 +2117,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 }
                 else if (!wasUncontended)       // CAS already known to fail
                     wasUncontended = true;      // Continue after rehash
-                // 数组中找到为位置非 null，则 CAS 更新它的 value，然后跳出循环
+                // 数组中找到位置非 null，则 CAS 更新它的 value，然后跳出循环
                 else if (U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))
                     break;
                 // 上面更新失败到这里检查 counterCells 数组是否已经扩容，是否达到上限

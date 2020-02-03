@@ -26,7 +26,7 @@
 
 ### Map
 
-* [HashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/HashMap.md) | [TreeMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/TreeMap.md) | [~~LinkedHashMap~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/LinkedHashMap.md)
+* [HashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/HashMap.md) | [TreeMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/TreeMap.md)
 
    > Map 是键值对结构的典型实例。HashMap 作为一种高效的 Map 实现，平均情况下检索的时间代价只需要 O(1)，其核心的数据结构为数组，解决哈希碰撞的时候还会用到双向链表和红黑树（JDK 8）。TreeMap 直接使用红黑树存储每个键值对节点，平均检索时间为 O(log n)。相对于 HashMap 而言，红黑树的优势是节点有序（因为红黑树是相对平衡的二叉检索树）。
 
@@ -50,7 +50,7 @@
 
     > ReentrantLock 是 Lock 接口的实现，翻译为可重入锁，支持同一个线程重入，并在获取和释放时记录重入次数。ReentrantReadWriteLock 是 Lock 接口的实现，翻译为可重入读写锁，实现了可重入读锁和可重入写锁，也即共享锁和互斥锁。
 
-* [CountDownLatch](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CountDownLatch.md) | [CyclicBarrier](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CyclicBarrier.md) | [~~Semaphore~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/Semaphore.md)
+* [CountDownLatch](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CountDownLatch.md) | [CyclicBarrier](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CyclicBarrier.md) | [Semaphore](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/Semaphore.md)
 
     > 基于 AQS 实现的三个同步辅助类，用于线程计数、线程等待、线程间协作等场景下的线程控制。
 
@@ -64,7 +64,7 @@
     
     > 对应于常用集合中的 ArrayList，使用 COW（Copy On Write，写时复制）保证线程安全。
 
-* [~~ConcurrentHashMap~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentHashMap.md) | [ConcurrentSkipListMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentSkipListMap.md)
+* [ConcurrentHashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentHashMap.md) | [ConcurrentSkipListMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentSkipListMap.md)
 
     > ConcurrentHashMap 对应于常用集合中的 HashMap，JDK 1.8 中不再使用分段锁，改用 CAS 保障线程安全。ConcurrentSkipListMap 是基于跳跃表（SkipList）实现的 Map 集合，当跳跃表索引接近平衡二叉树时，在此集合中检索的时间复杂度为 O(log n)。
 
