@@ -107,60 +107,59 @@ public class ScheduledThreadPoolExecutor
      */
 
     /**
-     * False if should cancel/suppress periodic tasks on shutdown.
+     * 线程池关闭后是否继续执行已存在的周期任务。
      */
     private volatile boolean continueExistingPeriodicTasksAfterShutdown;
 
     /**
-     * False if should cancel non-periodic tasks on shutdown.
+     * 线程池关闭后是否继续执行已存在的延迟任务。
      */
     private volatile boolean executeExistingDelayedTasksAfterShutdown = true;
 
     /**
-     * True if ScheduledFutureTask.cancel should remove from queue
+     * 取消任务后移是否移除。
      */
     private volatile boolean removeOnCancel = false;
 
     /**
-     * Sequence number to break scheduling ties, and in turn to
-     * guarantee FIFO order among tied entries.
+     * 为相同延时的任务提供的顺序编号，保证任务之间的 FIFO 顺序。
      */
     private static final AtomicLong sequencer = new AtomicLong();
 
     /**
-     * Returns current nanosecond time.
+     * 返回当前时间
      */
     final long now() {
         return System.nanoTime();
     }
 
+    // 可以延迟执行的异步运算任务
     private class ScheduledFutureTask<V>
             extends FutureTask<V> implements RunnableScheduledFuture<V> {
 
-        /** Sequence number to break ties FIFO */
+        // 为相同延时任务提供的顺序编号。
+        // 两个任务有相同的延迟时间时，按照 FIFO 的顺序入队。
         private final long sequenceNumber;
 
-        /** The time the task is enabled to execute in nanoTime units */
+        // 任务可以执行的时间，纳秒级
         private long time;
 
         /**
-         * Period in nanoseconds for repeating tasks.  A positive
-         * value indicates fixed-rate execution.  A negative value
-         * indicates fixed-delay execution.  A value of 0 indicates a
-         * non-repeating task.
+         * 重复任务执行的周期，纳秒级
+         * 正数表示 scheduleAtFixedRate，负数表示 scheduleWithFixedDelay
          */
         private final long period;
 
-        /** The actual task to be re-enqueued by reExecutePeriodic */
+        // 重新入队的任务，通过 reExecutePeriodic 重新入队排序。
         RunnableScheduledFuture<V> outerTask = this;
 
         /**
-         * Index into delay queue, to support faster cancellation.
+         * 延迟队伍的索引，以支持更快的取消操作
          */
         int heapIndex;
 
         /**
-         * Creates a one-shot action with given nanoTime-based trigger time.
+         * 构造函数
          */
         ScheduledFutureTask(Runnable r, V result, long ns) {
             super(r, result);
@@ -170,7 +169,7 @@ public class ScheduledThreadPoolExecutor
         }
 
         /**
-         * Creates a periodic action with given nano time and period.
+         * 构造函数
          */
         ScheduledFutureTask(Runnable r, V result, long ns, long period) {
             super(r, result);
@@ -180,7 +179,7 @@ public class ScheduledThreadPoolExecutor
         }
 
         /**
-         * Creates a one-shot action with given nanoTime-based trigger time.
+         * 构造函数
          */
         ScheduledFutureTask(Callable<V> callable, long ns) {
             super(callable);
@@ -376,8 +375,7 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
-     * Creates a new {@code ScheduledThreadPoolExecutor} with the
-     * given core pool size.
+     * 构造函数
      *
      * @param corePoolSize the number of threads to keep in the pool, even
      *        if they are idle, unless {@code allowCoreThreadTimeOut} is set
@@ -389,8 +387,7 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
-     * Creates a new {@code ScheduledThreadPoolExecutor} with the
-     * given initial parameters.
+     * 构造函数
      *
      * @param corePoolSize the number of threads to keep in the pool, even
      *        if they are idle, unless {@code allowCoreThreadTimeOut} is set
@@ -406,8 +403,7 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
-     * Creates a new ScheduledThreadPoolExecutor with the given
-     * initial parameters.
+     * 构造函数
      *
      * @param corePoolSize the number of threads to keep in the pool, even
      *        if they are idle, unless {@code allowCoreThreadTimeOut} is set
@@ -423,8 +419,7 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
-     * Creates a new ScheduledThreadPoolExecutor with the given
-     * initial parameters.
+     * 构造函数
      *
      * @param corePoolSize the number of threads to keep in the pool, even
      *        if they are idle, unless {@code allowCoreThreadTimeOut} is set
@@ -476,6 +471,8 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
+     * 达到给定的延迟时间后，执行任务
+     *
      * @throws RejectedExecutionException {@inheritDoc}
      * @throws NullPointerException       {@inheritDoc}
      */
@@ -492,6 +489,8 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
+     * 达到给定的延迟时间后，执行任务
+     *
      * @throws RejectedExecutionException {@inheritDoc}
      * @throws NullPointerException       {@inheritDoc}
      */
@@ -508,6 +507,10 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
+     * 定时执行。
+     * 从上一个任务开始时计时，指定时间间隔过去后，如果上一个任务已经执行完毕，
+     * 马上开始下一个任务，如果没有执行完毕，等上一个任务执行完后开启下一个任务。
+     *
      * @throws RejectedExecutionException {@inheritDoc}
      * @throws NullPointerException       {@inheritDoc}
      * @throws IllegalArgumentException   {@inheritDoc}
@@ -532,6 +535,9 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
+     * 达到延迟之后开始定期执行任务。
+     * 上一个任务执行结束后到下一个任务开始之间，时间间隔为指定参数 delay。
+     *
      * @throws RejectedExecutionException {@inheritDoc}
      * @throws NullPointerException       {@inheritDoc}
      * @throws IllegalArgumentException   {@inheritDoc}
@@ -759,9 +765,8 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
-     * Specialized delay queue. To mesh with TPE declarations, this
-     * class must be declared as a BlockingQueue<Runnable> even though
-     * it can only hold RunnableScheduledFutures.
+     * 类似 DelayQueue，只允许存放 RunnableScheduledFuture 类型的任务。
+     * 不依赖 PriorityQueue，自己实现堆。
      */
     static class DelayedWorkQueue extends AbstractQueue<Runnable>
             implements BlockingQueue<Runnable> {
