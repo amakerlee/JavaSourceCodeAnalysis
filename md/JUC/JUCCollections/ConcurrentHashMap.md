@@ -2,6 +2,8 @@
 
 ConcurrentHashMap 是在 HashMap 的基础上进行改进的线程安全 Map 类，在开始 ConcurrentHashMap 前，务必提前了解 HashMap 的原理和基本思想。
 
+ConcurrentHashMap 和 Hashtable 对象的 key、value 值均不可为 null，而 HashMap 对象的 key、value 值均可为 null。
+
 ### 完整源码解析
 
 [ConcurrentHashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/JUCCollections/ConcurrentHashMap.java)
@@ -769,11 +771,6 @@ Node 节点是基础节点。TreeNode 继承自 Node，作为树结构的节点�
         }
     }
 ```
-
-### 总结
-
-ConcurrentHashMap 不允许 null 元素。（key 和 value 都不允许为 null）
-
 
 ### 其他
 
