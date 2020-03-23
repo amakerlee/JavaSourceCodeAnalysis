@@ -772,15 +772,22 @@ Node 节点是基础节点。TreeNode 继承自 Node，作为树结构的节点�
     }
 ```
 
-### 其他
-
-#### Thread 中的 join, sleep 和 yeild
+### Thread 中的 join, sleep 和 yeild
 
 * 非静态方法join()让一个线程等待另外一个线程完成才继续执行。如果线程 A 执行体中调用 B 线程的 join() 方法，则 A 线程将会被阻塞，直到 B 线程执行完为止，A 才能得以继续执行。
 
 * sleep() 让当前正在执行的线程先暂停一定的时间，并进入阻塞状态。在其睡眠的时间段内，该线程由于不是处于就绪状态，因此不会得到执行的机会。
 
 * 一个线程执行了 yield() 方法后，就会进入 Runnable（就绪状态），（不同于 sleep() 和 join() 方法，因为这两个方法是使线程进入阻塞状态），线程让步，不会释放锁。
+
+### 为什么 ConcurrentHashMap 的 key 和 value 不允许为 null
+
+1. HashMap 的 key 和 value 允许为 null 是设计上的失误。
+
+2. ConcurrentHashMap 的 key 不可以为 null，之所以设计成这样是因为写这个集合的 Doug Lee 讨厌 null。
+
+3. 严格来说， HashMap 和 ConcurrentHashMap 的 value 都应该不允许为 null，因为会产生二义性的问题。调用 get(key) 返回的值为 null 时，调用者无法判断是由于键值对不存在还是由于本身 key 对应的 value 就为 null。在 HashMap 中虽然存在二义性，但是调用者可以自己结合 containsKey 方法避免这一问题（在单线程的环境下）。而对于 ConcurrentHashMap，如果允许 value 为 null，在调用端是无法避免二义性的：如果有 A、B 两个线程，A 调用 get(key) 返回 null，接下来使用 containsKey(key) 判断键值对是否存在，如果此时线程 B 插入键值对 <key, null>，那么线程 A 永远无法判断之前出现了什么情况。
+
 
 ### 引用
 

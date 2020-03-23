@@ -6,6 +6,10 @@ LinkedHashMap 继承自 HashMap，在 HashMap 的基础上，通过双向链表�
 
 LinkedHashMap 不保证线程安全。
 
+### 完整源码解析
+
+[LinkedHashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/LinkedHashMap.java)
+
 ### 内部类 Entry
 
 继承自 HashMap 的 Node 节点类，多了 before、after 两个属性，分别指向双向链表的前一个节点和后一个节点。

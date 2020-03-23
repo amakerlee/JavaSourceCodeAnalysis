@@ -1,14 +1,14 @@
-## Java Collections in java.util
+## Collections in java.util
 
 ### List, Stack and Queue
 
 * [ArrayList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/ArrayList.md) | [LinkedList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/LinkedList.md)
 
-    > ArrayList 是基于数组实现的线性表，没有最大容量限制，可扩容。LinkedList 是基于节点实现的线性表（链表），没有最大容量限制。LinkedList 还实现了 Deque 接口，可以用于创建单向和双向队列实例。
+    > ArrayList 是基于数组实现的线性表，没有最大容量限制（其实有，是 Integer.MAX_VALUE），可扩容。LinkedList 是基于节点实现的线性表（双向链表），没有最大容量限制。LinkedList 还实现了 Deque 接口，可以用于创建单向和双向队列实例。
 
 * [Stack](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/Stack.md)
 
-    > 继承自 Vector，提供基础的堆栈操作，线程安全，但效率很低（使用 synchronized 包装所有函数）。
+    > 继承自 Vector，提供基础的栈操作。在线程安全的前提下，效率很低（使用 synchronized 包装所有函数）。
 
 * [ArrayDeque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/ArrayDeque.md)
 
@@ -28,11 +28,11 @@
 
 * [HashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/HashMap.md) | [TreeMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/TreeMap.md) | [LinkedHashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/LinkedHashMap.md)
 
-   > Map 是键值对结构的典型实例。HashMap 作为一种高效的 Map 实现，平均情况下检索的时间代价只需要 O(1)，其核心的数据结构为数组，解决哈希碰撞的时候还会用到双向链表和红黑树（JDK 8）。TreeMap 直接使用红黑树存储每个键值对节点，平均检索时间为 O(log n)。相对于 HashMap 而言，红黑树的优势是节点有序（因为红黑树是相对平衡的二叉检索树）。LinkedHashMap 继承自 HashMap，在 HashMap 的基础上把所有节点组织成双向链表结构，所以 LinkedHashMap 也是有序的。
+   > Map 是键值对结构的典型实例。HashMap 作为一种高效的 Map 实现，平均情况下检索的时间代价只需要 O(1)，其核心的数据结构为数组，解决哈希碰撞的时候还会用到链表和红黑树（JDK 8）。TreeMap 直接使用红黑树存储每个键值对节点，平均检索时间为 O(log n)。相对于 HashMap 而言，红黑树的优势是节点有序（因为红黑树是相对平衡的二叉检索树）。LinkedHashMap 继承自 HashMap，在 HashMap 的基础上把所有节点组织成双向链表结构，所以 LinkedHashMap 也是有序的。LinkedHashMap 的思想可以用来实现 LRU 算法。
 
 &nbsp;
 
-## Java Concurrency Tools in java.util.concurrent
+## Concurrency Tools in java.util.concurrent
 
 ### ThreadLocal
 
@@ -50,9 +50,9 @@
 
     > ReentrantLock 是 Lock 接口的实现，翻译为可重入锁，支持同一个线程重入，并在获取和释放时记录重入次数。ReentrantReadWriteLock 是 Lock 接口的实现，翻译为可重入读写锁，实现了可重入读锁和可重入写锁，也即共享锁和互斥锁。
 
-* [CountDownLatch](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CountDownLatch.md) | [CyclicBarrier](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CyclicBarrier.md) | [Semaphore](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/Semaphore.md)
+* [CountDownLatch](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CountDownLatch.md) | [CyclicBarrier](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CyclicBarrier.md) | [Semaphore](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/Semaphore.md) | [Phaser](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/Phaser.md) | [Exchanger](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/Exchanger.md)
 
-    > 基于 AQS 实现的三个同步辅助类，用于线程计数、线程等待、线程间协作等场景下的线程控制。
+    > 基于 AQS 实现的五个同步辅助类，用于线程计数、线程等待、线程间协作等场景下的线程同步控制。
 
 ### Concurrency Collections
 
@@ -97,3 +97,10 @@
 * [~~ForkJoinPool~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ThreadPoolExecutor.md)
 
     > 太难了...
+    
+&nbsp;
+
+
+## Other
+
+Future

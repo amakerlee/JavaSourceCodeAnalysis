@@ -1,14 +1,12 @@
-### ArrayList
+## ArrayList
 
-***
-> 继承结构及完整源码解析
+### 继承结构及完整源码解析
 
 [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [List](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/List.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java) | [AbstractList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractList.java) | [ArrayList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/ArrayList.java)
 
 <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ArrayList.png" width=50% />
 
-***
-> 类属性
+### 类属性
 
 ```java
 transient Object[] elementData;
@@ -16,10 +14,9 @@ transient Object[] elementData;
 
 使用 Object 数组来存储 ArrayList 的元素，ArrayList 的容量是这个数组的长度。
 
-transient: 为了安全起见不希望在网络操作（主要涉及序列化操作）中被传输，这些信息对应的变量就可以加上 transient 关键字。换句话说，这个字段的生命周期仅存于调用者内存中而不会写到磁盘里持久化。
+transient: 不希望被序列化或反序列化的字段，生命周期仅存于当前内存中。
 
-***
-> 成员函数
+### 成员函数
 
 **add 方法和扩容方法**
 
@@ -62,7 +59,7 @@ transient: 为了安全起见不希望在网络操作（主要涉及序列化操
     }
 ```
 
-ensureCapacityInternal 函数和 ensureExplicitCapacity 函数是扩容的入口方法。
+ensureCapacityInternal 函数和 ensureExplicitCapacity 函数是扩容的入口方法。（如果容量充足就不用扩容。）
 
 ```java
     // 扩容的入口方法
@@ -81,10 +78,6 @@ ensureCapacityInternal 函数和 ensureExplicitCapacity 函数是扩容的入口
 ```
 
 在 grow 函数中，增大容量确保可以容纳参数中指定最小容量的元素。首先计算出新的容量。新的容量首先设置为原来的 1.5 倍，如果新的容量仍然小于指定的最小容量，那么直接扩容到指定的最小容量。如果新的容量比允许的最大容量还要大，调用 hugeCapacity 函数进行判断。计算出新的容量之后，对元素数组进行扩容。
-
-**ArrayList 每次扩容为原来的 1.5 倍？**
-
-实际上并不是每一次都准确地将容量扩展成原来的 1.5 倍，例如当 1.5 倍还不能满足最小容量的要求时，直接将容量扩展为指定的最小容量；例如计算出来的新的容量大于最大容量时，将新的容量设置为 Integer.MAX_VALUE 或者 Integer.MAX_VALUE - 8。
 
 ```java
     /**
@@ -265,14 +258,30 @@ ArrayList 提供两种删除方法，一种是删除指定索引处的元素，�
     }
 ```
 
-***
-> ArrayList 小结
+### ArrayList 小结
 
-1. 由于 ArrayList 中的元素存储在数组里，即 ArrayList 的位置访问操作为数组的位置访问操作，所以 ArrayList 查找效率较高，但是插入删除效率低，因为插入删除操作会移动数组指定位置的前方或后方大量的元素。
-2. ArrayList 插入删除等基本方法均用到 Arrays.copy() 或 System.arraycopy 函数进行批量数组元素的复制。
+1. 由于 ArrayList 中的元素存储在数组里，即 ArrayList 的位置访问操作为数组的位置访问操作，所以 ArrayList 查找效率较高，但是插入删除效率低，因为插入删除操作会移动数组指定位置的前方或后方的所有元素。
+
+2. ArrayList 插入删除等基本方法均用到 Arrays.copy() 或 System.arraycopy 函数进行批量数组元素的复制。其实不止是 ArrayList，所有的以数组为底层存储结构的集合的批量复制都是用这两个函数。
+
 3. ArrayList 每次增加元素的时候，都需要调用 ensureCapacity 方法确保足够的容量。在能够实现确定元素数量的情况下首选 ArrayList，否则使用 LinkedList。
 
-> 随机访问数据结构（如数组）在内存中的分布
+### 随机访问数据结构（如数组）在内存中的分布
 
 其实数组在内存中是一段连续的空间，数组名指向了这个空间的起始处地址。a[1] 表示相对于起始处地址偏移量为 1 的那个元素，以此类推。由于数组在内存中是一段连续的空间，不管访问哪个元素都是用起始位置加上偏移量获取地址，然后取数据。这就是它支持随机访问的原因，且不管数组的长度是多长，都是同样的两步就能完成，所以数组的位置访问操作在常量的时间内完成，即按索引访问数组元素的时间复杂度就是 O(1)。
-ArrayList是对数组的包装，因为数组在内存中分配时必须指定长度，且一旦分配好后便无法再增加长度。在 ArrayList 的实现中，当底层数组填满后，它会再分配一个更大的新的数组，把原数组里的元素拷贝过来，然后把原数组抛弃掉。使用新的数组作为底层数组来继续存储。
+
+ArrayList 是对数组的包装，因为数组在内存中分配时必须指定长度，且一旦分配好后便无法再增加长度。在 ArrayList 的实现中，当底层数组填满后，它会再分配一个更大的新的数组，把原数组里的元素拷贝过来，然后把原数组抛弃掉。使用新的数组作为底层数组来继续存储。可扩展是 List 和 数组最重要的区别之一。
+
+### ArrayList 每次扩容为原来的 1.5 倍？
+
+实际上并不是每一次都准确地将容量扩展成原来的 1.5 倍，例如当 1.5 倍还不能满足最小容量的要求时，直接将容量扩展为指定的最小容量；例如计算出来的新的容量大于最大容量时，将新的容量设置为 Integer.MAX_VALUE 或者 Integer.MAX_VALUE - 8。
+
+### fail-fast
+
+当多个线程对集合进行结构上（删除、添加）的改变时，可能触发 fail-fast 机制，即立刻抛出 ConcurrentModificationException 异常。
+
+fail-fast 在操作迭代器时产生，主要依赖 expectedModCount 和 modCount 两个变量。在 ArrayList 中包括 add、remove、clear 等一系列方法只要涉及元素个数的变化，都会导致 modCount 值的改变。
+
+如果在调用 checkForComodification 验证时这两个变量的值相等，说明没有发生并发修改，反之则改变了，马上抛出  ConcurrentModificationException 异常。
+
+ArrayList 是非线程安全的集合类，如果想要在多线程环境下保持线程安全，有两种方法，一个是为方法加上 synchronized（或使用 Collections.synchronizedList），另一种方法是改用线程安全集合，例如 CopyOnWriteArrayList。

@@ -1,14 +1,12 @@
-### TreeMap
+## TreeMap
 
-***
-> 继承结构及完整源码解析
+### 继承结构及完整源码解析
 
 [Map](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Map.java) | [SortedMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/SortedMap.java) | [NavigableMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/NavigableMap.java) | [AbstractMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractMap.java) | [TreeMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/TreeMap.java)
 
 <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/TreeMap.png" width=70% />
 
-***
-> 类属性
+### 类属性
 
 ```java
     /**
@@ -36,8 +34,7 @@
 
 ```
 
-***
-> 成员函数
+### 成员函数
 
 TreeMap 基本数据结构为红黑树，与红黑树相关内容参照 [HashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/HashMap.md)。
 
@@ -116,11 +113,10 @@ TreeMap 基本数据结构为红黑树，与红黑树相关内容参照 [HashMap
     }
 ```
 
-***
-> TreeMap 小结
+### TreeMap 小结
 
 * TreeMap 是基于红黑树和 NavigableMap 实现的映射。所有的键值对节点组织成一个红黑树结构。
 
-* TreeMap 完全基于红黑树结构，而红黑树是二叉检索树，所以相比 HashMap 完全无序的结构，TreeMap 的成员函数和内部类中，包含大量和节点顺序相关的操作。
+* TreeMap 完全基于红黑树结构，而红黑树是二叉检索树，所以相比 HashMap 完全无序的结构，TreeMap 的成员函数和内部类中，包含大量和节点顺序相关的操作，例如查找和指定值最接近的上一个节点或下一个节点。
 
-* 对查询，插入，删除操作而言，HashMap 效率均高于 TreeMap。
+* 对查询，插入，删除操作而言，HashMap 效率远远高于 TreeMap。

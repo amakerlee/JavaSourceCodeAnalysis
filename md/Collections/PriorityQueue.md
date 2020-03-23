@@ -1,19 +1,17 @@
-### PriorityQueue
+## PriorityQueue
 
-***
-> 继承结构及完整源码解析
+### 继承结构及完整源码解析
 
 [Iterable](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Iterable.java) | [Collection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Collection.java) | [Queue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/Queue.java) | [AbstractCollection](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractCollection.java)  | [AbstractQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/AbstractQueue.java) | [PriorityQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/Collections/PriorityQueue.java)
 
 <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/PriorityQueue.png" width=50% />
 
- ***
- > 类属性
+### 类属性
  
- PriorityQueue 类使用堆作为组织元素的数据结构，使用数组作为堆的底层存储结构。另外一个重要的类属性为比较器，如果指定了比较器，则使用指定的比较器排序，如果没有指定，默认使用升序排列（最小堆）。
+ PriorityQueue 类使用堆作为组织元素的数据结构（堆的底层存储结构是数组），不允许 null 元素。
  
- *堆：一种完全二叉树数据结构，分为最大堆和最小堆。在最大堆中，父节点的值比每一个子节点的值都要大。在最小堆中，父节点的值比每一个子节点的值都要小。*
- 
+ comparator 为比较器，如果指定了比较器，则使用指定的比较器对元素排序排序，如果没有指定，默认使用升序排列（最小堆）。
+  
  ```java
     // 默认初始容量
     private static final int DEFAULT_INITIAL_CAPACITY = 11;
@@ -37,12 +35,11 @@
     private final Comparator<? super E> comparator;
 ```
 
-***
-> 成员函数
+### 成员函数
 
 **扩容操作**
 
-扩容操作和其他以数组为底层数据结构的线形数据结构基本一致，扩容的策略为：如果原容量小于 64，新容量变成 2 * oldCapacity + 2，否则，新容量变成 1.5 * oldCapacity，如果新容量比规定的最大容量还要大，那么将新容量设置为整型最大值。
+扩容操作和其他以数组为底层数据结构的线性数据结构基本一致，扩容的策略为：如果原容量小于 64，新容量变成 2 * oldCapacity + 2，否则，新容量变成 1.5 * oldCapacity，如果新容量比规定的最大容量还要大，那么将新容量设置为整型最大值。
 
 ```java
     /**
@@ -74,9 +71,9 @@
 
 **offer 和 poll**
 
-offer 方法将指定元素添加到队列中，将指定元素添加到数组尾部，然后调用 siftUp 元素调整堆结构使其满足堆的性质。
+offer 方法将指定元素添加到队列中：将指定元素添加到数组尾部，然后调用 siftUp 元素调整堆结构使其满足堆的性质。
 
-poll 方法将堆顶元素从堆中弹出，然后调用 siftDown 元素向下调整堆结构使其满足堆的性质。
+poll 方法将堆顶元素从堆中弹出：最后一个元素替换堆顶元素，然后调用 siftDown 元素向下调整堆结构使其满足堆的性质。
 
 ```java
     /**
@@ -281,7 +278,7 @@ siftDown 方法用于在指定位置插入指定元素，然后向下调整 x �
 
 **heapify**
 
-初始化时建堆操作
+初始化时的建堆操作。
 
 ```java
     /**
@@ -294,9 +291,10 @@ siftDown 方法用于在指定位置插入指定元素，然后向下调整 x �
     }
 ```
 
-***
-> PriorityQueue 小结
+### PriorityQueue 小结
 
-1. 扩容机制和线性数据结构的机制基本相似。
+1. 扩容机制和线性数据结构的机制基本相似，一般情况下扩容为 1.5 * oldCapacity 或者 2 * oldCapacity + 2。
+
 2. 队列里不允许 null 元素。
-3. 底层数据结构是以数组为基础的堆，插入删除操作依赖堆的调整函数 siftUp 和 siftDown，对于不同的比较器，堆的调整过程也不同。
+
+3. 底层数据结构是存储在数组里的堆，插入删除操作依赖堆的调整函数 siftUp 和 siftDown，对于不同的比较器，堆的调整过程也不同。
