@@ -1,18 +1,24 @@
-### ReentrantLock
+## ReentrantLock
 
-***
-> 完整源码解析
+### 完整源码解析
 
 [Lock](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/Lock.java) | [ReentrantLock](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ReentrantLock.java)
 
-***
-> 内部类
+### 内部类
 
-ReentrantLock 锁中定义抽象内部类 **Sync**，继承自 AbstractQueuedSynchronizer，作为公平/非公平同步控制器实现的基础。类中定义 nonfairTryAcquire 方法用于非公平锁的 tryAcquire 实现，定义 tryRelease 方法用于非公平锁的 tryRelease 实现。
+内部类有三个，分别是 Sync、NonfairSync 和 FairSync，后两个继承自第一个，而第一个继承自 AbstractQueuedSynchronizer。
 
-**nonfairTryAcquire** 方法中，如果没有线程持有锁则设置当前线程持有锁，如果当前线程持有锁，则设置重入状态，否则获取失败。
+**Sync**
 
-**tryRelease** 方法中，如果当前线程没有持有锁，抛出 IllegalMonitorStateException 异常，否则减小重入计数或者直接释放锁。
+在 ReentrantLock 中定义了抽象的内部类 Sync，Sync 继承自 AbstractQueuedSynchronizer，作为公平/非公平同步控制器实现的基础。
+
+Sync 类中主要定义了两个方法，一个是 nonfairTryAcquire，此方法用于非公平锁的 tryAcquire 实现，另一个是 tryRelease 方法，用于非公平锁的 tryRelease 实现。
+
+可以看到 Sync 中只定义了非公平锁的方法，其实公平锁的方法只需要在此基础上进行一定的修改即可。
+
+在 nonfairTryAcquire 方法中，如果还没有线程持有锁，那么设置当前线程获取到锁；如果当前线程持有锁，则设置重入状态，否则获取失败。
+
+在 tryRelease 方法中，如果当前线程没有持有锁，抛出 IllegalMonitorStateException 异常，否则减小重入计数或者直接释放锁。
 
 ```java
     /**
@@ -74,7 +80,11 @@ ReentrantLock 锁中定义抽象内部类 **Sync**，继承自 AbstractQueuedSyn
     }
 ```
 
-非公平同步器 NonfairSync 继承自 Sync，在 tryAcquire 实现中，直接调用父类中的 nonfairTryAcquire 函数。
+以上是抽象的内部类 Sync 的核心方法。既然是抽象类，那肯定是有子类的。在 ReentrantLock 中，实现了 Sync 的两个子类是  NonfairSync 和 FairSync，分别对应公平同步控制器和非公平同步控制器。
+
+**NonfairSync**
+
+非公平同步器 NonfairSync 继承自 Sync，是非公平锁的基础。
 
 ```java
     /**
@@ -102,7 +112,13 @@ ReentrantLock 锁中定义抽象内部类 **Sync**，继承自 AbstractQueuedSyn
     }
 ```
 
-公平锁同步器 FairSync 同样继承自 Sync。公平版本的 tryAcquire 实现中，首先检查是否有前驱节点，没有前驱节点时才尝试获取锁。如果是重入模式，则相应修改重入状态。否则获取失败。
+**FairSync**
+
+公平锁同步器 FairSync 同样继承自 Sync。
+
+在公平版本的 tryAcquire 实现中，首先检查是否有前驱节点（其实是检查同步队列中有没有节点，并非只是前驱节点），没有前驱节点时才尝试获取锁。如果是重入模式，则相应地修改重入状态，否则获取失败。
+
+公平的 tryAcquire 和 非公平的 tryAcquire 的唯一区别就是首先需要判断是否有前驱节点。
 
 ```java
     /**
@@ -148,20 +164,39 @@ ReentrantLock 锁中定义抽象内部类 **Sync**，继承自 AbstractQueuedSyn
     }
 ```
 
-***
-> 类属性
+### 类属性
 
-ReentrantLock 完全基于继承自 AQS 的公平/非公平 Sync 控制器来实现锁的获取和释放，所以此类的属性中只有提供所有获取/释放锁机制的 Sync 同步器。
+ReentrantLock 完全是基于继承自 AQS 的公平/非公平 Sync 控制器来实现锁的获取和释放，所以此类的属性中只有一个，就是提供所有获取/释放同步状态的 Sync 同步器。
 
 ```java
     /** 提供所有实现机制的同步器 */
     private final Sync sync;
 ```
 
-***
-> 成员函数
+### 成员函数
 
-重入锁 ReentrantLock 中核心方法包括 lock，lockInterruptibly，tryLock，unlock 等，均基于同步器实现。
+ReentrantLock 默认实现非公平锁，这一点从构造函数中可以看出来。如果指定了 fair 的模式，则根据指定的参数创建相应的同步器。fair 为 true 表示公平模式。
+
+```java
+    /**
+     * 创建 ReentrantLock 实例。
+     * 相当于使用 ReentrantLock(false)，默认为非公平锁。
+     */
+    public ReentrantLock() {
+        sync = new NonfairSync();
+    }
+
+    /**
+     * 使用给定的公平/非公平策略创造一个 ReentrantLock 实例
+     *
+     * @param fair {@code true} if this lock should use a fair ordering policy
+     */
+    public ReentrantLock(boolean fair) {
+        sync = fair ? new FairSync() : new NonfairSync();
+    }
+```
+
+重入锁 ReentrantLock 中的核心方法包括 lock，lockInterruptibly，tryLock，unlock 等，均基于同步器实现。
 
 ```java
     /**
@@ -240,9 +275,10 @@ ReentrantLock 完全基于继承自 AQS 的公平/非公平 Sync 控制器来实
     }
 ```
 
-***
-> ReentrantLock 总结
+### ReentrantLock 总结
 
-ReentrantLock 是 Lock 接口的可重入锁实现，完全基于 AQS 抽象类。由于是独占锁，用户只需继承 AQS，实现自身同步器中 tryAcquire 和 tryRelease 方法。
+ReentrantLock 是 Lock 接口的可重入锁实现，完全基于 AQS 抽象类。
+
+由于 ReentrantLock 是独占锁，用户只需继承 AQS，实现自身同步器中 tryAcquire 和 tryRelease 方法即可。
 
 当前持有锁的线程重入一次，状态值加 1，当状态值降到 0 时，才能释放锁。

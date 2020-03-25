@@ -236,89 +236,15 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * 等待队列的节点类。
-     *
-     * <p>The wait queue is a variant of a "CLH" (Craig, Landin, and
-     * Hagersten) lock queue. CLH locks are normally used for
-     * spinlocks.  We instead use them for blocking synchronizers, but
-     * use the same basic tactic of holding some of the control
-     * information about a thread in the predecessor of its node.  A
-     * "status" field in each node keeps track of whether a thread
-     * should block.  A node is signalled when its predecessor
-     * releases.  Each node of the queue otherwise serves as a
-     * specific-notification-style monitor holding a single waiting
-     * thread. The status field does NOT control whether threads are
-     * granted locks etc though.  A thread may try to acquire if it is
-     * first in the queue. But being first does not guarantee success;
-     * it only gives the right to contend.  So the currently released
-     * contender thread may need to rewait.
-     *
-     * <p>To enqueue into a CLH lock, you atomically splice it in as new
-     * tail. To dequeue, you just set the head field.
-     * <pre>
-     *      +------+  prev +-----+       +-----+
-     * head |      | <---- |     | <---- |     |  tail
-     *      +------+       +-----+       +-----+
-     * </pre>
-     *
-     * <p>Insertion into a CLH queue requires only a single atomic
-     * operation on "tail", so there is a simple atomic point of
-     * demarcation from unqueued to queued. Similarly, dequeuing
-     * involves only updating the "head". However, it takes a bit
-     * more work for nodes to determine who their successors are,
-     * in part to deal with possible cancellation due to timeouts
-     * and interrupts.
-     *
-     * <p>The "prev" links (not used in original CLH locks), are mainly
-     * needed to handle cancellation. If a node is cancelled, its
-     * successor is (normally) relinked to a non-cancelled
-     * predecessor. For explanation of similar mechanics in the case
-     * of spin locks, see the papers by Scott and Scherer at
-     * http://www.cs.rochester.edu/u/scott/synchronization/
-     *
-     * <p>We also use "next" links to implement blocking mechanics.
-     * The thread id for each node is kept in its own node, so a
-     * predecessor signals the next node to wake up by traversing
-     * next link to determine which thread it is.  Determination of
-     * successor must avoid races with newly queued nodes to set
-     * the "next" fields of their predecessors.  This is solved
-     * when necessary by checking backwards from the atomically
-     * updated "tail" when a node's successor appears to be null.
-     * (Or, said differently, the next-links are an optimization
-     * so that we don't usually need a backward scan.)
-     *
-     * <p>Cancellation introduces some conservatism to the basic
-     * algorithms.  Since we must poll for cancellation of other
-     * nodes, we can miss noticing whether a cancelled node is
-     * ahead or behind us. This is dealt with by always unparking
-     * successors upon cancellation, allowing them to stabilize on
-     * a new predecessor, unless we can identify an uncancelled
-     * predecessor who will carry this responsibility.
-     *
-     * <p>CLH queues need a dummy header node to get started. But
-     * we don't create them on construction, because it would be wasted
-     * effort if there is never contention. Instead, the node
-     * is constructed and head and tail pointers are set upon first
-     * contention.
-     *
-     * <p>Threads waiting on Conditions use the same nodes, but
-     * use an additional link. Conditions only need to link nodes
-     * in simple (non-concurrent) linked queues because they are
-     * only accessed when exclusively held.  Upon await, a node is
-     * inserted into a condition queue.  Upon signal, the node is
-     * transferred to the main queue.  A special value of status
-     * field is used to mark which queue a node is on.
-     *
-     * <p>Thanks go to Dave Dice, Mark Moir, Victor Luchangco, Bill
-     * Scherer and Michael Scott, along with members of JSR-166
-     * expert group, for helpful ideas, discussions, and critiques
-     * on the design of this class.
      */
+
     static final class Node {
         /** 节点在共享模式下等待的标记 */
         static final Node SHARED = new Node();
         /** 节点在独占模式下等待的标记 */
         static final Node EXCLUSIVE = null;
 
+        // 等待状态的值为 0 表示当前节点在 sync 队列中，等待着获取锁
         /** 表示等待状态的值，为 1 表示当前节点已被取消调度，进入这个状态
          * 的节点不会再变化 */
         static final int CANCELLED =  1;
@@ -326,7 +252,7 @@ public abstract class AbstractQueuedSynchronizer
          * 等待当前节点唤醒。后继节点入队列的时候，会将前一个节点的状态
          * 更新为 SIGNAL */
         static final int SIGNAL    = -1;
-        /**  表示等待状态的值，为 -1 表示当前节点等待在 condition 上，当其他
+        /**  表示等待状态的值，为 -2 表示当前节点等待在 condition 上，当其他
          * 线程调用了 Condition 的 signal 方法后，condition 状态的节点将从
          * 等待队列转移到同步队列中，等到获取同步锁。
          * CONDITION 在同步队列里不会用到*/
@@ -340,7 +266,7 @@ public abstract class AbstractQueuedSynchronizer
         static final int PROPAGATE = -3;
 
         /**
-         * 状态字段，只有如下几个值：
+         * waitStatus 表示节点状态，有如下几个值（就是上面的那几个）：
          * SIGNAL: 当前节点的后继节点被（或者即将被）阻塞（通过 park），
          * 因此当前节点在释放或者取消时必须接触对后继节点的阻塞。为了避免
          * 竞争，acquire 方法必须首先表明它们需要一个信号，然后然后尝试原子
@@ -373,7 +299,7 @@ public abstract class AbstractQueuedSynchronizer
         volatile Node prev;
 
         /**
-         * 与当前节点 unpack 之后的后续节点建立的连接。在入队时分配，在绕过
+         * 与当前节点 unpark 之后的后续节点建立的连接。在入队时分配，在绕过
          * 已取消的前一个节点时调整，退出队列时设置为 null（方便 GC）。入队
          * 操作直到 attachment 之后才会分配其后继节点，所以看到此字段为 null
          * 并不一定意味着节点在队列尾部。但是，如果 next 字段看起来为 null，
@@ -554,7 +480,7 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * 唤醒指定节点的后继节点，如果其存在的话。
-     * unpack - 唤醒
+     * unpark - 唤醒
      * 成功获取到资源之后，调用这个方法唤醒 head 的下一个节点。由于当前
      * 节点已经释放掉资源，下一个等待的线程可以被唤醒继续获取资源。
      *
@@ -585,7 +511,7 @@ public abstract class AbstractQueuedSynchronizer
     /**
      * 共享模式下的释放（资源）操作 -- 信号发送给后继者并确保资源传播。
      * （注意：对于独占模式，如果释放之前需要信号，直接调用 head 的
-     * unpackSuccessor。）
+     * unparkSuccessor。）
      *
      * 在 tryReleaseShared 成功释放资源后，调用此方法唤醒后继线程并保证
      * 后继节点的 release 传播（通过设置 head 的 waitStatus 为 PROPAGATE。
@@ -596,7 +522,7 @@ public abstract class AbstractQueuedSynchronizer
          * 调用 head 唤醒后继者的正常方式，如果需要唤醒的话。但如果没有，
          * 则将状态设置为 PROPAGATE，以确保 release 之后传播继续进行。
          * 此外，我们必须在无限循环下进行，防止新节点插入到里面。另外，与
-         * unpackSuccessor 的其他用法不同，我们需要知道是否 CAS 的重置操作
+         * unparkSuccessor 的其他用法不同，我们需要知道是否 CAS 的重置操作
          * 失败，并重新检查。
          */
         // 自旋（无限循环）确保释放后唤醒后继节点
@@ -747,7 +673,7 @@ public abstract class AbstractQueuedSynchronizer
 
     /**
      * 让线程进入等待状态。park 会让线程进入 waiting 状态。在此状态下有
-     * 两种途径可以唤醒该线程：被 unpack 或者被 interrupt。Thread 会清除
+     * 两种途径可以唤醒该线程：被 unpark 或者被 interrupt。Thread 会清除
      * 当前线程的中断标记位。
      * Convenience method to park and then check if interrupted
      *
@@ -909,7 +835,7 @@ public abstract class AbstractQueuedSynchronizer
                     }
                 }
                 // p 不是 head 的后继节点，则不能获取资源，寻找安全点，进入
-                // waiting 状态，等待被 unpack 或 interrupt。
+                // waiting 状态，等待被 unpark 或 interrupt。
                 if (shouldParkAfterFailedAcquire(p, node) &&
                         parkAndCheckInterrupt())
                     // 安心进入等待（中断）状态

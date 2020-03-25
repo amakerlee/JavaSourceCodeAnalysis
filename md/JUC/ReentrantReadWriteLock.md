@@ -1,21 +1,20 @@
-### ReentrantReadWriteLock
+## ReentrantReadWriteLock
 
-***
-> 完整源码解析
+### 完整源码解析
 
 [ReadWriteLock](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ReadWriteLock.java) | [ReentrantReadWriteLock](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ReentrantReadWriteLock.java)
 
-***
-> 概览
+### 概览
 
-ReentrantReadWriteLock 是 ReadWriteLock 锁的具体实现，同样扩展 AQS 抽象类作为锁的同步器，支持公平同步器和非公平同步器，分别实现为 FairSync 和 NonfairSync。在此同步器的基础上，实现了两种类型的锁作为内部属性，分别是读锁（共享锁） ReadLock 和 写锁（独占锁，排他锁）WriteLock。
+ReentrantReadWriteLock 是 ReadWriteLock 接口的具体实现。和 ReentrantLock 一样，它使用 Sync （继承自 AQS 抽象类）作为锁的同步器，支持公平同步器和非公平同步器，分别在 FairSync 和 NonfairSync 中实现。
 
-***
-> 内部类 Sync
+在 AQS 同步器的基础上，此 Lock 实现了两种类型的锁，并把它们作为内部属性。这两种锁分别是读锁（共享锁） ReadLock 和 写锁（独占锁，排他锁）WriteLock。
 
-在同步器基类 Sync 中，将代表状态的整型变量值的 32 位比特位，分为高 16 位和低 16 位。状态值整型变量的高 16 位表示持有读锁的线程数，最大为 65535；低 16 位表示持有写锁的线程的重入次数，最大为 65535。
+### 内部类 Sync
 
-读锁和写锁均为可重入锁，写锁的重入次数可以用状态值的低 16 位表示，而高 16 位已经用来表示读锁的个数，每个读锁的重入次数还需要用类 HoldCounter 来存储。类 HoldCounter 中包含有两个变量，一个是线程 id，另一个即为重入的持有计数。已经获取到读锁的各线程中私有变量的存储使用 ThreadLocal，其 Map 中的 value 类型即为前面提到的 HoldCounter 类实例。
+在同步器父类 Sync 中，把表示状态的 32 位整型变量值，看成高 16 位和低 16 位两个部分。高 16 位表示持有读锁的线程数，最大为 65535；低 16 位表示持有写锁的线程的重入次数，最大为 65535。
+
+读锁和写锁均为可重入锁，写锁的重入次数可以用状态值的低 16 位表示，而高 16 位已经用来表示读锁的个数，每个读锁的重入次数还需要用类 HoldCounter 来存储。类 HoldCounter 中包含有两个变量，一个是线程 id，另一个即为重入的持有计数。用 ThreadLocal 来存储已经持有读锁的线程中的私有变量，其 Map 中的 value 类型即为前面提到的 HoldCounter 类实例。
 
 firstReader 变量表示获得读锁的第一个线程；firstReaderHoldCount 表示 firstReader 的持有计数；readHolds 为持有读锁重入计数的 ThreadLocalHoldCounter 类实例；cachedHoldCounter 为成功获取 readLock 的最后一个线程的持有计数。这些变量用来提高此同步器运行的效率。
 
@@ -89,9 +88,13 @@ firstReader 变量表示获得读锁的第一个线程；firstReaderHoldCount �
         private transient int firstReaderHoldCount;
 ```
 
+**tryAcquire 和 tryRelease**
+
 写锁（独占锁）的获取和释放分别在 tryAcquire 和 tryRelease 中实现。
 
-在 tryAcquire 中，首先判断锁是否已经被获取。如果没有，继续判断是否应该被阻塞；如果已经被获取，判断是读锁被获取还是写锁被获取，判断是否是当前线程获取了锁。根据此设置拥有锁的线程和重入的持有计数。
+在 tryAcquire 中，首先判断锁是否已经被获取。如果没有被获取，则尝试获取；如果已经被获取，判断是读锁被获取还是写锁被获取，如果是读锁，则不允许获取，因为读锁和写锁是互斥的。如果是写锁被获取，判断是否是当前线程获取了锁，根据此设置拥有锁的线程和重入的持有计数。
+
+> 公平锁和非公平锁是通过 writerShouldBlock 和 readerShouldBlock 来确定的，公平锁需要在这两个函数里判断
 
 在 tryRelease 中，步骤较简单，只需要判断持有锁的是否为当前写线程，以及持有计数是否降为 0。
 
@@ -155,9 +158,11 @@ firstReader 变量表示获得读锁的第一个线程；firstReaderHoldCount �
         }
 ```
 
+**tryAcquireShared 和 tryReleaseShared**
+
 读锁（共享锁）的获取和释放分别在 tryAcquireShared 和 tryReleaseShared 中实现。
 
-比独占模式稍复杂的是，共享锁的获取和释放中额外使用了三个变量用于提高效率，分别是第一次获取读锁的 firstReader（其持有计数不使用 ThreadLocal 方式保存），最新一次获取读锁线程的 cachedHoldCounter 对象，以及用 ThreadLocal 方式保存的每个线程对应的 HoldCounter 对象。
+比独占模式稍复杂的是，共享锁的获取和释放中额外使用了三个变量用于提高效率，分别是第一次获取读锁的 firstReader（其持有计数不使用 ThreadLocal 方式保存，直接保存在 firstReaderHoldCount 中），最新一次获取读锁的线程的 cachedHoldCounter 对象，以及用 ThreadLocal 方式保存的每个线程对应的 HoldCounter 对象。
 
 释放读锁时，首先判断当前线程是否是 firstReader，然后判断当前线程的 HoldCounter 是否是最新存储的 cacheHoldCounter，如果都不是，则用 ThreadLocal 的方式获取，然后以 CAS 的方式更新状态，成功释放锁。
 
@@ -342,7 +347,17 @@ firstReader 变量表示获得读锁的第一个线程；firstReaderHoldCount �
         }
 ```
 
-***
-> 参考：
+### 锁的升级和降级
 
-[ThreadLocal源码分析](https://www.jianshu.com/p/80866ca6c424)
+同一个线程中，在没有释放读锁的情况下，就申请写锁，叫锁升级，ReentrantReadWriteLock 不允许锁升级。
+
+同一个线程中，在没有释放写锁的情况下，就申请读锁，叫锁降级，ReentrantReadWriteLock 支持锁降级。
+
+如果允许锁升级，考虑如下情况：读锁之间是不互斥的，假设两个线程同时持有读锁，其中一个线程突然升级成了写锁，那么此时有两个线程分别持有读锁和写锁。很显然这种情况是不允许的。所以 ReentrantReadWriteLock 不允许锁升级。
+
+锁降级可以用于需要当前数据可见性的场景。如果当前线程在获取读锁之前释放了写锁，在这个空隙有其他线程修改了数据，那么就再也找不到原始数据了。而如果遵循锁降级的步骤，先获取读锁，再释放写锁，那么其他线程在整个过程中是无法修改数据的。
+ 
+### 参考：
+
+* [ThreadLocal源码分析](https://www.jianshu.com/p/80866ca6c424)
+* [JUC锁: ReentrantReadWriteLock详解](https://www.pdai.tech/md/java/thread/java-thread-x-lock-ReentrantReadWriteLock.html)
