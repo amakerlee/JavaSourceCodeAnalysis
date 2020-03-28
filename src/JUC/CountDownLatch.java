@@ -146,7 +146,7 @@ public class CountDownLatch {
             return getState();
         }
 
-        //调用此函数的方法是 acquireSharedInterruptibly
+        // 调用此函数的方法是 acquireSharedInterruptibly
         // 在 acquireSharedInterruptibly 中，返回值小于 0 时进入 AQS 队列等待
         protected int tryAcquireShared(int acquires) {
             return (getState() == 0) ? 1 : -1;

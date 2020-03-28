@@ -1,12 +1,10 @@
-### ThreadLocal
+## ThreadLocal
 
-***
-> 完整源码解析
+### 完整源码解析
 
 [ThreadLocalMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ThreadLocal.java) | [ThreadLocal](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/ThreadLocal.java)
 
-***
-> 基本原理
+### 基本原理
 
 通过 ThreadLocal 在指定的线程中存储数据。数据存储过后，只有该线程才能获取到数据，其他线程无法获取数据。
 
@@ -16,12 +14,15 @@ Thread，ThreadLocal 和 ThreadLocalMap 的关系如下图所示：
 
 <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ThreadLocal.png" width=50% />
 
-***
-> 内部类 ThreadLocalMap
+### 内部类 ThreadLocalMap
 
-此 map 和 HashMap 一样使用 Entry 作为 key-value 的存储结构。和 HashMap 不同的是，Entry 继承自 WeakReference 弱引用，用于在线程被销毁的时候，对 value 进行垃圾回收。发生哈希碰撞时，HashMap 使用双向链表和红黑树组织桶内数据结构，而 ThreadLocalMap 使用线性探查解决。除此之外，ThreadLocalMap 会频繁检查 table 数组中失效的 Entry，并进行垃圾回收和重新整理。
+此 map 和 HashMap 一样使用 Entry 作为 key-value 的存储结构。和 HashMap 不同的是，Entry 继承自 WeakReference 弱引用，用于在线程被销毁的时候，对 value 进行垃圾回收。
 
-类属性包括以下几项：
+发生哈希碰撞时，HashMap 使用双向链表和红黑树组织桶内数据结构，而 ThreadLocalMap 使用线性探查解决。
+
+ThreadLocalMap 会频繁检查 table 数组中失效的 Entry，并进行垃圾回收和重新整理。
+
+ThreadLocalMap 的类属性包括以下几项：
 
 ```java
         /**
@@ -80,7 +81,7 @@ rehash 的阈值设置为 table 数组长度的 2/3，且 table 数组长度保�
 
 在 getEntry 方法中首先根据 key 的 hash 值计算所在位置，如果一次命中则返回，否则进入 getEntryAfterMiss 继续查找。
 
-getEntryAfterMiss 方法使用线性探查从当前位置继续往后查找，直到找到该节点或遇到 null 桶为止。每一次的循环过程，都调用 expungeStaleEntry 清理一段范围内的无效 Entry。
+getEntryAfterMiss 方法使用线性探查从当前位置继续往后查找，直到找到该节点或遇到 null 桶为止。遇到 null 桶时，调用 expungeStaleEntry 清理一段范围内（当前桶到下一个 null 范围内）的无效 Entry。
 
 expungeStaleEntry 方法从当前参数位置开始往后遍历，直到遇到 null 空槽为止。遍历过程中，清除无效 Entry（置为 null，虚拟机执行回收）。由于清理后多出了空槽，所以清理的同时，根据 hash 值重新计算此范围内节点的位置，并进行重置。重置过程保证了当中间节点被清除时，后续节点回到其正确的位置上，或者填补这一空白。
 
@@ -184,7 +185,11 @@ expungeStaleEntry 方法从当前参数位置开始往后遍历，直到遇到 n
 
 **set 方法**
 
-set 方法用于插入新的节点，或者更新节点的 value 值，同样首先查找对应的 key，然后新建或替换，然后清理范围内无效的节点并重置范围内节点位置。
+set 方法用于插入新的节点，或者更新节点的 value 值，同样首先查找对应的 key，如果在遇到第一个无效引用节点（key 为 null 的节点）之前匹配到 key 了，直接替换其 value，然后返回。
+
+如果遇到了无效引用节点，
+
+然后新建或替换，然后清理范围内无效的节点并重置范围内节点位置。
 
 ```java
         /**
@@ -220,6 +225,7 @@ set 方法用于插入新的节点，或者更新节点的 value 值，同样首
                     return;
                 }
 
+                 // 遇到第一个引用失效的 entry
                 // 如果 k 为 null，说明被回收了，该位置可以使用，使用新的
                 // key-value 替换
                 // 此时可能还没有找到 key，key 可能存在数组后面的位置
@@ -256,7 +262,6 @@ set 方法用于插入新的节点，或者更新节点的 value 值，同样首
             // 由于使用的是线性探查，所以需要向后查找和向前查找，确保 entry
             // 放在最前面的空桶里，确保清除了所有的无效 entry
 
-
              // 根据转入的无效 entry 的位置（staleSlot），向前扫描一段连续的
              // entry（直到找到 tab[i] == null）
             // Back up to check for prior stale entry in current run.
@@ -268,6 +273,7 @@ set 方法用于插入新的节点，或者更新节点的 value 值，同样首
                  (e = tab[i]) != null;
                  i = prevIndex(i, len))
                 // 如果是无效的，更新 slotToExpunge 记录此时的索引
+                // 在达到 null 之前，记录的是最后一个无效 Entry
                 if (e.get() == null)
                     slotToExpunge = i;
 
@@ -305,14 +311,16 @@ set 方法用于插入新的节点，或者更新节点的 value 值，同样首
                 // If we didn't find stale entry on backward scan, the
                 // first stale entry seen while scanning for key is the
                 // first still present in the run.
-                // 如果向后扫描找到了空桶，且向前扫描没有找到无效的 entry，
+                // 如果向后扫描找到了空引用，且向前扫描没有找到无效的 entry，
                 // 更新 slotToExpunge 为当前的 i
                 if (k == null && slotToExpunge == staleSlot)
                     slotToExpunge = i;
                 // 如果向前扫描找到了无效的 entry，则 slotToExpunge 不会变
             }
+            // slotToExpunge 就是记录了第一个无效引用的位置
 
-            // 经过向前和向后查找之后，若 staleSlot 位置的 value 为空，表示
+            // 经过向前和向后查找之后，如果没有返回，说明之前不存在指定 key
+            // 若 staleSlot 位置的 value 为空，表示
             // key 之前不存在，则直接新增一个 entry
             tab[staleSlot].value = null;
             tab[staleSlot] = new ThreadLocal.ThreadLocalMap.Entry(key, value);
@@ -416,8 +424,31 @@ set 方法用于插入新的节点，或者更新节点的 value 值，同样首
         }
 ```
 
-***
-> 成员函数
+**remove 方法**
+
+```java
+        /**
+         * 删除指定 key 对应的 entry。
+         */
+        private void remove(ThreadLocal<?> key) {
+            ThreadLocal.ThreadLocalMap.Entry[] tab = table;
+            int len = tab.length;
+            int i = key.threadLocalHashCode & (len-1);
+            for (ThreadLocal.ThreadLocalMap.Entry e = tab[i];
+                 e != null;
+                 e = tab[i = nextIndex(i, len)]) {
+                if (e.get() == key) {
+                    // 调用 WeakReference 的 clear 方法清除
+                    e.clear();
+                    // 连续段内清除无效 entry
+                    expungeStaleEntry(i);
+                    return;
+                }
+            }
+        }
+```
+
+### 成员函数
 
 **get 方法**
 
@@ -475,17 +506,45 @@ set 方法用于插入新的节点，或者更新节点的 value 值，同样首
     }
 ```
 
-***
-> 内存泄露问题
+**remove 方法**
 
-ThreadLocalMap 中采用 ThreadLocal 作为键值对的 key，如果 ThreadLocal 被回收则意味着此 ThreadLocal 对应的 value 再也不会被访问到，也成为无用的内存。由于 Map 被当前线程持有，不管 ThreadLocal 有没有被回收，value 都会一直存在于内存中，无意义的 value 在内存中累加，极有可能造成内存泄露的问题。
+调用 ThreadLocalMap 的 remove 方法，删除 key 为此 ThreadLocal 的键值对。
 
-针对此问题，ThreadLocal 类中的 set、get 等方法均实现了回收无效的 Entry 节点的操作。如果检测到范围内节点的 key 为 null，则设置其 value 为 null，其 Entry 的引用为 null，那么在下一次垃圾回收之前，将会自动回收这些弱引用的节点对象。
+```java
+    /**
+     * 删除当前线程的 value。
+     *
+     * @since 1.5
+     */
+    public void remove() {
+        ThreadLocal.ThreadLocalMap m = getMap(Thread.currentThread());
+        if (m != null)
+            m.remove(this);
+    }
+```
 
-强引用对象是指不会被回收的对象；软引用对象是指内部不足的时候回收的对象；弱引用对象是指存活到垃圾回收前的对象，此类对象在垃圾回收发生时会立刻进行回收。
+### 为什么 key 使用弱引用以及可能产生的内存泄露
 
-***
-> 参考：
+如果使用强引用，当 ThreadLocal 对象的强引用被回收了，ThreadLocalMap 本身还持有 ThreadLocal 的强引用（因为 ThreadLocalMap 的 key 指向 ThreadLocal）。如果没有手动删除这个 key，ThreadLocal 就不会被回收。只要线程不消亡，ThreadLocalMap 引用的对象就不会被回收。可以认为这导致内存泄露（本该回收的无用对象没有被回收）。
 
-[ThreadLocal源码分析](https://www.jianshu.com/p/80866ca6c424)
-[ThreadLocal 原理](https://www.jianshu.com/p/0ba78fe61c40)
+如果使用弱引用，当 ThreadLocal 的强引用被回收了，就只剩下 ThreadLocalMap 持有的弱引用对象了，在下一次 gc 的时候，这个 ThreadLocal 就会被回收。
+
+但是 ThreadLocal 只是 key，其对应的 value 不是弱引用，不会被回收，当 key 变成 null 之后，value 再也无法被访问到，内存泄露依然存在。
+
+这就是上面 expungeStaleEntry、cleanSomeSlots、expungeStaleEntries 方法存在的原因。每次 get/set/remove ThreadLocalMap 中的值的时候，会自动清理 key 为 null 的 value。
+
+那为什么不对 value 使用弱引用呢？因为 value 在其他地方没有保留任何强引用，如果在这里使用弱引用，将会在任何一次 gc 的时候被回收，很明显这样是不对的。
+
+强引用对象是指不会被回收的对象；软引用对象是指内部不足的时候回收的对象；弱引用对象是指存活到垃圾回收前的对象，此类对象在垃圾回收发生时立刻进行回收。
+
+**解决方法**
+
+如果 ThreadLocal 的强引用一直存在，只要线程不死，ThreadLocalMap 里的 key-value 将会一直存在，因为无法通过弱引用来删除。
+
+所以当某个 ThreadLocal 不再使用时，最好使用 ThreadLoca.remove 删除所有的 key。
+
+### 参考：
+
+* [ThreadLocal源码分析](https://www.jianshu.com/p/80866ca6c424)
+* [ThreadLocal 原理](https://www.jianshu.com/p/0ba78fe61c40)
+* [ThreadLocal原理及内存泄露预防](https://blog.csdn.net/puppylpg/article/details/80433271)

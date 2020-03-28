@@ -8,7 +8,7 @@
 
 * [Stack](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/Stack.md)
 
-    > 继承自 Vector，提供基础的栈操作。在线程安全的前提下，效率很低（使用 synchronized 包装所有函数）。
+    > 继承自 Vector，提供基础的栈操作。和其它线程安全的集合比起来，在多线程环境中效率很低。其保障线程安全的手段是使用 synchronized 包装所有函数。
 
 * [ArrayDeque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/ArrayDeque.md)
 
@@ -16,7 +16,7 @@
 
 * [PriorityQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/PriorityQueue.md)
 
-    > 基于堆（底层为数组）的优先队列，可指定比较器。
+    > 基于堆（底层为数组）的优先队列，可指定比较器。对于整型元素而言，默认最小堆。
 
 ### Set
 
@@ -28,7 +28,7 @@
 
 * [HashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/HashMap.md) | [TreeMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/TreeMap.md) | [LinkedHashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/LinkedHashMap.md)
 
-   > Map 是键值对结构的典型实例。HashMap 作为一种高效的 Map 实现，平均情况下检索的时间代价只需要 O(1)，其核心的数据结构为数组，解决哈希碰撞的时候还会用到链表和红黑树（JDK 8）。TreeMap 直接使用红黑树存储每个键值对节点，平均检索时间为 O(log n)。相对于 HashMap 而言，红黑树的优势是节点有序（因为红黑树是相对平衡的二叉检索树）。LinkedHashMap 继承自 HashMap，在 HashMap 的基础上把所有节点组织成双向链表结构，所以 LinkedHashMap 也是有序的。LinkedHashMap 的思想可以用来实现 LRU 算法。
+   > Map 是键值对结构的典型实例。HashMap 作为一种高效的 Map 实现，平均情况下检索的时间代价只需要 O(1)，其核心的数据结构为数组，解决哈希碰撞的时候还会用到链表和红黑树（JDK 1.8）。TreeMap 直接使用红黑树存储每个键值对节点，平均检索时间为 O(log n)。相对于 HashMap 而言，红黑树的优势是节点有序（因为红黑树是相对平衡的二叉检索树）。LinkedHashMap 继承自 HashMap，在 HashMap 的基础上把所有节点组织成双向链表结构，所以 LinkedHashMap 也是有序的。LinkedHashMap 的思想可以用来实现 LRU 算法。
 
 &nbsp;
 
@@ -44,15 +44,23 @@
 
 * [AbstractQueuedSynchronizer](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/AbstractQueuedSynchronizer.md)
 
-    > AQS（AbstractQueuedSynchronizer）抽象类，队列同步控制器，是 Java 并发用来控制锁和其他同步组件的基础框架
+    > AQS（AbstractQueuedSynchronizer）抽象类，队列同步控制器，是 Java 并发用来控制锁和其他同步组件的基础框架。常用的 Lock、CountDownLatch、CyclicBarrier、Semaphore 等均基于 AQS 实现。
 
 * [ReentrantLock](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ReentrantLock.md) | [ReentrantReadWriteLock](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ReentrantReadWriteLock.md)
 
-    > ReentrantLock 是 Lock 接口的实现，翻译为可重入锁，支持同一个线程重入，并在获取和释放时记录重入次数。ReentrantReadWriteLock 是 Lock 接口的实现，翻译为可重入读写锁，实现了可重入读锁和可重入写锁，也即共享锁和互斥锁。
+    > ReentrantLock 是 Lock 接口的实现，翻译为可重入锁，支持线程无限制重入同一代码段，在获取和释放时记录重入次数。ReentrantReadWriteLock 是 Lock 接口的实现，翻译为可重入读写锁，实现了可重入读锁和可重入写锁，也即共享锁和互斥锁（排它锁）。
 
-* [CountDownLatch](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CountDownLatch.md) | [CyclicBarrier](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CyclicBarrier.md) | [Semaphore](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/Semaphore.md) | [Phaser](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/Phaser.md) | [Exchanger](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/Exchanger.md)
+* [CountDownLatch](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CountDownLatch.md) | [CyclicBarrier](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CyclicBarrier.md) | [Phaser](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/Phaser.md)
 
-    > 基于 AQS 实现的五个同步辅助类，用于线程计数、线程等待、线程间协作等场景下的线程同步控制。
+    > CountDownLatch 可称为倒数计数器，latch 的作用是控制计数器的值降到 0 时，让所有等待的线程继续执行；CyclicBarrier 可称为循环栅栏，线程到达栅栏时相互等待，等到所有线程都到达时才继续执行；Phaser 可称为多阶段栅栏，是最复杂且最灵活的控制器，兼具前两者的特性。
+
+* [Semaphore](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/Semaphore.md)
+
+    > 通过“令牌数”限制同一时间并发的线程数量，拿到令牌的线程可以继续运行，没拿到的线程需要等待，直到拿到为止。
+
+* [Exchanger](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/Exchanger.md)
+
+    > 用于两个线程之间的交换数据。
 
 ### Concurrency Collections
 

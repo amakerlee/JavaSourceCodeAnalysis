@@ -1,6 +1,6 @@
 ## Semaphore
 
- 计数信号量，允许指定数量的线程同时访问某个资源，可以将信号量看做是在向外分发使用资源的许可证，只有成功获取许可证，才能使用资源。
+计数信号量，允许指定数量的线程同时访问某个资源，可以将信号量看做是在向外分发使用资源的许可证，只有成功获取许可证，才能使用资源。
 
 ### 完整源码解析
 
@@ -8,9 +8,9 @@
 
 ### 内部类 Sync
 
-Semaphore 和 CountDownLatch 基本一样，同样是基于 AQS 实现一个公平/非公平同步器，然后通过状态值控制锁的获取和释放。
+Semaphore 和 CountDownLatch 基本一样，同样是基于 AQS 实现一个公平/非公平同步器，通过状态值控制锁的获取和释放。
 
-基类 Sync 中在 nonfairTryAcquireShared 函数中实现了非公平版本的 tryAcquire 方法。总体思路较简单，自旋获取许可证。如果有剩余可用的许可证，使用 CAS 方式尝试获取，具体体现为改变同步器状态。如果没有剩余可用许可证了，返回一个负数宣告尝试获取失败。
+基类 Sync 中在 nonfairTryAcquireShared 函数中实现了非公平版本的 tryAcquire 方法。总体思路较简单，就是自旋获取许可证。状态的值表示许可证数量，如果有剩余可用的许可证，使用 CAS 方式尝试改变状态值，改变成功即获取成功。如果没有剩余可用许可证了，返回一个负数宣告尝试获取失败。
 
 ```java
         // 非公平 tryAcquire 的实现
@@ -30,7 +30,7 @@ Semaphore 和 CountDownLatch 基本一样，同样是基于 AQS 实现一个公�
         }
 ```
 
-尝试释放许可证的方法和 acquire 方法对应，自旋尝试用 CAS 的方式增加 Semaphore 中许可证的数量，增加成功则表示释放成功。
+尝试释放许可证的方法和 release 方法对应，自旋尝试用 CAS 的方式增加 Semaphore 中许可证的数量，增加成功则表示释放成功。
 
 ```java
         // 释放资源和许可证（公平版和非公平版相同）
@@ -69,7 +69,7 @@ Semaphore 和 CountDownLatch 基本一样，同样是基于 AQS 实现一个公�
 
 ### 成员函数
 
-通常情况下，会使用 acquire 获取一个许可证，使用 release 释放一个许可证。除了这两个方法以外，还有包括等待时间、获取/释放许可证数量、是否相应中断、是否进入同步队列等待等参数的方法可以供程序员调用。它们和普通 Lock 中同名的函数的作用大同小异，此处不做说明，请参见[完整源码解析](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/Semaphore.java)。
+通常情况下，会使用 acquire 获取一个许可证，使用 release 释放一个许可证。除了这两个方法以外，还有包括等待时间、获取/释放许可证数量、是否相应中断、是否进入同步队列等待等参数的方法可以供程序员调用。它们和普通 Lock 中同名的函数的作用大同小异，此处不做说明，详见[完整源码解析](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/Semaphore.java)。
 
 ### 应用实例
 
@@ -211,3 +211,6 @@ public class test {
 }
 ```
 
+### 其他场景
+
+* Semaphore 初始化有 1 个令牌，线程调用 1 次 release 方法（没有 acquire），然后其他线程一次性获取 2 个令牌，是可以成功获取到的。因为 release 会无条件添加令牌，不会管初始的令牌数是多少。

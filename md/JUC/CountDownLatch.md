@@ -1,6 +1,6 @@
 ## CountDownLatch
 
-主线程等待固定数量的子线程运行完成之后，继续运行后面的操作。
+主线程等待固定数量的其他线程运行完成之后，继续执行后面的操作。
 
 ### 完整源码解析
 
@@ -8,7 +8,7 @@
 
 ### 内部类 Sync
 
-同步控制器 Sync 类中实现获取共享锁的 tryAcquireShared 方法和释放共享锁的 tryReleaseShared 方法
+同步控制器 Sync 类中实现获取共享锁的 tryAcquireShared 方法和释放共享锁的 tryReleaseShared 方法。此处的 Sync 不是抽象类。
 
 tryAcquireShared 方法中仅仅判断当前状态（状态用于判断是否打开 latch）是否等于 0，当状态值降为 0 时，打开 latch，线程可以获取到锁，否则阻塞在 latch 之外。
 
@@ -38,9 +38,13 @@ tryAcquireShared 方法中仅仅判断当前状态（状态用于判断是否打
 
 ### 成员函数
 
+此类的核心函数是 await 和 countDown。
+
 此类的一个常用场景是，主线程等待固定数量的子线程运行完成之后，继续运行后面的操作。使用方法 await 阻塞主线程，直到所有的线程都完成调用 countDown 方法，将状态计数减到 0 之后，被阻塞的主线程才开始继续运行。
 
-实现了同步器中共享模式获取锁和释放锁的函数之后，CountDownLatch 类中的 await 和 countDown 函数只需要简单的调用需要的函数即可。
+构造函数指定 count 的值，代表需要调用 countDown 多少次才会打开 latch。由于在构造函数处指定，且无法调用任何函数更改，所以 CountDownLatch 只能用一次。
+
+在 Sync 中实现了共享模式获取锁和释放锁的函数之后，CountDownLatch 类中的 await 和 countDown 函数只需要简单的调用需要的函数即可。
 
 ```java
     /**
@@ -112,6 +116,57 @@ public class test {
 }
 ```
 
+测试 CountDownLatch 是否可以一次唤醒多个等待的线程：
+
+```java
+public class test {
+    public static void main(String[] args) throws InterruptedException{
+        final int count = 10;
+        CountDownLatch latch = new CountDownLatch(count);
+
+        ExecutorService executor = Executors.newFixedThreadPool(3);
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    latch.await();
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
+                System.out.println(Thread.currentThread().getName() + " run.");
+            }
+        };
+        for (int i = 0; i < 2; i++) {
+            executor.execute(task);
+        }
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(1000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                for (int i = 0; i < count; i++) {
+                    latch.countDown();
+                }
+            }
+        }).start();
+
+        executor.shutdown();
+    }
+}
+```
+
+结果如下：
+
+pool-1-thread-1 run.
+
+pool-1-thread-2 run.
+
 ### 总结
 
-CountDownLatch 底层实现依赖于 AQS 共享锁的实现机制，首先初始化计数器 count，调用 countDown 方法时，计数器 count 减 1，当计数器 count 等于 0 时，会唤醒 AQS 等待队列中的线程。调用 await 方法，线程会被挂起，它会等待直到 count 值为 0 才继续执行，否则会加入到等待队列中，等待被唤醒。
+CountDownLatch 底层实现依赖于 AQS 共享锁的实现机制，首先初始化计数器 count，调用 countDown 方法时，计数器 count 减 1。当计数器 count 等于 0 时，会唤醒 AQS 等待队列中的线程。
+
+调用 await 方法，线程会被挂起，它会等待直到 count 值为 0 才继续执行，否则会加入到等待队列中，等待被唤醒。

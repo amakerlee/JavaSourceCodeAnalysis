@@ -1,12 +1,12 @@
 ## CyclicBarrier
 
- 允许一组线程全部等待彼此达到共同屏障点的同步辅助。
+允许一组线程等待彼此全部达到共同屏障点的同步辅助工具。
 
 ### 完整源码解析
 
 [CyclicBarrier](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/CyclicBarrier.java)
 
-### 类变量
+### 类属性
 
 当线程执行完毕，进入 await 方法中，将 count 计数减 1，并且进入 Condition 队列中等待被唤醒。当所有线程到达屏障处时，屏障被打开，所有线程被唤醒，此 generation 结束。开启下一个 generation 时 count 被重置为 parties。
 
@@ -32,6 +32,8 @@
 
 ### 成员函数
 
+CyclicBarrier 的核心方法为 await。
+
 调用 **await** 方法让线程在屏障前等待，此类的核心成员是在 await 中调用的 **dowait** 方法。
 
 **dowait** 方法主要分为两个部分。当线程全部到达屏障前时，下一步需要做的是打破屏障，打破屏障的一系列操作包括执行屏障指令 command，然后唤醒所有等待的线程，最后开启下一个 generation。另一种情况是，如果有线程没有到达屏障前，即 count 计数没有降到 0，则线程进入 Condition 队列等待。
@@ -40,7 +42,7 @@
     /**
      * 在屏障前等待，直到所有的线程到达屏障。
      *
-     * 如果当前线程谁不会最后到达的，那么出于线程调度的目的，它将会休眠，
+     * 如果当前线程没有最后到达的，那么出于线程调度的目的，它将会休眠，
      * 直到发生以下情况之一：
      * 最后一个线程到达；
      * 其他线程中断了当前线程；
@@ -163,10 +165,14 @@
 
 ### CountDownLatch 和 CyclicBarrier 的区别
 
+CountDownLatch 和 ReentrantLock 比较相似，都是自己重写了 AQS 的某些方法；CyclicBarrier 没有重写 AQS，只是使用了 ReentrantLock 和其中的 Condition 用于暂时让线程休眠。
+
 CountDownLatch 让一个或多个线程等待其他线程完成执行；CyclicBarrier 不存在主线程（等待）子线程的情况，它是多个线程之间的相互等待。
 
 CountDownLatch 的计数器无法被重置，一次执行完成之后即无效；CyclicBarrier的计数器可以被重置后循环使用。
 
+### 应用场景
 
+CountDownLatch 可用于游戏开始阶段，主线程为控制游戏开始的线程，其他线程为游戏玩家的线程，只有当所有的玩家线程准备好之后，主线程才继续下一步动作，即开始游戏。
 
-
+CyclicBarrier 可用于等待所有线程执行完成之后再开启下一个任务，如多线程分别计算最后合并结果。
