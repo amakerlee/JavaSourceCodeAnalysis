@@ -98,17 +98,14 @@
 
 ### Thread Pool
 
+* [FutureTask](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/FutureTask.md)
+
+    > 实现了 Runnable 和 Future 接口，是可取消的异步运算，支持的任务类型是 Callable。可以通过 get 方法获取结果，如果任务尚未完成，获取结果的线程将会被阻塞。此外，FutureTask 可以通过 submit 方法提交到线程池中执行。
+
 * [ThreadPoolExecutor](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ThreadPoolExecutor.md) | [ScheduledThreadPoolExecutor](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ScheduledThreadPoolExecutor.md)
 
     > 线程池用来控制一系列线程的创建、调度、监控和销毁等。ThreadPoolExecutor 实现了 ExecutorService 接口，是创建线程池的核心类，可指定核心线程数，最大线程数，阻塞队列，拒绝策略等参数。工厂类 Executors 中一大半的常用线程池都是通过 ThreadPoolExecutor 创建。ScheduledThreadPoolExecutor 是线程池的一种，用于延迟或周期性执行提交的任务。
 
-* [~~ForkJoinPool~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ThreadPoolExecutor.md)
+* [~~ForkJoinPool~~](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ForkJoinPool.md)
 
     > 太难了...
-    
-&nbsp;
-
-
-## Other
-
-Future
