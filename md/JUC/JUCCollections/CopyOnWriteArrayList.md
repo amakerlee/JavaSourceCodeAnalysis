@@ -1,12 +1,10 @@
-### CopyOnWriteArrayList
+## CopyOnWriteArrayList
 
-***
-> 完整源码解析
+### 完整源码解析
 
 [CopyOnWriteArrayList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/JUCCollections/CopyOnWriteArrayList.java)
 
-***
-> 类属性
+### 类属性
 
 CopyOnWriteArrayList 类是 ArrayList 类的并发版本，类中仅有两个属性，一个是用于更改操作避免并发修改的 ReentrantLock 实例，一个是存储列表元素的对象数组。
 
@@ -18,14 +16,13 @@ CopyOnWriteArrayList 类是 ArrayList 类的并发版本，类中仅有两个属
     private transient volatile Object[] array;
 ```
 
-***
-> 成员函数
+### 成员函数
 
 此类中的方法和 ArrayList 中的方法基本一致，包括 add，remove，set 等。
 
 此类不需要扩容，因为每一步的修改操作都创造了一个新的数组。首先从原数组里复制一份新的数组，在新数组里执行写入操作。执行完成之后，将属性 array 指向新的数组，旧数组由垃圾回收器自行回收。
 
-创建数组的操作有两种，一种是 Arrays.copyOf，调用后立刻无条件创建新的数组；一种是 System.arraycopy，将源数组复制到目标数组里。
+创建（复制）数组的操作有两种，一种是 Arrays.copyOf，调用后立刻无条件创建新的数组；一种是 System.arraycopy，将源数组复制到目标数组里。
 
 **indexOf**
 
@@ -44,6 +41,7 @@ indexOf 操作相当于读操作，没有对内存写入，所以没有加锁。
      */
     private static int indexOf(Object o, Object[] elements,
                                int index, int fence) {
+        // 允许 null 元素
         if (o == null) {
             for (int i = index; i < fence; i++)
                 if (elements[i] == null)
@@ -463,10 +461,9 @@ remove(Object o) 删除指定的元素。此时先调用 indexOf 找到其所在
     }
 ```
 
-***
-> 总结
+### 总结
 
-毋庸置疑，CopyOnWriteArrayList是线程安全的。它使用了一种叫写时复制（COW）的方法，任何写操作都会创造一个新的数组，用于替换原数组。写操作需要加锁，避免多个线程同时执行写操作。读操作不需要加锁，所以读到的数据并不一定完全是最新的数据。
+毋庸置疑，CopyOnWriteArrayList 是线程安全的。它使用了一种叫写时复制（COW）的方法，任何写操作都会创造一个新的数组，用于替换原数组。写操作需要加锁，避免多个线程同时执行写操作。读操作不需要加锁，所以读到的数据并不一定完全是最新的数据。
 
 线程并发读数组有以下几种情况： 
 
@@ -480,8 +477,7 @@ CopyOnWriteArrayList 主要用到读写分离和开辟新的空间这两套方�
 
 由于所有的写操作都需要创造新的数组，并且包含大量的数组元素复制操作，所以 CopyOnWriteArrayList 适合读多写少的操作。在数据量大时，尽量避免使用 CopyOnWriteArrayList 作为容器。
 
-***
-> 引用
+### 参考
 
 * [CopyOnWriteArrayList是线程安全的](https://my.oschina.net/u/3847203/blog/2988423)
 
