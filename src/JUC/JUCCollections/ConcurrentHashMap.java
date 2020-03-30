@@ -346,8 +346,10 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * 使用的初始的 table 大小，默认为 0。初始化之后，保存下一个元素的 count
      * 值，根据该值调整表的大小。
      * 简言之，控制表的初始化和扩容操作。
-     * -1 代表 table 正在初始化
-     * -N 代表有 N - 1 个线程正在进行扩容操作
+     * sizeCtl = -1 表示 table 正在初始化
+     * sizeCtl = 0 默认值
+     * sizeCtl > 0 下次扩容的阈值
+     * sizeCtl = (resizeStamp << 16) + (1 + nThreads)，表示正在进行扩容，高位存储扩容邮戳，低位存储扩容线程数加 1；
      * 初始化数组或扩容完成后，将 sizeCtl 的值设为 0.75 * n
      */
     private transient volatile int sizeCtl;
@@ -578,6 +580,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                     break;                   // no lock when adding to empty bin
             }
             // 当前节点处于 MOVED 状态，有其他线程正在进行节点转移操作
+            // 转移完了再继续自旋
             else if ((fh = f.hash) == MOVED)
                 tab = helpTransfer(tab, f);
             // 执行到这里说明找到的桶已经有元素了
@@ -1649,13 +1652,13 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         Node<K,V>[] tab; int sc;
         // 自旋
         while ((tab = table) == null || tab.length == 0) {
-            // 如果 sizeCtl 小于 0，让出初始化权
+            // 如果 sizeCtl 小于 0，表示已经在初始化了。
             if ((sc = sizeCtl) < 0)
                 Thread.yield();
-            // 否则 CAS 设置 sizeCtl 为 -1，表示当前线程正在初始化
-            // CAS 是为了让同时到达此处的线程，只有一个能进入这个代码块执行
-            // CAS 成功之后，之后其他的线程会被阻塞在 if ((sc = sizeCtl) < 0) 里面，
-            // 不会再继续 CAS 了
+                // 否则 CAS 设置 sizeCtl 为 -1，表示当前线程正在初始化
+                // CAS 是为了让同时到达此处的线程，只有一个能进入这个代码块执行
+                // CAS 成功之后，之后其他的线程会被因为 if ((sc = sizeCtl) < 0) 让出时间片，
+                // 让初始化线程尽快完成初始化工作。
             else if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {
                 try {
                     if ((tab = table) == null || tab.length == 0) {
@@ -1688,11 +1691,10 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      */
     private final void addCount(long x, int check) {
         CounterCell[] as; long b, s;
-        // 如果 counterCells 不为 null，直接进入 if 块，使用 counterCells；
-        // 否则尝试 CAS 修改 baseCount，如果成功了，就不管 counterCells 了，
-        // 失败了也进入 if 块
-        // 由此可以看出，计算元素个数其实同时使用到了 counterCells 和 baseCount 两个变量
-        // 说明，有 counterCells 的时候优先使用 counterCells。
+        // 计算元素个数其实使用了 counterCells 和 baseCount 两个变量
+        // 如果 counterCells 为 null，说明之前一直没有出现过冲突，直接将值累加到 baseCount 上
+        // 否则尝试更新 counterCells[i] 的值，如果更新失败，可能涉及 counterCells 的扩容，调用 fullAddCount。
+        // 只有从未出现过并发冲突的时候，baseCount 才会使用到，一旦出现了并发冲突，之后所有的操作基本都只针对 CounterCell。（fullAddCount 中如果在扩容，也会用到 baseCount）
         if ((as = counterCells) != null ||
                 !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
             CounterCell a; long v; int m;
@@ -1716,7 +1718,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
             // sumCount 计算元素总数
             s = sumCount();
         }
-        // 检查扩容。putVal 方法中默认需要检查。
+        // 检查是否扩容。putVal 方法中默认需要检查。
         if (check >= 0) {
             Node<K,V>[] tab, nt; int n, sc;
             // 如果 map 中的节点数达到 sizeCtl（达到扩容阈值），需要扩容。如果
@@ -1734,7 +1736,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                     // 就会将 sc 减一。这个时候，sc 就等于 rs + 1）
                     // 3. sc == 标识符 + 65535（帮助线程已经达到最大）
                     // 4. nextTable == null，扩容结束
-                    // 5. transferIndex <= 0，转移状态变化了
+                    // 5. transferIndex <= 0，不需要线程加入扩容了
                     if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
                             sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
                             transferIndex <= 0)
@@ -1873,18 +1875,19 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         // fwd 是标志节点。当一个节点为空或者被转移之后，就设置为 fwd 节点
         // 表示这个桶已经处理过了
         ForwardingNode<K,V> fwd = new ForwardingNode<K,V>(nextTab);
-        // 是否继续向前查找
+        // advance 指的是做完了一个位置的迁移工作，可以准备做下一个位置的了
         boolean advance = true;
         // 在完成之前重新扫描一遍数组，确认已经完成。
         boolean finishing = false; // to ensure sweep before committing nextTab
-        // 自旋移动每个节点，从 transferIndex 开始移动 stride 个节点到新的
+        // 自旋移动每个节点，从 transferIndex 开始移动 stride 个槽的节点到新的
         // table
         // i 表示当前处理的节点索引，bound 表示需要处理节点的索引边界
         for (int i = 0, bound = 0;;) {
             Node<K,V> f; int fh;
             while (advance) {
                 int nextIndex, nextBound;
-                // 已经完成，不再往前遍历了
+                // 首先执行 i = i - 1，如果 i 大于 bound，说明还在当前 stride 范围内
+                // nextIndex、nextBound、transferIndex 等都不需要改变
                 // bound 是所有线程处理区间的最低点
                 if (--i >= bound || finishing)
                     advance = false;
@@ -2078,13 +2081,14 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
         }
         // 冲突标志
         boolean collide = false;                // True if last slot nonempty
+        // 自旋
         for (;;) {
             CounterCell[] as; CounterCell a; int n; long v;
             // counterCells 已经初始化了
             if ((as = counterCells) != null && (n = as.length) > 0) {
                 // h 位置的 CounterCell 还没有初始化。
                 if ((a = as[(n - 1) & h]) == null) {
-                    // 锁空闲（0 表示空闲，1 表示已经被获取）
+                    // 锁空闲（0 表示空闲，1 表示已经被获取），没有正在扩容
                     if (cellsBusy == 0) {            // Try to attach new Cell
                         // 创建新的 CounterCell，将 x 保存在此 CounterCell 中
                         CounterCell r = new CounterCell(x); // Optimistic create
@@ -2115,6 +2119,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                     // 没成功
                     collide = false;
                 }
+                // wasUncontended 表示前一次 CAS 更新 cell 单元是否成功
                 else if (!wasUncontended)       // CAS already known to fail
                     wasUncontended = true;      // Continue after rehash
                 // 数组中找到位置非 null，则 CAS 更新它的 value，然后跳出循环

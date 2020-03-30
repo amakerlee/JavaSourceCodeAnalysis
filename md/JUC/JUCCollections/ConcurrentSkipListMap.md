@@ -1,6 +1,6 @@
 ## ConcurrentSkipListMap
 
-在 ConcurrentSkipListMap 之前，了解跳跃表的概念和基本操作是必要的，忽略跳跃表的实际结构直接阅读源码难度较大。
+在 ConcurrentSkipListMap 之前，了解跳跃表的概念和基本操作是必要的，如果忽略跳跃表的实际结构直接阅读源码，难度较大。
 
 ### 完整源码解析
 
@@ -34,9 +34,13 @@ ConcurrentSkipListMap 中的跳跃表主要由三种作为内部类的节点构�
 
 <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/ConcurrentSkipListMap5.png" width=70% />
 
-**Node** 表示最底层链表中存储实际数据的节点，和最普通的单向链表节点一样，只包括三个属性：key、value 和 next。除此之外，有一系列 CAS 操作的方法，用于原子更新节点属性，这些方法是 ConcurrentSkipListMap 能够作为线程安全集合类的基础。
+BASE_HEADER 为 Object 类型，其他的节点类型在此类中已经定义。
 
-标记节点位于即将被删除节点的后面，所有 value 为自身的节点都是标记节点。
+#### Node
+
+Node 表示最底层单向链表中存储实际数据的节点，和最普通的单向链表节点一样，只包括三个属性：key、value 和 next。除此之外，有一系列 CAS 操作的方法，用于原子更新节点属性，这些方法是 ConcurrentSkipListMap 能够作为线程安全集合类的基础。
+
+标记节点在删除操作时创建，位于即将被删除节点的后面，所有 value 为自身的节点都是标记节点。
 
 ```java
     /**
@@ -179,7 +183,9 @@ ConcurrentSkipListMap 中的跳跃表主要由三种作为内部类的节点构�
     }
 ```
 
-**Index** 节点是在第一层之上的，普通的索引节点；**HeadIndex** 表示每一层索引节点链的头结点。
+#### Index
+
+Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示每一层索引节点链的头结点。
 
 ```java
     /**
@@ -283,7 +289,9 @@ ConcurrentSkipListMap 中的跳跃表主要由三种作为内部类的节点构�
 
 ### 成员函数
 
-**添加**
+#### 添加
+
+**doPut**
 
 添加操作是 ConcurrentSkipListMap 中最复杂的操作。整个过程主要分成三步，第一步在最底层的单向链表中插入数据节点；第二步根据产生的随机数，确定是否需要增加层级，并在每一层建立添加节点的索引（仅仅建立）；第三步将构建的索引添加到每一层的索引链表中。
 
@@ -475,7 +483,11 @@ ConcurrentSkipListMap 中的跳跃表主要由三种作为内部类的节点构�
         }
         return null;
     }
-    
+```
+
+**findPredecessor**
+
+```java
     /**
      * 返回最底层节点中比给定 key 小的节点，如果没有返回底层的头结点。
      * @param key the key
@@ -519,6 +531,11 @@ ConcurrentSkipListMap 中的跳跃表主要由三种作为内部类的节点构�
             }
         }
     }
+```
+
+**findNode**
+
+```java
     
     /**
      * 返回指定 key 对应的节点，没有返回 null，清除查找路径上遇到的失效节点。
@@ -562,9 +579,9 @@ ConcurrentSkipListMap 中的跳跃表主要由三种作为内部类的节点构�
     }
 ```
 
-**删除**
+#### 删除
 
-删除操作包含删除底层数据节点和删除索引（可能出现层级下降）。
+删除操作不止是删除底层数据节点，还需要删除它相关的索引（可能出现层级下降）。
 
 删除时首先将节点的 value 置为 null，然后添加标记节点，再执行删除。删除失败通过 findNode 中的 helpDelete 不断尝试删除。
 
@@ -645,7 +662,7 @@ ConcurrentSkipListMap 中的跳跃表主要由三种作为内部类的节点构�
     }
 ```
 
-**查找**
+#### 查找
 
 查找元素的操作比较简单。
 
