@@ -74,7 +74,7 @@
 
 * [ConcurrentHashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentHashMap.md) | [ConcurrentSkipListMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentSkipListMap.md)
 
-    > ConcurrentHashMap 对应于常用集合中的 HashMap，JDK 1.8 中不再使用分段锁，改用 CAS 保障线程安全。ConcurrentSkipListMap 是基于跳跃表（SkipList）实现的 Map 集合，当跳跃表索引接近平衡二叉树时，在此集合中检索的时间复杂度为 O(log n)。
+    > ConcurrentHashMap 对应于常用集合中的 HashMap，JDK 1.8 中不再使用分段锁，改用自旋 + CAS 保障线程安全。ConcurrentSkipListMap 是基于跳跃表（SkipList）实现的 Map 集合，随机建立层级索引和增加层级。如果按照标准的跳跃表建立索引，跳跃表索引会无限接近接近平衡二叉树时，那么此时检索的时间复杂度会达到 O(log n)。
 
 * [ArrayBlockingQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ArrayBlockingQueue.md) | [LinkedBlockingQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/LinkedBlockingQueue.md) | [LinkedBlockingDeque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/LinkedBlockingDeque.md) | [PriorityBlockingQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/PriorityBlockingQueue.md)
 

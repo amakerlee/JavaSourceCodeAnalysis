@@ -2,6 +2,12 @@
 
 在 ConcurrentSkipListMap 之前，了解跳跃表的概念和基本操作是必要的，如果忽略跳跃表的实际结构直接阅读源码，难度较大。
 
+ConcurrentSkipListMap 中有以下两点值得注意的地方：
+
+1. 所有全局变量的修改都必须使用 CAS 的方式，这是保证 ConcurrentSkipListMap 属于线程安全集合类的基础。但这是远远不够的，如果其他线程对当前正在进行的操作相关的变量进行了修改，那么之前获取到的值可能不再是现在最新的值了。为了解决这一问题，源码作者使用了大量的 if 判断。只有确保之前获取到的值仍然是最新值的时候，才开始 CAS 的修改操作，如果不是最新值，将会重新开始自旋，重新获取最新值。所以从源码中很容易发现，几乎在每个步骤中，CAS 操作都是最后才执行。
+
+2. ConcurrentSkipListMap 的删除不是在“remove”方法中进行的：对于数据节点的删除，在 findNode 和 helpDelete 中完成；对于索引节点的删除，在 findPredecessor 和 unlink 中完成。删除节点或删除索引节点的操作并不只是在“remove”函数中会用到，如果添加节点的操作过程中遇到并发修改，如将要添加的节点被其他线程删除，也需要删除索引节点（回退）。所以把具体的删除操作放在 findPredecessor 和 findNode 中， 有利于代码的复用。
+
 ### 完整源码解析
 
 [ConcurrentSkipListMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/JUCCollections/ConcurrentSkipListMap.java)
@@ -293,11 +299,24 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
 
 **doPut**
 
-添加操作是 ConcurrentSkipListMap 中最复杂的操作。整个过程主要分成三步，第一步在最底层的单向链表中插入数据节点；第二步根据产生的随机数，确定是否需要增加层级，并在每一层建立添加节点的索引（仅仅建立）；第三步将构建的索引添加到每一层的索引链表中。
+添加操作是 ConcurrentSkipListMap 中最复杂的操作。整个过程主要分成以下三步：
 
-详细解释请参考：[死磕 java集合之ConcurrentSkipListMap源码分析——发现个bug](https://www.cnblogs.com/tong-yuan/p/ConcurrentSkipListMap.html)
+* 首先在最底层的单向链表中插入数据节点。这一个步骤使用了两层 for 循环，内层 for 循环用于不断重试。如果元素已经存在（根据 key 判断），直接返回。只有顺利插入时候，才会跳出外层循环。
 
-相关方法中包括两个核心部分，跳跃表数据结构的操作（插入、删除和查找）和多线程操作时的并发控制，和 1.8 中大多数非阻塞的并发集合一样，保障原子修改的基础还是一系列 CAS 操作。在 CAS 之上包装两层循环， CAS 失败（有其他线程同时进行操作时）时，重新回到最开始的地方，重新进行一次内层的循环。
+* 根据产生的随机数 rnd，确定是否需要更新索引。如果需要更新索引，根据随机数 rnd 的二进制除最低位之外 1 的个数是否大于当前最高层数来判断是否需要增加层级。
+
+  - 如果不用增加层级，那么创造到当前最高层的索引节点，并且把每一层的索引节点通过 down 属性连接起来（建立竖向的 down 链表）。
+  - 如果需要增加层级，除了创造索引节点之外，还需要创造最高层的头索引结点，通过 right 把头索引节点和最高层的索引节点连接起来。
+
+* 将构建的索引添加到每一层的索引链表中（补上横向的 right 链表）。每一层的添加分成以下三个步骤：
+  
+  - 从每一层的头索引节点向后遍历，找到索引节点 t 应该插入到哪两个索引节点之间。
+  - 把索引节点 t 添加到索引链表里。
+  - 当前层级处理完成后，指针往下移动，处理下一层级。直到最底层为止。
+
+图文详解请参考：[死磕 java集合之ConcurrentSkipListMap源码分析——发现个bug](https://www.cnblogs.com/tong-yuan/p/ConcurrentSkipListMap.html)
+
+doPut 方法可以拆分成两个核心的部分：跳跃表数据结构的操作（插入、删除和查找）和多线程操作时的并发控制。和 1.8 中大多数非阻塞的并发集合一样，保障原子修改的基础是共享变量的 CAS 操作。在 CAS 之上包装两层循环， CAS 失败（有其他线程同时进行操作时）时，重新回到最开始的地方，重新进行一次内层的循环。
 
 ```java
     /**
@@ -318,6 +337,7 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
         outer: for (;;) {
             // findPredecessor 函数找到给定 key 的前继节点 b
             for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
+				// 这一段 if 里面包含了其他线程并发修改的情况，如果有其他线程的影响，需要重新开始循环
                 if (n != null) {
                     Object v; int c;
                     Node<K,V> f = n.next;
@@ -329,7 +349,7 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
                         n.helpDelete(b, f);
                         break;
                     }
-                    // b 已经被删除了，跳出重试
+                    // b 的 value 为 null 或者 b 的下一个节点为标记节点，表示 b 已经被删除了，跳出重试
                     if (b.value == null || v == n) // b is deleted
                         break;
                     // 当前 key 大于后一个节点的 key，继续往后查找
@@ -352,7 +372,7 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
                     // else c < 0; fall through
                 }
 
-                // 上面 if 所有条件都不满足（可以插入），或者直接 n == null（后面已经没有节点了）
+                // 上面 if 所有条件都不满足（如果满足，要么 continue 要么 break，不会到这里），可以插入；或者直接 n == null，后面已经没有节点了，也可以插入
                 z = new Node<K,V>(key, value, n);
                 // 把新节点添加 b 节点后面
                 if (!b.casNext(n, z))
@@ -423,13 +443,14 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
                 // j 是新的最高层的层级
                 int j = h.level;
                 // 从新的 head 开始
-                // 如果增加了一层，此时的 t 是在老的最高层的目标索引，
-                // 没有增加层数，此时的 t 是创造的纵向目标索引的最高层
+                // t 是当前最高层的目标索引，
                 for (Index<K,V> q = h, r = q.right, t = idx;;) {
                     // 如果遍历到了最右边或者最下边，退出外层循环
                     if (q == null || t == null)
                         break splice;
                     // right 节点不为 null，可以往 right 查找
+					// 下面这一段代码目标是找到当前层级中，比待连接的索引大的第一个索引 r
+					// 找到之后 q 和 r 中间的位置，就是待插入索引的位置
                     if (r != null) {
                         Node<K,V> n = r.node;
                         // 比较 r 的 node 的 key 和插入节点的 key
@@ -452,16 +473,17 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
                     }
 
                     // j 最初是新最高层的层级，insertionLevel 最初是旧的最高层层级
-                    // 实际上第一次不会进入这个 if
+                    // 如果增加了层级，第一次循环不会进入这个 if，因为 j != insertioLevel
                     // 最高层的 HeadIndex 的 right 已经连接了目标索引，所以最高层
                     // 并不需要进入这个 if
 
+                    // 下面这一段代码的目标是当前层级的待连接索引节点连接起来
                     // 一般情况下 j 和 insertionLevel 是同步的
                     if (j == insertionLevel) {
                         // 在 q 和 r 之间插入 t
                         if (!q.link(r, t))
                             break; // 如果失败了，退出内层循环重试
-                        // 如果插入完成后，t 节点被删除，那么结束插入操作
+                        // 如果插入完成后，t 索引节点被删除，那么结束插入操作
                         if (t.node.value == null) {
                             findNode(key);
                             break splice;
@@ -471,6 +493,7 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
                             break splice;
                     }
 
+                    // 继续下一层
                     // j 先自减一，然后和两个 level 比较
                     if (--j >= insertionLevel && j < level)
                         t = t.down;
@@ -487,9 +510,11 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
 
 **findPredecessor**
 
+找到比给定 key 小的最大的数据节点。从最高层的头结点开始逐层查找。
+
 ```java
     /**
-     * 返回最底层节点中比给定 key 小的节点，如果没有返回底层的头结点。
+     * 返回最底层节点中比给定 key 小的节点。
      * @param key the key
      * @return a predecessor of key
      */
@@ -534,6 +559,8 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
 ```
 
 **findNode**
+
+返回指定 key 对应的数据节点，没有返回 null，清除查找路径上遇到的失效节点。
 
 ```java
     
@@ -583,7 +610,7 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
 
 删除操作不止是删除底层数据节点，还需要删除它相关的索引（可能出现层级下降）。
 
-删除时首先将节点的 value 置为 null，然后添加标记节点，再执行删除。删除失败通过 findNode 中的 helpDelete 不断尝试删除。
+删除时首先将节点的 value 置为 null，然后添加标记节点，再执行删除。删除失败通过 findNode 中的 helpDelete 不断尝试删除，直到成功为止。
 
 详细解释请参考：[死磕 java集合之ConcurrentSkipListMap源码分析——发现个bug](https://www.cnblogs.com/tong-yuan/p/ConcurrentSkipListMap.html)
 
@@ -610,7 +637,7 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
                     break outer;
                 // f 当前节点的后继节点
                 Node<K,V> f = n.next;
-                // 再次检查 n 不是 b.next，说明被其他线程修改过，重新开始
+                // 再次检查 n，如果不是 b.next，说明被其他线程修改过，重新开始
                 if (n != b.next)                    // inconsistent read
                     break;
                 // n 被标记为删除状态
@@ -619,8 +646,7 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
                     n.helpDelete(b, f);
                     break;
                 }
-                // b 已经个被删除，这时候表示 n 是 marker 节点，b 是应该被
-                // 删除的节点
+                // b 已经被标记删除，这时候表示 n 是 marker 节点
                 if (b.value == null || v == n)      // b is deleted
                     break;
                 // 没找到元素，退出
@@ -644,7 +670,7 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
                 // 尝试将 n 的前驱节点 b 的 next 设置成 n 的下一个节点
                 if (!n.appendMarker(f) || !b.casNext(n, f))
                     // 上面有其中一个失败，都会进入这个 if
-                    // 调用 findNode 清除已删除的节点
+                    // 调用 findNode 清除已删除的节点，不断重试 helpDelete
                     findNode(key);
                 else {
                     // 说明节点一定删除了，通过 findPredecessor 删除索引节点
@@ -659,6 +685,34 @@ Index 节点表示第一层之上的，普通的索引节点；HeadIndex 表示�
             }
         }
         return null;
+    }
+```
+
+**tryReduceLevel**
+
+层级大于 3 ，且头索引节点的 right 都为 null 的时候才会降级。
+
+```java
+    /**
+     * 降级。
+     */
+    private void tryReduceLevel() {
+        HeadIndex<K,V> h = head;
+        HeadIndex<K,V> d;
+        HeadIndex<K,V> e;
+        // 层级大于 3，head.down 存在，head.down.down 存在
+        // 且他们的 right 都等于 null 时才会尝试修改 head（最上面三层都空了的
+        // 时候，才会降级）
+        // 然后再次检查，如果 h 的 right 又不为 null 了，尝试还原
+        if (h.level > 3 &&
+                (d = (HeadIndex<K,V>)h.down) != null &&
+                (e = (HeadIndex<K,V>)d.down) != null &&
+                e.right == null &&
+                d.right == null &&
+                h.right == null &&
+                casHead(h, d) && // try to set
+                h.right != null) // recheck
+            casHead(d, h);   // try to backout
     }
 ```
 

@@ -192,7 +192,7 @@ Node 节点是基础节点。TreeNode 继承自 Node，表示树的节点。Tree
 
 2. 如果该节点正在扩容，当前线程进入 helpTransfer 帮助扩容。从 helpTransfer 出来之后再继续自旋。
 
-3. 桶中有元素，（使用 synchronized 锁定之后）在桶内查找。synchronized 锁定的是整个桶，这一步骤里面的修改操作不需要使用 CAS 方式。
+3. 桶中有元素，（使用 synchronized 锁定之后）在桶内查找。synchronized 锁定的是整个桶，这一步骤里面的修改操作不需要 CAS。
 
 ```java
     /**
@@ -832,6 +832,70 @@ sumCount 计算集合中的元素个数，把 baseCount 和 counterCells 每个�
         }
         return sum;
     }
+```
+
+### ConcurrentHashMap 使用注意
+
+在超短的时间内多个线程分别频繁地添加和删除键值对，由于线程的调度和等待，无法保证添加/删除操作的先后顺序。这一点在编写程序的时候需要注意。
+
+考虑下面的程序。两个线程添加删除同一个键值对，虽然显式地先添加后删除，但是并非每一次测试的结果都符合预期，即 Map 不包含指定键值对。
+
+如果使用阻塞队列，那么按照顺序执行的概率将要大一些，因为多线程完全按照串行顺序一个一个执行。例如 LinkedBlockingQueue，所有的操作都是先加锁，完成后才释放，保证了所有流程按照线性顺序执行。而 ConcurrentHashMap 中的 CAS 通常在某个步骤的最后才执行，除了 CAS 之外其他情况都是异步操作。
+
+测试程序的结果显示，N = 100, 1000 时，ConcurrentHashMap 得到的结果都几乎达不到 100%。
+
+虽然这不是属于“线程安全”范畴内的问题，但是在程序编写的要求较严苛时，将其考虑在内是有必要的。
+
+```java
+public class test {
+    public static void main(String[] args) {
+        final int nThreads = 2;
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(nThreads, nThreads,
+                0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<Runnable>());
+        final ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
+//        final ArrayBlockingQueue<String> queue = new ArrayBlockingQueue<>(10);
+        Runnable insertTask = new Runnable() {
+            @Override
+            public void run() {
+                map.put("test", "test");
+//                queue.offer("test");
+            }
+        };
+        Runnable deleteTask = new Runnable() {
+            @Override
+            public void run() {
+                map.remove("test");
+//                queue.poll();
+            }
+        };
+        final int N = 1000;
+        int numOfR = 0;
+        for (int i = 0; i < N; i++) {
+            executor.execute(insertTask);
+            executor.execute(deleteTask);
+            try {
+                Thread.sleep(100);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            boolean ans = !map.containsKey("test");
+//            boolean ans = queue.isEmpty();
+//            queue.clear();
+            System.out.println(ans);
+            if(ans) {
+                numOfR++;
+            }
+            int activeCount = executor.getActiveCount();
+            if (activeCount != 0)
+                throw new UnsupportedOperationException("线程执行时间太短");
+        }
+        executor.shutdown();
+        final NumberFormat numberFormat = NumberFormat.getInstance();
+        numberFormat.setMaximumFractionDigits(2);
+        System.out.println("" + (double)numOfR / N * 100  + " %");
+    }
+}
 ```
 
 ### Thread 中的 join, sleep 和 yeild

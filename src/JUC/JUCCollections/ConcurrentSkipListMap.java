@@ -762,6 +762,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
         outer: for (;;) {
             // findPredecessor 函数找到给定 key 的前继节点 b
             for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
+                // 这一段 if 里面包含了其他线程并发修改的情况，如果有其他线程的影响，需要重新开始循环
                 if (n != null) {
                     Object v; int c;
                     Node<K,V> f = n.next;
@@ -773,7 +774,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                         n.helpDelete(b, f);
                         break;
                     }
-                    // b 已经被删除了，跳出重试
+                    // b 的 value 为 null 或者 b 的下一个节点为标记节点，表示 b 已经被删除了，跳出重试
                     if (b.value == null || v == n) // b is deleted
                         break;
                     // 当前 key 大于后一个节点的 key，继续往后查找
@@ -796,7 +797,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                     // else c < 0; fall through
                 }
 
-                // 上面 if 所有条件都不满足（可以插入），或者直接 n == null（后面已经没有节点了）
+                // 上面 if 所有条件都不满足（如果满足，要么 continue 要么 break，不会到这里），可以插入；或者直接 n == null，后面已经没有节点了，也可以插入
                 z = new Node<K,V>(key, value, n);
                 // 把新节点添加 b 节点后面
                 if (!b.casNext(n, z))
@@ -867,13 +868,14 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                 // j 是新的最高层的层级
                 int j = h.level;
                 // 从新的 head 开始
-                // 如果增加了一层，此时的 t 是在老的最高层的目标索引，
-                // 没有增加层数，此时的 t 是创造的纵向目标索引的最高层
+                // t 是当前最高层的目标索引，
                 for (Index<K,V> q = h, r = q.right, t = idx;;) {
                     // 如果遍历到了最右边或者最下边，退出外层循环
                     if (q == null || t == null)
                         break splice;
                     // right 节点不为 null，可以往 right 查找
+                    // 下面这一段代码目标是找到当前层级中，比待连接的索引大的第一个索引 r
+                    // 找到之后 q 和 r 中间的位置，就是待插入索引的位置
                     if (r != null) {
                         Node<K,V> n = r.node;
                         // 比较 r 的 node 的 key 和插入节点的 key
@@ -896,16 +898,17 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                     }
 
                     // j 最初是新最高层的层级，insertionLevel 最初是旧的最高层层级
-                    // 实际上第一次不会进入这个 if
+                    // 如果增加了层级，第一次循环不会进入这个 if，因为 j != insertioLevel
                     // 最高层的 HeadIndex 的 right 已经连接了目标索引，所以最高层
                     // 并不需要进入这个 if
 
+                    // 下面这一段代码的目标是当前层级的待连接索引节点连接起来
                     // 一般情况下 j 和 insertionLevel 是同步的
                     if (j == insertionLevel) {
                         // 在 q 和 r 之间插入 t
                         if (!q.link(r, t))
                             break; // 如果失败了，退出内层循环重试
-                        // 如果插入完成后，t 节点被删除，那么结束插入操作
+                        // 如果插入完成后，t 索引节点被删除，那么结束插入操作
                         if (t.node.value == null) {
                             findNode(key);
                             break splice;
@@ -915,6 +918,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                             break splice;
                     }
 
+                    // 继续下一层
                     // j 先自减一，然后和两个 level 比较
                     if (--j >= insertionLevel && j < level)
                         t = t.down;
@@ -961,7 +965,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                     n.helpDelete(b, f);
                     break;
                 }
-                // b 已经个被删除，这时候表示 n 是 marker 节点，b 是应该被
+                // b 已经被删除，这时候表示 n 是 marker 节点，b 是应该被
                 // 删除的节点
                 if (b.value == null || v == n)      // b is deleted
                     break;
@@ -978,7 +982,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                 // value 不等于 v，说明其他线程把 value 修改了
                 if (value != null && !value.equals(v))
                     break outer;
-                // 完成所有的检查，执行删除节点 n
+                // 完成所有的检查，标记节点 n 为待删除节点
                 // CAS 将 n 的 value 设置为 null
                 if (!n.casValue(v, null))
                     break;
@@ -986,7 +990,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
                 // 尝试将 n 的前驱节点 b 的 next 设置成 n 的下一个节点
                 if (!n.appendMarker(f) || !b.casNext(n, f))
                     // 上面有其中一个失败，都会进入这个 if
-                    // 调用 findNode 清除已删除的节点
+                    // 调用 findNode 清除已删除的节点，不断重试 helpDelete
                     findNode(key);
                 else {
                     // 说明节点一定删除了，通过 findPredecessor 删除索引节点
