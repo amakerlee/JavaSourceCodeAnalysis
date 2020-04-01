@@ -30,7 +30,7 @@ CAS 是乐观锁的一种，如果在执行 CAS 的时候发现变量的值已�
 
 可以将两个变量合并成一个变量（使用单个变量的二进制高位低位分别表示不同的变量），然后用 CAS 操作。
 
-> AQS 框架借助于两个类：Unsafe(提供CAS操作) 和 LockSupport(提供park/unpark操作)。Unsafe 提供的 API 包括内存操作、CAS、Class 相关、对象操作、线程调度、系统信息获取、内存屏障、数组操作等。
+> AQS 框架借助两个类：Unsafe(提供CAS操作) 和 LockSupport(提供park/unpark操作)。Unsafe 提供的 API 包括内存操作、CAS、Class 相关、对象操作、线程调度、系统信息获取、内存屏障、数组操作等。
 
 ### 参考
 

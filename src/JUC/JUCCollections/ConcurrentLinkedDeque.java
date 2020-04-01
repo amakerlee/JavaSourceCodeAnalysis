@@ -410,7 +410,7 @@ public class ConcurrentLinkedDeque<E>
             boolean isFirst, isLast;
             int hops = 1;
 
-            // 从 prev 向前扫描，找到 item 不为 null 的前驱节点
+            // 从 prev 向前扫描，找到 item 不为 null 的前驱节点（有效节点）
             for (Node<E> p = prev; ; ++hops) {
                 // 找到了
                 if (p.item != null) {
@@ -505,14 +505,15 @@ public class ConcurrentLinkedDeque<E>
         for (Node<E> o = null, p = next, q;;) {
             // p 可能是有效节点，可能是最后一个节点
             if (p.item != null || (q = p.next) == null) {
-                // o 为 null 说明 next 节点为有效节点，直接返回，first.next 即为有效节点
-                // CAS 将参数 first 节点的 next 设置为 p
+                // o 为 null 说明第一次循环就到这儿了，说明 next 节点为有效节点，直接返回。
+                // o 不为 null 且 p 不是自链接节点，CAS 将参数 first 节点的 next 设置为 p
                 if (o != null && p.prev != p && first.casNext(next, p)) {
                     // 删除 p 之前的连续无效节点
                     skipDeletedPredecessors(p);
-                    // 1. 检查现在的 first 的前一个节点是否为 null（p 是否是第一个节点）
+                    // 如果满足以下三个条件：
+                    // 1. 检查现在的 first 的前一个节点是否为 null（如果 p 是第一个节点）
                     // 2. p 可以是最后一个节点；如果不是，必须是有效节点
-                    // 3. 除此之外，p 的 prev 是 first 节点（p 是 first 的后一个节点）
+                    // 3. p 的 prev 是 first 节点（p 是 first 的后一个节点）
                     if (first.prev == null &&
                             (p.next == null || p.item != null) &&
                             p.prev == first) {

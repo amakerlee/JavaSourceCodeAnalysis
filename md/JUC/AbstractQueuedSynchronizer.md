@@ -159,8 +159,6 @@ Condition 类仍然使用 Node 节点作为基础数据结构，每一个 Condit
 
 await 方法完整源码如下所示：
 
-> 这里面使用到了 LockSupport.park() 停止线程，注意此方法不会释放锁资源。
-
 > 如果节点之前在 Sync 队列中（节点必然在 Sync 队列中，而且是 head 节点，因为只有在 lock 范围内，才能调用 await 方法），将会释放资源，经过 fullyRelease-release-tryRelease-unparkSuccessor，唤醒后面的节点。所以需要新创建一个节点加入到 Condition 队列中，原来同步队列中的节点已经无效了。
 
 ```java

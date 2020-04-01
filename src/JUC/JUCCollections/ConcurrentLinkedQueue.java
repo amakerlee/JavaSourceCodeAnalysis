@@ -229,6 +229,7 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
         for (ConcurrentLinkedQueue.Node<E> t = tail, p = t;;) {
             ConcurrentLinkedQueue.Node<E> q = p.next;
             // 当前节点 p 的下一个节点为 null，说明 p 是最后一个节点
+            // 只有进入这一个分支才可能返回
             if (q == null) {
                 // CAS 将 p 的 next 指向新创建的 newNode
                 if (p.casNext(null, newNode)) {
@@ -241,14 +242,17 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
                     return true;
                 }
             }
-            // 如果当前节点 p 的下一个节点为其自身
             else if (p == q)
-                // 此时如果 tail 节点没有变化，p 重新从 tail 节点开始遍历
-                // 如果 tail 节点没有变化，则从 head 节点开始往后遍历
+                // p 为标记节点，这种情况发生在元素入队的同时又出队了
+                // t != (t = tail) 先比较 t 和 tail，再把 tail 赋值给 t
+                // 如果 tail 节点没有变化，p 指向 tail，然后重新循环
+                // 如果 tail 节点变化了，从 head 节点开始往后遍历
+                // t 永远指向新的 tail
                 p = (t != (t = tail)) ? t : head;
             else
-                // 如果 tail 节点变化，重新获取 tail 节点
-                // p 往后移动，继续往后查找
+                // q 不为 null 而且 p 不是标记节点
+                // 如果 p 不等于原来的尾节点 t，而且 tail 变化了，p 等于新的 tail
+                // 否则 p 往后移动，继续往后查找
                 p = (p != t && t != (t = tail)) ? t : q;
         }
     }
@@ -620,6 +624,41 @@ public class ConcurrentLinkedQueue<E> extends AbstractQueue<E>
             // rely on a future traversal to relink.
             l.item = null;
             lastRet = null;
+        }
+    }
+    /**
+     * Throws NullPointerException if argument is null.
+     *
+     * @param v the element
+     */
+    private static void checkNotNull(Object v) {
+        if (v == null)
+            throw new NullPointerException();
+    }
+
+    private boolean casTail(Node<E> cmp, Node<E> val) {
+        return UNSAFE.compareAndSwapObject(this, tailOffset, cmp, val);
+    }
+
+    private boolean casHead(Node<E> cmp, Node<E> val) {
+        return UNSAFE.compareAndSwapObject(this, headOffset, cmp, val);
+    }
+
+    // Unsafe mechanics
+
+    private static final sun.misc.Unsafe UNSAFE;
+    private static final long headOffset;
+    private static final long tailOffset;
+    static {
+        try {
+            UNSAFE = sun.misc.Unsafe.getUnsafe();
+            Class<?> k = ConcurrentLinkedQueue.class;
+            headOffset = UNSAFE.objectFieldOffset
+                    (k.getDeclaredField("head"));
+            tailOffset = UNSAFE.objectFieldOffset
+                    (k.getDeclaredField("tail"));
+        } catch (Exception e) {
+            throw new Error(e);
         }
     }
 }

@@ -12,7 +12,7 @@ LinkedBlockingQueue 是单向有界阻塞队列。元素顺序为 FIFO，使用�
 
 head 总是指向队列中第一个节点（第一个节点不保存有效值），相应的，last 总是指向最后一个节点。
 
-使用显式锁 takeLock 和 putLock 分别保护 take 操作和 put 操作的线程安全；使用与之对应的 notEmpty 和 notFull 两个 condition 分别容纳两类操作阻塞的线程。 
+使用显式锁 takeLock 和 putLock 分别保护 take 操作和 put 操作的线程安全；使用与之对应的 notEmpty 和 notFull 两个 condition 分别保存对应操作中阻塞的线程。 
 
 ```java
     /** 队列容量，默认为 Integer.MAX_VALUE */
@@ -54,7 +54,7 @@ take 和 put 操作使用完全互斥的资源访问控制方式，对更新操�
 
 尝试将节点添加到队列尾部时，首先需要获取 putLock 锁。获取到锁之后，判断队列是否已满，如果队列已满，当前线程进入 condition 等待，直到被唤醒。将节点添加到队列尾部之后，再一次根据元素数量，判断是否要进行入队操作（因为此时可能执行了 take 操作，队列有了多余的空间）。
 
-值得注意的是，虽然 count 没有受到锁的保护，但是依然可以使用 count 和容量进行比较，用于判断是否需要进入 condition 队列等待。详细解释见源码注释。
+值得注意的是，虽然 count 没有受到锁的保护（put 和 take 是不同的锁），但是依然可以使用 count 和容量进行比较，用于判断是否需要进入 condition 队列等待。详细解释见源码注释。
 
 ```java
     /**
@@ -100,8 +100,6 @@ take 和 put 操作使用完全互斥的资源访问控制方式，对更新操�
             signalNotEmpty();
     }
 ```
-
-take 操作的过程和 put 完全一致。
 
 **take**
 
