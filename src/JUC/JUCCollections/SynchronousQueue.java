@@ -326,7 +326,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
              */
 
             SNode s = null; // constructed/reused as needed
-            // 如果传入的 e 为 null，说明是请求数据（消费者），e 不为 null，是
+            // 如果传入的 e 为 null，说明是请求数据（消费者），e 不为 null，则是
             // 存入数据（生产者）
             int mode = (e == null) ? REQUEST : DATA;
 
@@ -365,9 +365,9 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                         // 根据当前节点的模式判断返回 m 还是 s 中的值
                         return (E) ((mode == REQUEST) ? m.item : s.item);
                     }
+                } else if (!isFulfilling(h.mode)) { // try to fulfill
                     // 栈顶有元素而且模式不一样（可匹配）
                     // 判断头结点是否正在匹配中，如果没有，进入到此代码块中
-                } else if (!isFulfilling(h.mode)) { // try to fulfill
                     // h 已经被取消了，将头结点设置为 h 的下一个节点
                     if (h.isCancelled())            // already cancelled
                         casHead(h, h.next);         // pop and retry
@@ -375,8 +375,8 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                     else if (casHead(h, s=snode(s, e, h, FULFILLING|mode))) {
                         for (;;) { // loop until matched or waiters disappear
                             SNode m = s.next;       // m is s's match
-                            // 已经被其他线程匹配掉了
-                            // 将头结点设置为 null，到外部再重新循环
+                            // 如果 m 为null，说明除了 s 节点外的节点都被其它线程先一步匹配掉了
+                            // 就清空栈并跳出内部循环，到外部循环再重新入栈判断
                             if (m == null) {        // all waiters are gone
                                 casHead(s, null);   // pop fulfill node
                                 s = null;           // use new node next time
@@ -392,16 +392,17 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
                                 s.casNext(m, mn);   // help unlink
                         }
                     }
+
+                } else {                            // help a fulfiller
                     // 头结点和当前操作模式不一样，且头结点正在匹配中
                     // 帮助匹配
-                } else {                            // help a fulfiller
                     SNode m = h.next;               // m is h's match
                     // m 已经被其他线程匹配了
                     if (m == null)                  // waiter is gone
                         casHead(h, null);           // pop fulfilling node
                     else {
                         SNode mn = m.next;
-                        // 协助匹配
+                        // 协助匹配，如果 m 和 s 尝试匹配成功，就弹出栈顶的两个元素 m 和 s
                         if (m.tryMatch(h))          // help match
                             // 匹配成功，弹出栈顶的两个元素
                             casHead(h, mn);         // pop both h and m
@@ -509,7 +510,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
              * find sentinel.
              */
 
-            // 后面的两步操作都遍历到 past 为止
+            // 后面的两步操作都最多遍历到 past
             SNode past = s.next;
             if (past != null && past.isCancelled())
                 past = past.next;
@@ -519,7 +520,7 @@ public class SynchronousQueue<E> extends AbstractQueue<E>
             while ((p = head) != null && p != past && p.isCancelled())
                 casHead(p, p.next);
 
-            // 将 p 节点的 next 设置成下一个有效节点
+            // 清除 past 之前被取消的节点
             while (p != null && p != past) {
                 SNode n = p.next;
                 if (n != null && n.isCancelled())

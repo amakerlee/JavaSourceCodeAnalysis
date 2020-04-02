@@ -591,13 +591,14 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                 // 1. p 不是自链接节点
                 // 2. isData 为 true 的时候如果 item 不等于 null（数据节点）
                 // 或者 isData 为 false 且 item 等于 null（请求节点）
-                // 满足以上两点表示找到有效节点，进入匹配
+                // 满足以上两点表示找到有效节点，进入 if 块尝试匹配
                 if (item != p && (item != null) == isData) { // unmatched
                     // 已经有数据节点但是是 put 操作
                     // 没有数据但是是 take 操作
                     // 两者的模式一样，无法匹配，跳出内层循环
                     if (isData == haveData)   // can't match
                         break;
+                    // 到这里说明允许匹配
                     // 尝试 CAS 方式修改 item 为指定的 e（e 可能为 null，可能为具体的值）
                     if (p.casItem(item, e)) {
                         // 匹配成功
@@ -611,7 +612,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                                 break;
                             }
                             // CAS 失败
-                            // head != null 且 head.next ！= null 且 head.next 已经被匹配过了
+                            // 如果 head != null 且 head.next ！= null 且 head.next 已经被匹配过了
                             // 即松弛度大于等于 2，重新循环（重新循环时 h 是新的 head，
                             // q 是 head.next）
                             // 否则跳出
@@ -625,7 +626,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                         return LinkedTransferQueue.<E>cast(item);
                     }
                 }
-                // 继续往后
+                // 当前节点不是有效节点，继续往后
                 Node n = p.next;
                 // 遇到自链接节点重新获取 head
                 p = (p != n) ? n : (h = head); // Use head if p offlist
@@ -640,7 +641,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
                     s = new Node(e, haveData);
                 // 尝试将创建的节点添加到尾部，并返回其上一个节点
                 Node pred = tryAppend(s, haveData);
-                // 如果上一个节点为 null，与其它不同模式线程竞争失败
+                // 如果上一个节点为 null，与其它不同模式的线程竞争失败
                 // 重新外层循环
                 if (pred == null)
                     continue retry;           // lost race vs opposite mode
@@ -687,8 +688,8 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
             // 设置失败说明 p 的 next 已经被修改
             else if (!p.casNext(null, s))
                 p = p.next;                   // re-read on CAS failure
-            // s 入队成功
             else {
+                // s 入队成功
                 // 更新 tail
                 if (p != t) {                 // update if slack now >= 2
                     while ((tail != t || !casTail(t, s)) &&

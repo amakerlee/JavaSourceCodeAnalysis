@@ -10,7 +10,7 @@ DelayQueue 是无界延时阻塞队列。元素必须实现 Delay 接口，并�
 
 使用可重入锁保证线程安全，未获取到元素的线程进入锁的 Condition 队列。
 
-使用优先队列对元素排序。
+使用优先队列 PriorityQueue 对元素排序。
 
 leader 指向等待队列头部元素的线程。
 
@@ -72,7 +72,13 @@ offer 用于将元素插入到优先队列中。如果队列之前为空，且�
 
 **take**
 
-take/poll 用于获取并删除头部元素，在执行操作前先加锁。
+take/poll 用于获取并删除头部元素。
+
+如果头部元素的等待时间已经结束了，那么获取成功，直接返回。
+
+如果还没有结束，且 leader 已经被其他线程占用了，那么进入 Condition 队列等待
+
+在执行操作前要先加锁。
 
 ```java
     /**
@@ -87,7 +93,7 @@ take/poll 用于获取并删除头部元素，在执行操作前先加锁。
         try {
             for (;;) {
                 E first = q.peek();
-                // 如果没有第一个元素，进入 available 队列等待
+                // 如果没有元素，进入 available 队列等待
                 if (first == null)
                     available.await();
                 else {
@@ -111,8 +117,8 @@ take/poll 用于获取并删除头部元素，在执行操作前先加锁。
                             // 在 available 中等待 delay 时间
                             available.awaitNanos(delay);
                         } finally {
-                            // 检查是否被其他线程改变了 leader，如果改变了 leader，
-                            // 将 leader 置为 null，重新循环
+                            // 如果当前线程就是 leader，将 leader 置为 null，重新循环
+                            // 再次尝试获取元素。
                             if (leader == thisThread)
                                 leader = null;
                         }

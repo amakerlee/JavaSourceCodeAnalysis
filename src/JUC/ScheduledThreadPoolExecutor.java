@@ -117,7 +117,7 @@ public class ScheduledThreadPoolExecutor
     private volatile boolean executeExistingDelayedTasksAfterShutdown = true;
 
     /**
-     * 取消任务后移是否移除。
+     * 取消任务后是否移除。
      */
     private volatile boolean removeOnCancel = false;
 
@@ -141,7 +141,7 @@ public class ScheduledThreadPoolExecutor
         // 两个任务有相同的延迟时间时，按照 FIFO 的顺序入队。
         private final long sequenceNumber;
 
-        // 任务可以执行的时间，纳秒级
+        // 任务下一次可以执行的时间，纳秒级
         private long time;
 
         /**
@@ -154,7 +154,7 @@ public class ScheduledThreadPoolExecutor
         RunnableScheduledFuture<V> outerTask = this;
 
         /**
-         * 延迟队伍的索引，以支持更快的取消操作
+         * 在堆中的索引，以支持更快的取消操作
          */
         int heapIndex;
 
@@ -169,7 +169,7 @@ public class ScheduledThreadPoolExecutor
         }
 
         /**
-         * 构造函数
+         * 构造函数，定时任务
          */
         ScheduledFutureTask(Runnable r, V result, long ns, long period) {
             super(r, result);
@@ -179,7 +179,7 @@ public class ScheduledThreadPoolExecutor
         }
 
         /**
-         * 构造函数
+         * 构造函数，延迟任务
          */
         ScheduledFutureTask(Callable<V> callable, long ns) {
             super(callable);
@@ -188,10 +188,12 @@ public class ScheduledThreadPoolExecutor
             this.sequenceNumber = sequencer.getAndIncrement();
         }
 
+        // 还需要等待多久
         public long getDelay(TimeUnit unit) {
             return unit.convert(time - now(), NANOSECONDS);
         }
 
+        // 比较执行的顺序
         public int compareTo(Delayed other) {
             if (other == this) // compare zero if same object
                 return 0;
@@ -212,7 +214,7 @@ public class ScheduledThreadPoolExecutor
         }
 
         /**
-         * Returns {@code true} if this is a periodic (not a one-shot) action.
+         * 如果这是定时任务则返回 true。
          *
          * @return {@code true} if periodic
          */
@@ -221,7 +223,7 @@ public class ScheduledThreadPoolExecutor
         }
 
         /**
-         * Sets the next time to run for a periodic task.
+         * 设置下一次执行的时间
          */
         private void setNextRunTime() {
             long p = period;
@@ -239,7 +241,7 @@ public class ScheduledThreadPoolExecutor
         }
 
         /**
-         * Overrides FutureTask version so as to reset/requeue if periodic.
+         * 执行
          */
         public void run() {
             boolean periodic = isPeriodic();
@@ -267,33 +269,30 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
-     * Main execution method for delayed or periodic tasks.  If pool
-     * is shut down, rejects the task. Otherwise adds task to queue
-     * and starts a thread, if necessary, to run it.  (We cannot
-     * prestart the thread to run the task because the task (probably)
-     * shouldn't be run yet.)  If the pool is shut down while the task
-     * is being added, cancel and remove it if required by state and
-     * run-after-shutdown parameters.
+     * 延迟执行。
      *
      * @param task the task
      */
     private void delayedExecute(RunnableScheduledFuture<?> task) {
+        // 如果还是 RUNNING 状态
         if (isShutdown())
             reject(task);
         else {
+            // 直接把任务加入到队列中
             super.getQueue().add(task);
+            // 如果已经停止了，删除任务
             if (isShutdown() &&
                     !canRunInCurrentRunState(task.isPeriodic()) &&
                     remove(task))
                 task.cancel(false);
             else
+                // 添加一个工作线程
                 ensurePrestart();
         }
     }
 
     /**
-     * Requeues a periodic task unless current run state precludes it.
-     * Same idea as delayedExecute except drops task rather than rejecting.
+     * 重新入队
      *
      * @param task the task
      */
@@ -308,27 +307,32 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
-     * Cancels and clears the queue of all tasks that should not be run
-     * due to shutdown policy.  Invoked within super.shutdown.
+     * 取消由于 shutdown 不应该运行的全部任务
      */
     @Override void onShutdown() {
         BlockingQueue<Runnable> q = super.getQueue();
+        // 线程池关闭后是否继续执行已存在的延迟任务。默认为 true。
         boolean keepDelayed =
                 getExecuteExistingDelayedTasksAfterShutdownPolicy();
+        // 线程池关闭后是否继续执行已存在的周期任务。
         boolean keepPeriodic =
                 getContinueExistingPeriodicTasksAfterShutdownPolicy();
+        // 池关闭后不保留任务
         if (!keepDelayed && !keepPeriodic) {
+            // 取消队列中的所有任务
             for (Object e : q.toArray())
                 if (e instanceof RunnableScheduledFuture<?>)
                     ((RunnableScheduledFuture<?>) e).cancel(false);
             q.clear();
         }
         else {
-            // Traverse snapshot to avoid iterator exceptions
+            // 遍历快照避免迭代器异常
             for (Object e : q.toArray()) {
                 if (e instanceof RunnableScheduledFuture) {
                     RunnableScheduledFuture<?> t =
                             (RunnableScheduledFuture<?>)e;
+                    // 是周期任务，根据 keepPeriodic 判断
+                    // 是延迟任务，根据 keepDelay 判断
                     if ((t.isPeriodic() ? !keepPeriodic : !keepDelayed) ||
                             t.isCancelled()) { // also remove if already cancelled
                         if (q.remove(t))
@@ -337,6 +341,7 @@ public class ScheduledThreadPoolExecutor
                 }
             }
         }
+        // 尝试终止
         tryTerminate();
     }
 
@@ -454,11 +459,7 @@ public class ScheduledThreadPoolExecutor
     }
 
     /**
-     * Constrains the values of all delays in the queue to be within
-     * Long.MAX_VALUE of each other, to avoid overflow in compareTo.
-     * This may occur if a task is eligible to be dequeued, but has
-     * not yet been, while some other task is added with a delay of
-     * Long.MAX_VALUE.
+     * 限制队列中所有时间在 LONG.MAX_VALUE 之内。
      */
     private long overflowFree(long delay) {
         Delayed head = (Delayed) super.getQueue().peek();
@@ -472,6 +473,7 @@ public class ScheduledThreadPoolExecutor
 
     /**
      * 达到给定的延迟时间后，执行任务
+     * ScheduledFutureTask 是 RunnableScheduledFuture 的实现类
      *
      * @throws RejectedExecutionException {@inheritDoc}
      * @throws NullPointerException       {@inheritDoc}
@@ -481,6 +483,7 @@ public class ScheduledThreadPoolExecutor
                                        TimeUnit unit) {
         if (command == null || unit == null)
             throw new NullPointerException();
+        // 创造
         RunnableScheduledFuture<?> t = decorateTask(command,
                 new ScheduledFutureTask<Void>(command, null,
                         triggerTime(delay, unit)));
@@ -523,6 +526,7 @@ public class ScheduledThreadPoolExecutor
             throw new NullPointerException();
         if (period <= 0)
             throw new IllegalArgumentException();
+        // 创建 task
         ScheduledFutureTask<Void> sft =
                 new ScheduledFutureTask<Void>(command,
                         null,

@@ -1353,6 +1353,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
         return tasks;
     }
 
+    // 是否还是 running 状态
     public boolean isShutdown() {
         return ! isRunning(ctl.get());
     }

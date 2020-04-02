@@ -1,22 +1,22 @@
-# SynchronousQueue
+## SynchronousQueue
 
 “没有容量”的阻塞队列，每个插入操作都要等待其他线程的删除操作，每个删除操作都要等待插入操作，实际相当于将数据从一个线程传递到另一个线程。包括公平和非公平两种模式。
 
-“没有容量”并不是说队列中不保存任何元素/节点，实际上队列中依然有节点，节点内可能会有元素，也可能没有。其实此类的基本思想和 LinkedTransferQueue 类似，队列中只存在同一种类型的节点，要么是数据节点，要么是非数据节点（等待数据的节点），详见 [LinkedTransferQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/LinkedTransferQueue.md)。
+“没有容量”并不是说队列中不保存任何元素/节点，实际上队列中依然有节点，节点内可能会有元素，也可能没有。此类的基本思想和 LinkedTransferQueue 类似，队列中只存在同一种类型的节点，要么是数据节点，要么是非数据节点（等待数据的节点），详见 [LinkedTransferQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/LinkedTransferQueue.md)。
 
 公平模式通过队列（FIFO）实现，非公平模式通过栈（LIFO）实现。
 
 此阻塞队列使用有自旋次数限制的 CAS 保障线程安全。
 
-## 完整源码解析
+### 完整源码解析
 
 [SynchronousQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/JUCCollections/SynchronousQueue.java)
 
-## 非公平模式
+### 非公平模式 TransferStack
 
 非公平模式的规则是后进先出（LIFO），通过链式栈实现。
 
-### 内部类
+#### 内部类
 
 属性 mode 表示此节点的类型（数据节点或非数据节点），其他详见 [LinkedTransferQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/LinkedTransferQueue.md)。
 
@@ -98,11 +98,19 @@
         }
 ```
 
-### 类属性
+#### 类属性
 
 重要属性就只有 head，与之对应的 CAS 操作为 casHead。
 
 ```java
+        /* Modes for SNodes, ORed together in node fields */
+        /** 消费者（请求数据）节点 */
+        static final int REQUEST    = 0;
+        /** 生产者（提供数据）节点 */
+        static final int DATA       = 1;
+        /** 二者正在匹配 */
+        static final int FULFILLING = 2;
+
         /** 栈的头节点（top）节点 */
         volatile SNode head;
 
@@ -117,19 +125,21 @@
         }
 ```
 
-### 成员函数
+#### 成员函数
 
-显而易见，put 和 take 的核心实现还是 transfer 函数，通过自旋 + CAS 保障线程安全。
+**transfer**
+
+put 和 take 的核心实现是 transfer 函数，通过自旋 + CAS 保障线程安全。
 
 自旋对以下三种情况进行讨论：
 
-1. 如果栈顶没有元素，或者栈顶元素和当前操作是同一模式（无法匹配），根据超时情况确定是否把新创造的节点压入栈顶。等到匹配成功，就删除节点。
+1. 如果栈顶没有元素，或者栈顶元素和当前操作是同一模式（无法匹配），根据超时情况确定是否把新创造的节点压入栈顶。等到匹配成功，再删除节点。
 
 以下两种情况基于栈顶有元素，且可以匹配：
 
-2. 栈顶元素还没有匹配，把节点压入栈中，尝试与 head 匹配，匹配成功后再将两个节点弹出。
+2. 栈顶元素还没有匹配，把节点压入栈中，尝试与 head 匹配，匹配成功后再将两个节点弹出。匹配之前把头结点设置成 FULFILLING 状态，表示正在匹配。
 
-3. 栈顶元素正在匹配，帮助此节点进行匹配，然后从头开始循环。
+3. 栈顶元素正在匹配，帮助此节点进行匹配，然后继续循环。
 
 ```java
         /**
@@ -138,7 +148,7 @@
         @SuppressWarnings("unchecked")
         E transfer(E e, boolean timed, long nanos) {
             SNode s = null; // constructed/reused as needed
-            // 如果传入的 e 为 null，说明是请求数据（消费者），e 不为 null，是
+            // 如果传入的 e 为 null，说明是请求数据（消费者），e 不为 null，则是
             // 存入数据（生产者）
             int mode = (e == null) ? REQUEST : DATA;
 
@@ -177,9 +187,9 @@
                         // 根据当前节点的模式判断返回 m 还是 s 中的值
                         return (E) ((mode == REQUEST) ? m.item : s.item);
                     }
+                } else if (!isFulfilling(h.mode)) { // try to fulfill
                     // 栈顶有元素而且模式不一样（可匹配）
                     // 判断头结点是否正在匹配中，如果没有，进入到此代码块中
-                } else if (!isFulfilling(h.mode)) { // try to fulfill
                     // h 已经被取消了，将头结点设置为 h 的下一个节点
                     if (h.isCancelled())            // already cancelled
                         casHead(h, h.next);         // pop and retry
@@ -187,8 +197,8 @@
                     else if (casHead(h, s=snode(s, e, h, FULFILLING|mode))) {
                         for (;;) { // loop until matched or waiters disappear
                             SNode m = s.next;       // m is s's match
-                            // 已经被其他线程匹配掉了
-                            // 将头结点设置为 null，到外部再重新循环
+                            // 如果 m 为null，说明除了 s 节点外的节点都被其它线程先一步匹配掉了
+                            // 就清空栈并跳出内部循环，到外部循环再重新入栈判断
                             if (m == null) {        // all waiters are gone
                                 casHead(s, null);   // pop fulfill node
                                 s = null;           // use new node next time
@@ -204,16 +214,16 @@
                                 s.casNext(m, mn);   // help unlink
                         }
                     }
+                } else {                            // help a fulfiller
                     // 头结点和当前操作模式不一样，且头结点正在匹配中
                     // 帮助匹配
-                } else {                            // help a fulfiller
                     SNode m = h.next;               // m is h's match
                     // m 已经被其他线程匹配了
                     if (m == null)                  // waiter is gone
                         casHead(h, null);           // pop fulfilling node
                     else {
                         SNode mn = m.next;
-                        // 协助匹配
+                        // 协助匹配，如果 m 和 s 尝试匹配成功，就弹出栈顶的两个元素 m 和 s
                         if (m.tryMatch(h))          // help match
                             // 匹配成功，弹出栈顶的两个元素
                             casHead(h, mn);         // pop both h and m
@@ -225,6 +235,8 @@
             }
         }
 ```
+
+**awaitFulFill**
 
 awaitFulFill 方法用于当前线程阻塞等待。
 
@@ -286,53 +298,11 @@ awaitFulFill 方法用于当前线程阻塞等待。
         }
 ```
 
-clean 用于删除指定节点。
-
-```java
-        /**
-         * 将 s 从栈中删除。
-         */
-        void clean(SNode s) {
-            s.item = null;   // forget item
-            s.waiter = null; // forget thread
-
-            /*
-             * At worst we may need to traverse entire stack to unlink
-             * s. If there are multiple concurrent calls to clean, we
-             * might not see s if another thread has already removed
-             * it. But we can stop when we see any node known to
-             * follow s. We use s.next unless it too is cancelled, in
-             * which case we try the node one past. We don't check any
-             * further because we don't want to doubly traverse just to
-             * find sentinel.
-             */
-
-            // 后面的两步操作都遍历到 past 为止
-            SNode past = s.next;
-            if (past != null && past.isCancelled())
-                past = past.next;
-
-            // 找到第一个有效的 head
-            SNode p;
-            while ((p = head) != null && p != past && p.isCancelled())
-                casHead(p, p.next);
-
-            // 将 p 节点的 next 设置成下一个有效节点
-            while (p != null && p != past) {
-                SNode n = p.next;
-                if (n != null && n.isCancelled())
-                    p.casNext(n, n.next);
-                else
-                    p = n;
-            }
-        }
-```
-
-## 公平模式
+### 公平模式 TransferQueue
 
 公平模式的规则是先进先出（FIFO），通过链式单向队列实现。
 
-### 内部类
+#### 内部类
 
 此节点类和 LinkedTransferQueue 中的节点类一样。isData 属性表示节点类别。
 
@@ -399,7 +369,7 @@ clean 用于删除指定节点。
         }
 ```
 
-### 类属性
+#### 类属性
 
 由于是单向队列结构，此类主要有两个属性， 代表头结点的 head 和代表尾节点的 tail，需要用 CAS 的方式修改。
 
@@ -418,7 +388,7 @@ clean 用于删除指定节点。
         transient volatile QNode cleanMe;
 ```
 
-### 成员函数
+#### 成员函数
 
 核心成员函数依然是 transfer，每一次自旋分为以下两种情况：
 
@@ -608,7 +578,13 @@ clean 函数和栈中的 clean 有一定区别，主要是在尾节点的删除�
         }
 ```
 
-## 参考
+### 应用场景
+
+如果某一时间段全是生产者线程，SynchronousQueue 和 LinkedTransferQueue 会把这些线程阻塞，以等待消费者线程的到来。极端情况下，消费者挂机了，全部都是生产者线程，将会是一件很危险的事情。
+
+SynchronousQueue 和 LinkedTransferQueue 在生产、消费速度大致相同的场景中效率较高。
+
+### 参考
 
 [Java 并发 --- 阻塞队列之SynchronousQueue源码分析](https://blog.csdn.net/u014634338/article/details/78419445)
 

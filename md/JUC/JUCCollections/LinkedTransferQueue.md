@@ -1,6 +1,6 @@
 ## LinkedTransferQueue
 
-LinkedTransferQueue 是单向链表结构的无界阻塞队列，通过 CAS 和 LockSupport 实现线程安全，按照 FIFO 的顺序排列。
+LinkedTransferQueue 是单向链表结构的无界阻塞队列（TransferQueue 继承了 BlockingQueue），通过 CAS 和 LockSupport 实现线程安全，按照 FIFO 的顺序排列。
 
 ### 完整源码解析
 
@@ -23,14 +23,16 @@ LinkedTransferQueue 队列实现的基础是单向链表，且使用松弛度减
 和 ConcurrentLinkedQueue 一样，节点类中包含作为实现 LinkedTransferQueue 类线程安全基础的一系列 CAS 操作，除此之外，还包含两个特有属性，分别是 isData，waiter。
 
 * isData：表示此节点的属性。LinkedTransferQueue 队列中有两种节点，数据节点和非数据节点。
-    * 非数据节点的 isData 属性为 false，数据节点为 true。当消费者线程执行 take 操作时，如果队列为空，当前线程会作为一个元素为 null 的节点放入队列中等待，直到等到生产者线程。
+    
+  - 非数据节点的 isData 属性为 false，数据节点为 true。当消费者线程执行 take 操作时，如果队列为空，当前线程会作为一个元素为 null 的节点放入队列中等待，直到等到生产者线程。
+
 * waiter：消费者线程在节点中等待数据。
 
 **注意：**
 
 1. 队列中只可能有一种节点类型（数据节点或非数据节点）。
 
-2. 下文中会多次提到“匹配”，“匹配成功”表示正在等待的消费者线程终于有了生产者。生产者线程执行 put 操作，将数据放入到队列头部等待数据的消费者节点中。此时生产者和消费者成功对应，之后再将等待的消费者节点从队列中删除。
+2. 下文中会多次提到“匹配”，“匹配成功”表示正在等待的消费者线程终于有了生产者提供的数据了。生产者线程执行 put 操作，将数据放入到队列头部等待数据的消费者节点中。此时生产者和消费者成功对应，之后再将等待的消费者节点从队列中删除。
 
 3. 此类中用到自链接节点，意义和用法与 ConcurrentLinkedQueue 相同。
 
@@ -160,7 +162,7 @@ LinkedTransferQueue 队列实现的基础是单向链表，且使用松弛度减
 
 <img src="https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/images/LinkedTransferQueue.png" width=70% />
 
-使用“匹配”的方式确定下一步操作是删除队列头部元素还是在队列尾部添加元素。每一次都从队列头部节点开始匹配。
+使用“匹配”的方式确定下一步操作是删除队列头部元素还是在队列尾部添加元素。从队列头部节点开始查找有效节点，找到有效节点才开始匹配。
 
 put 时如果头结点（不一定是第一个节点，因为可能有其他线程同时进行操作）是非数据节点，就匹配成功，如果头结点是数据节点，生成一个新的数据节点添加到队列尾部。
 

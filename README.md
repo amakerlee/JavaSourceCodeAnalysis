@@ -80,14 +80,19 @@
 
   - 对应于常用集合中的 ArrayList，使用 COW（Copy On Write，写时复制）保证线程安全。
 
+* [ConcurrentHashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentHashMap.md) | [ConcurrentSkipListMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentSkipListMap.md)
+
+  - ConcurrentHashMap 对应于常用集合中的 HashMap，JDK 1.8 中不再使用分段锁，改用自旋 + CAS 保障线程安全。
+  - ConcurrentSkipListMap 是基于跳跃表（SkipList）实现的 Map 集合，随机建立层级索引和增加层级。如果按照标准的跳跃表建立索引，跳跃表索引会无限接近接近平衡二叉树时，检索的时间复杂度能达到 O(log n)。
+
 * [ArrayBlockingQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ArrayBlockingQueue.md) | [LinkedBlockingQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/LinkedBlockingQueue.md) | [LinkedBlockingDeque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/LinkedBlockingDeque.md) | [PriorityBlockingQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/PriorityBlockingQueue.md)
 
-  - BlockingQueue 的四个具体实现，阻塞队列的实现都使用了显式锁保证线程安全。
+  - BlockingQueue 最常见的四个具体实现，使用显式的锁来保证线程安全。
   - ArrayBlockingQueue 是基于数组的有界阻塞队列，不允许扩容，元素的排列顺序为 FIFO。
   - LinkedBlockingQueue 是基于链表的单向有界阻塞队列。
   - LinkedBlockingDeque 是基于链表的双向有界阻塞队列，支持 FIFO 和 LIFO 两种方式。
   - PriorityBlockingQueue 是基于堆（数组）的优先级阻塞队列（对应常用集合里的 PriorityQueue）。
-  - 所有的 BlockingQueue 都不允许 null 元素，试图插入 null 元素将会抛出 NullPointerException 异常。
+  - 以上四种 BlockingQueue 都不允许 null 元素，试图插入 null 元素将会抛出 NullPointerException 异常。
 
 * [ConcurrentLinkedQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentLinkedQueue.md) | [ConcurrentLinkedDeque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentLinkedDeque.md)
 
@@ -101,11 +106,6 @@
 * [DelayQueue](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/DelayQueue.md)
 
   - 无界延时阻塞队列。使用显式锁保证线程安全。使用优先队列对延迟时间排序。只有当队列头部元素延迟时间到期，才允许被取出，否则线程一直等待。
-
-* [ConcurrentHashMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentHashMap.md) | [ConcurrentSkipListMap](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/JUCCollections/ConcurrentSkipListMap.md)
-
-  - ConcurrentHashMap 对应于常用集合中的 HashMap，JDK 1.8 中不再使用分段锁，改用自旋 + CAS 保障线程安全。
-  - ConcurrentSkipListMap 是基于跳跃表（SkipList）实现的 Map 集合，随机建立层级索引和增加层级。如果按照标准的跳跃表建立索引，跳跃表索引会无限接近接近平衡二叉树时，检索的时间复杂度能达到 O(log n)。
 
 ### Thread Pool
 

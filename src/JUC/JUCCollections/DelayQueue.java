@@ -193,7 +193,7 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
         try {
             for (;;) {
                 E first = q.peek();
-                // 如果没有第一个元素，进入 available 队列等待
+                // 如果没有元素，进入 available 队列等待
                 if (first == null)
                     available.await();
                 else {
@@ -217,8 +217,8 @@ public class DelayQueue<E extends Delayed> extends AbstractQueue<E>
                             // 在 available 中等待 delay 时间
                             available.awaitNanos(delay);
                         } finally {
-                            // 检查是否被其他线程改变了 leader，如果改变了 leader，
-                            // 将 leader 置为 null，重新循环
+                            // 如果当前线程就是 leader，将 leader 置为 null，重新循环
+                            // 再次尝试获取元素。
                             if (leader == thisThread)
                                 leader = null;
                         }
