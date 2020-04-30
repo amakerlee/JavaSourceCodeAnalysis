@@ -114,6 +114,10 @@
   - 实现了 Runnable 和 Future 接口，是可取消的异步运算，支持的任务类型是 Callable。可以通过 get 方法获取结果，如果任务尚未完成，获取结果的线程将会被阻塞。
   - FutureTask 可以通过 submit 方法提交到线程池中执行。
 
+* [CompletableFuture](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/CompletableFuture.md)
+
+  - 实现了 Future 接口和 CompletionStage 接口，主要用于获取异步任务执行的结果和回调触发新的操作。
+
 * [ThreadPoolExecutor](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ThreadPoolExecutor.md) | [ScheduledThreadPoolExecutor](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/JUC/ScheduledThreadPoolExecutor.md)
 
   - 线程池用来控制一系列线程的创建、调度、监控和销毁等。
