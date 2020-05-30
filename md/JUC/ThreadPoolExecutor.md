@@ -280,7 +280,7 @@ Worker 的属性包含一个线程，由此线程来执行 Worker 自身的 run 
 
 2. 线程数超过核心线程数，尝试将任务加入任务队列中（空闲的核心线程会在任务队列上等待）。然后再次检查线程池状态是否是 RUNNING，线程池中是否有线程能够运行此任务。
 
-3. 如果尝试添加任务队列失败，再次尝试添加线程执行此任务，此时如果添加线程失败直接执行拒绝策略。
+3. 如果尝试添加任务队列失败，再次尝试添加线程执行此任务，此时如果添加线程失败直接执行拒绝策略。添加的线程和核心线程一样，也会持续从队列中获取任务。如果队列中没有任务，那么在经过 keepAlive 时间后，非核心线程将会被删除。
 
 注意此操作执行过程中多次检查线程池状态，因为此过程中线程池可能被 SHUTDOWN 或发生其它变化。
 
@@ -390,7 +390,7 @@ Worker 的属性包含一个线程，由此线程来执行 Worker 自身的 run 
                             firstTask == null &&
                             ! workQueue.isEmpty()))
                 return false;
-
+t'r'
             // 自旋操作增加 state 中线程数量
             for (;;) {
                 int wc = workerCountOf(c);
@@ -580,7 +580,7 @@ Worker 作为一个工作线程的主要操作（Worker 继承自 Runnable，实
                     w.unlock();
                 }
             }
-            // while 执行完毕后设置 completedAbruptly 标志位为 false
+            // while 执行完毕后设置 completedAbruptly 标志位为 false，表示正常退出
             completedAbruptly = false;
         } finally {
             // 1. 将 worker 从数组 workers 里删除掉；
@@ -592,7 +592,7 @@ Worker 作为一个工作线程的主要操作（Worker 继承自 Runnable，实
 
 **getTask**
 
-getTask 函数用于从任务队列中获取任务。它的作用并不仅仅是获取任务，还会影响对线程是否应该存活下去的判断。如果 getTask 返回 null，那么在 runWorker 中下一步要做的就是删除该 Worker。
+getTask 函数用于从任务队列中获取任务。它的作用并不仅仅是获取任务，还包括对线程是否应该存活下去的判断。如果 getTask 返回 null，说明线程池已停止，或者没有任务了，或者等待超时了，回到 runWorker 之后下一步要做的就是删除该 Worker。
 
 首先获取线程池状态，根据状态判断能否允许获取任务。如果出现线程池已经 STOP、线程池被 SHUTDOWN 且任务队列为空的情况，应该返回 null。
 
@@ -648,7 +648,7 @@ getTask 函数用于从任务队列中获取任务。它的作用并不仅仅是
             // 1. 线程数超过最大线程数的限制了（运行过程中修改过 maximumPoolSize）
             // 或者已经超时（timed && timedOut 为 true 表示需要进行超时控制
             // 且已经超时）
-            // 2. 线程数 workerCount 大于 1 或者任务队列为空
+            // 2. 线程数 workerCount 大于 1 或者任务队列为空（保证 wc 可以减 1）
             if ((wc > maximumPoolSize || (timed && timedOut))
                     && (wc > 1 || workQueue.isEmpty())) {
                 if (compareAndDecrementWorkerCount(c))
@@ -712,8 +712,8 @@ getTask 函数用于从任务队列中获取任务。它的作用并不仅仅是
         int c = ctl.get();
         // 线程池状态小于 STOP，没有终止
         if (runStateLessThan(c, STOP)) {
-            // 如果用户任务执行异常导致线程退出（不是正常退出）
             if (!completedAbruptly) {
+                // 正常退出
                 // 如果 allowCoreThreadTimeOut 为 true，就算是核心线程，只要空闲，
                 // 都要移除
                 // min 获取当前核心线程数
@@ -725,6 +725,7 @@ getTask 函数用于从任务队列中获取任务。它的作用并不仅仅是
                 if (workerCountOf(c) >= min)
                     return; // replacement not needed
             }
+            // 如果用户任务执行异常导致线程退出（不是正常退出）
             // 原线程不应该被删除，应该添加新的线程替换它
             addWorker(null, false);
         }
@@ -771,7 +772,7 @@ tryTerminate 在所有可能导致终止线程池的行为（例如减少线程�
                     (runStateOf(c) == SHUTDOWN && ! workQueue.isEmpty()))
                 return;
             // 如果工作线程数 workCount 不为 0，调用函数关闭一个空闲线程，然后返回
-            // (只关闭一个的原因我猜是遍历所有的 worker 消耗太大。)
+            // (只关闭一个的原因可能是遍历所有的 worker 消耗太大。)
             if (workerCountOf(c) != 0) { // Eligible to terminate
                 interruptIdleWorkers(ONLY_ONE);
                 return;
@@ -807,9 +808,11 @@ tryTerminate 在所有可能导致终止线程池的行为（例如减少线程�
 
 中断空闲的线程。在 tryTerminate 中调用时 onlyOne 参数为 true，其他地方调用时 onlyOne 为 false。
 
+空闲指的是没有上锁的线程，正在执行 getTask 的工作线程也可能被中断。
+
 ```java
     /**
-     * 中断可能正在等到任务的线程（空闲线程），以便他们可以检查终止或
+     * 中断可能正在等待任务的线程（空闲线程），以便他们可以检查终止或
      * 配置更改。忽略 SecurityExceptions （防止一些线程没有被中断）
      *
      * @param onlyOne If true, interrupt at most one worker. This is
@@ -830,8 +833,8 @@ tryTerminate 在所有可能导致终止线程池的行为（例如减少线程�
         try {
             for (Worker w : workers) {
                 Thread t = w.thread;
-                // 如果线程没有被中断且能获取到锁（能获取到说明它很闲，因为在
-                // 正常执行任务的线程都已经获取到锁了），
+                // 如果线程没有被中断且能获取到锁（能获取到说明它很闲，因为已经在
+                // 执行任务的线程都已经获取到锁了，getTask 方法没有加锁），
                 // 则尝试中断
                 if (!t.isInterrupted() && w.tryLock()) {
                     try {
@@ -928,7 +931,7 @@ tryTerminate 在所有可能导致终止线程池的行为（例如减少线程�
 
 **CallerRunsPolicy**
 
-在调用者线程（而非线程池中的线程）中直接执行任务
+在调用者线程（而非线程池中的线程）中直接执行任务。
 
 ```java
     /**
@@ -1072,6 +1075,14 @@ Executors 工厂创造线程池对象弊端如下：
 * FixedThreadPool 和 SingleThreadPool 允许的请求队列长度为 Integer.MAX_VALUE，可能会堆积大量请求，从而导致 OOM。
 
 * CacheThreadPool 和 ScheduledThreadPool 允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量线程，从而导致 OOM。
+
+### 池化
+
+统一管理资源，包括服务器、存储、和网络资源等等。通过共享资源，使用户在低投入中获益。
+
+* 内存池(Memory Pooling)：预先申请内存，提升申请内存速度，减少内存碎片。
+* 连接池(Connection Pooling)：预先申请数据库连接，提升申请连接的速度，降低系统的开销。
+* 实例池(Object Pooling)：循环使用对象，减少资源在初始化和释放时的昂贵损耗。
 
 ### 参考
 

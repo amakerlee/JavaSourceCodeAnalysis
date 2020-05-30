@@ -338,7 +338,7 @@ Node 节点是基础节点。TreeNode 继承自 Node，表示树的节点。Tree
 
 任何调用 helpTransfer 的线程都会进入 helpTransfer 协助扩容。
 
-如果正在转移（节点为 ForwordingNode，nextTable 不为 null）且需要帮忙，则进入 transfer 方法帮助转移。
+如果正在转移（节点为 ForwordingNode，nextTable 不为 null）且需要帮忙，则进入 transfer 方法帮助转移。所有已处理过或正在处理的节点都是 ForwordingNode 类型。
 
 ```java
     /**
@@ -393,7 +393,7 @@ Node 节点是基础节点。TreeNode 继承自 Node，表示树的节点。Tree
 
 * 处理 i 位置。同样地，处理之前使用 synchronized 上锁。
 
-最后一种情况又可以根据桶中是链式结构还是树状结构分成两种情况。如果是链式结构，将原来的链表（树）分成两个链表（树），分别放在原位置和新位置上。具体实现上，使用了数组容量为 2 的幂这一点来简化操作（只判断标志位），使用了 lastRun 来提高效率；如果是树状结构，也分成两部分，放在不同的位置上。
+无论桶里是链式结构还是树状结构，都将链表拆分成两个链表，分别放在原位置和新位置上。具体实现上，使用了数组容量为 2 的幂这一点来简化操作（只判断标志位），使用了 lastRun 来提高效率。
 
 ```java
     /**
@@ -626,8 +626,8 @@ addCount 分成两个部分，上半部分是更新计数，下半部分是根�
                 !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
             CounterCell a; long v; int m;
             boolean uncontended = true;
-            // 如果 counterCells 不为 null，其长度不为 0，线程通过寻址找到 as 数组中
-            // 属于它的 CounterCell 却为 null
+            // 如果 counterCells 不为 null，其长度不为 0，且线程通过寻址找到 as 数组中
+            // 属于它的 CounterCell 不为 null
             // 尝试赋值，赋值失败（说明出现并发）执行 fullAddCount 方法
             // ThreadLocalRandom 是一个线程私有的随机数生成器，每个线程的 probe
             // 都是不同的，可以认为每个线程的 probe 就是它在 CounterCell 数组中
@@ -900,11 +900,13 @@ public class test {
 
 ### Thread 中的 join, sleep 和 yeild
 
-* 非静态方法join()让一个线程等待另外一个线程完成才继续执行。如果线程 A 执行体中调用 B 线程的 join() 方法，则 A 线程将会被阻塞，直到 B 线程执行完为止，A 才能得以继续执行。
+* 非静态方法 join() 让一个线程等待另外一个线程完成才继续执行。如果线程 A 执行体中调用 B 线程的 join() 方法，则 A 线程将会被阻塞，直到 B 线程执行完为止，A 才能得以继续执行。
 
 * sleep() 让当前正在执行的线程先暂停一定的时间，并进入阻塞状态。在其睡眠的时间段内，该线程由于不是处于就绪状态，因此不会得到执行的机会。
 
 * 一个线程执行了 yield() 方法后，就会进入 Runnable（就绪状态），（不同于 sleep() 和 join() 方法，因为这两个方法是使线程进入阻塞状态），线程让步，不会释放锁。
+
+* yield() 和 sleep(0) 语义实现取决于具体的 jvm 虚拟机，hotspot 虚拟机中效果相同。
 
 ### 为什么 ConcurrentHashMap 的 key 和 value 不允许为 null
 

@@ -5,11 +5,11 @@
 * [ArrayList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/ArrayList.md) | [LinkedList](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/LinkedList.md)
 
   - ArrayList 是基于数组实现的线性表，没有最大容量限制（其实有，是 Integer.MAX_VALUE），可扩容。LinkedList 是基于节点实现的线性表（双向链表），没有最大容量限制。
-  - LinkedList 还实现了 Deque 接口，可以用于创建单向和双向队列实例。
+  - LinkedList 还实现了 Deque 接口，可以作为单向和双向队列实例。
 
 * [Stack](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/Stack.md)
 
-  - Stack 继承自 Vector，提供基础的栈操作。和其它线程安全的集合比起来，在多线程环境中效率很低。其保障线程安全的手段是使用 synchronized 包装所有函数。
+  - Stack 继承自 Vector，提供基础的栈操作。其保障线程安全的手段是使用 synchronized 包装所有函数，和其它线程安全的集合比起来，在多线程环境中效率很低。
 
 * [ArrayDeque](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/ArrayDeque.md)
 
@@ -25,7 +25,7 @@
 * [HashSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/HashSet.md) | [TreeSet](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/md/Collections/TreeSet.md)
 
   - Set 中不允许出现重复元素。
-  - HashSet 完全基于 HashMap 实现（将 HashMap 实例作为一个属性），将 Map 中的 key 用来存储元素。TreeSet 则基于 TreeMap 实现。
+  - HashSet 完全依赖 HashMap（将 HashMap 实例作为一个属性），Map 中的 key 用来存储元素。TreeSet 则依赖 TreeMap 实现。
 
 ### Map
 
@@ -33,7 +33,7 @@
 
   - HashMap 作为一种高效的 Map 实现，平均情况下检索的时间代价只需要 O(1)，其核心的数据结构为数组，解决哈希碰撞的时候还会用到链表和红黑树（JDK 1.8）。
   - TreeMap 使用红黑树存储每个键值对节点，平均检索时间为 O(log n)。相对于 HashMap 而言，红黑树的优势是节点有序（因为红黑树是相对平衡的二叉检索树）。
-  - LinkedHashMap 继承自 HashMap，在 HashMap 的基础上把所有节点组织成双向链表结构，所以 LinkedHashMap 也是有序的。LinkedHashMap 的设计可以用来实现 LRU 算法。
+  - LinkedHashMap 继承自 HashMap，在 HashMap 的基础上把所有节点组织成双向链表结构，所以 LinkedHashMap 也是有序的。LinkedHashMap 的思想可以用来实现 LRU 算法。
 
 &nbsp;
 

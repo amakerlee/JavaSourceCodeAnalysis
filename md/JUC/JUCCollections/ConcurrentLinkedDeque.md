@@ -49,7 +49,7 @@ ConcurrentLinkedDeque 是非阻塞双向无界并发队列，主要利用 CAS �
 
 * 活跃节点（active node）：有效节点和第一个节点、最后一个节点的统称。
 
-* 自链接节点：prev 或 next 指向自身，用于接触连接的操作中
+* 自链接节点：prev 或 next 指向自身，用于解除连接的操作中
 
 * head/tail：head 和 tail 不一定是第一个/最后一个节点，但是从 head 通过 prev 总是可以找到 first node，从 tail 通过 next 总是可以找到 last node。
 

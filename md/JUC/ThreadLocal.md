@@ -527,9 +527,7 @@ set 方法用于插入新的节点，或者更新节点的 value 值，同样首
 
 如果使用强引用，当 ThreadLocal 对象的强引用被回收了，ThreadLocalMap 本身还持有 ThreadLocal 的强引用（因为 ThreadLocalMap 的 key 指向 ThreadLocal）。如果没有手动删除这个 key，ThreadLocal 就不会被回收。只要线程不消亡，ThreadLocalMap 引用的对象就不会被回收。可以认为这导致内存泄露（本该回收的无用对象没有被回收）。
 
-如果使用弱引用，当 ThreadLocal 的强引用被回收了，就只剩下 ThreadLocalMap 持有的弱引用对象了，在下一次 gc 的时候，这个 ThreadLocal 就会被回收。
-
-但是 ThreadLocal 只是 key，其对应的 value 不是弱引用，不会被回收，当 key 变成 null 之后，value 再也无法被访问到，内存泄露依然存在。
+如果使用弱引用，当 ThreadLocal 的强引用被回收了，就只剩下 ThreadLocalMap 持有的弱引用对象了，在下一次 gc 的时候，这个 ThreadLocal 就会被回收。但是 ThreadLocal 只是 key，其对应的 value 不是弱引用，不会被回收，当 key 变成 null 之后，value 再也无法被访问到，内存泄露依然存在。
 
 这就是上面 expungeStaleEntry、cleanSomeSlots、expungeStaleEntries 方法存在的原因。每次 get/set/remove ThreadLocalMap 中的值的时候，会自动清理 key 为 null 的 value。
 
@@ -539,9 +537,9 @@ set 方法用于插入新的节点，或者更新节点的 value 值，同样首
 
 **解决方法**
 
-如果 ThreadLocal 的强引用一直存在，只要线程不死，ThreadLocalMap 里的 key-value 将会一直存在，因为无法通过弱引用来删除。
+如果 ThreadLocal 的强引用一直存在，只要线程不死，ThreadLocalMap 里的 key-value 将会一直存在（value 将会一直存在），因为无法通过弱引用来删除。
 
-所以当某个 ThreadLocal 不再使用时，最好使用 ThreadLoca.remove 删除所有的 key。
+所以当某个 ThreadLocal 不再使用时，最好使用 ThreadLocal.remove 删除键值对。
 
 ### 参考：
 

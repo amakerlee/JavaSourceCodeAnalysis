@@ -614,7 +614,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /* ---------------- Traversal -------------- */
 
     /**
-     * 返回最底层节点中比给定 key 小的节点，如果没有返回底层的头结点。
+     * 返回比给定 key 小的最大的索引节点所代表的数据节点，如果没有返回底层的头结点。
      * @param key the key
      * @return a predecessor of key
      */

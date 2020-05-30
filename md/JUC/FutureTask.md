@@ -381,6 +381,8 @@ public FutureTask(Runnable runnable, V result) {
 
 **removeWaiter**
 
+把 node 节点的 thread 置为 null，然后从头开始遍历，删除链表中的无效节点。
+
 ```java
     /**
      * 删除节点。
@@ -391,18 +393,21 @@ public FutureTask(Runnable runnable, V result) {
             retry:
             for (;;) {          // restart on removeWaiter race
                 // 从头遍历，pred 表示前一个节点，q 表示当前节点，s 表示下一个节点
+                // 删除遍历过程中遇到的无效节点
                 for (WaitNode pred = null, q = waiters, s; q != null; q = s) {
                     s = q.next;
-                    // 往后移动一位，继续内层循环
                     if (q.thread != null)
+                        // q 是有效节点，往后移动一位，继续内层循环
                         pred = q;
-                    // 删除节点，如果 pred 的线程为 null，又从头开始遍历
                     else if (pred != null) {
+                        // q 是无效节点，但 q 的前一个不为 null，删除 q
                         pred.next = s;
-                        if (pred.thread == null) // check for race
+                        if (pred.thread == null)
+                            // 如果 pred 的线程为 null，说明 pred 也是无效节点，pred 被错过了
+                            // 又从头开始遍历
                             continue retry;
                     }
-                    // pred == null 且 q.thread == null，说明头结点无效，把头结点删了
+                    // pred == null 且 q.thread == null，说明 q 是头结点且头结点无效，把头结点删了
                     else if (!UNSAFE.compareAndSwapObject(this, waitersOffset,
                             q, s))
                         continue retry;

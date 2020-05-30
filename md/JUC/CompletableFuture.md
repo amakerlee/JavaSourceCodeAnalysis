@@ -1,6 +1,6 @@
 ## CompletableFuture
 
-可以把一个 CompletableFuture 看成是任务和结果的结合，而不仅仅是 Future 类型的结果。
+CompletableFuture 中最常用的功能是回调，后文列举了和回调有关的一系列方法。
 
 完整源码请参考 [CompletableFuture.java](https://github.com/Augustvic/JavaSourceCodeAnalysis/blob/master/src/JUC/CompletableFuture.java)
 
@@ -48,7 +48,7 @@ public class Test {
 
 程序分为两步，第一步是调用 CompletableFuture 的静态方法 supplyAsync 执行一次异步任务，此任务会返回一个 CompletableFuture 类型的对象。在这个对象里包含一个任务和该任务对应的结果，由于是异步执行，在调用该方法的线程得到结果时，任务可能还没有执行完。
 
-第二步是调用获取到的 CompletableFuture 对象的 thenAccept 方法。此方法的作用是创造一个新的 CompletableFuture，接受 CompletableFuture 对象的结果，并作为参数传递到 Consumer 中并消费。消费完成后返回 CompletableTable 对象（thenAccept 方法不保存 Consumer 的结果，所以 CompletableFuture 里面结果为空）。
+第二步是调用获取到的 CompletableFuture 对象的 thenAccept 方法。此方法的作用是创造一个新的 CompletableFuture，接受 CompletableFuture 对象的结果，并作为参数传递到 Consumer 中并消费。消费完成后返回 CompletableFuture 对象（thenAccept 方法不保存 Consumer 的结果，所以 CompletableFuture 里面结果为空）。
 
 把第二步创建的 CompletableFuture 记为 f2，第一步的记为 f1，f2 的执行依赖 f1 的结果。在执行 thenAccept 的时候，如果 f1 还没有执行完毕，将会把 f2 封装成一个特定的节点，添加到 f1 的依赖栈中，表示 f2 依赖 f1，即 f1 执行完之后才能执行 f2。
 
@@ -56,9 +56,7 @@ public class Test {
 
 下面对该例子进行调试：
 
-把 supplyAsync 里的任务分成两种情况：case 1 和 case 2。case 1 是一种死循环的操作，永远不会退出，case 2 是一种即可就能执行完毕的操作。
-
-对于 case 1 而言，首先从静态方法 supplyAsync 进入 CompletableFuture：
+首先从静态方法 supplyAsync 进入 CompletableFuture：
 
 ```java
     /**
@@ -233,7 +231,7 @@ uniAccept 方法中首先检查此任务依赖的 CompletableFuture 有没有结
     }
 ```
 
-这里再次尝试调用 uniAccept（和上面调用 uniAccept 完全一样），如果失败了，就不继续后面的流程了，直接返回空。（由于任务已经被添加到依赖栈里了，它会在之后被其依赖的任务唤醒的。）
+这里再次尝试调用 uniAccept（和上面调用 uniAccept 完全一样），如果失败了，就不继续后面的流程了，直接返回空。（由于任务已经被添加到依赖栈里了，它会在之后被唤醒的。）
 
 回到最初的 AsyncSupply 任务中，当它执行完毕后，将会继续执行依赖它的所有任务。和唤醒依赖任务有关的两个方法是 postComplete 和 postFire：
 
@@ -298,7 +296,7 @@ uniAccept 方法中首先检查此任务依赖的 CompletableFuture 有没有结
     }
 ```
 
-postFire 的作用是调用 cleanStack 和 postComplete，执行传播任务的核心流程在 postComplete 中。 [java并发编程(7)：CompletableFuture异步框架源码详解及实例](https://www.jianshu.com/p/c4c30d0ad7bb) 一文中有执行过程的图解。
+postFire 的作用是调用 cleanStack 和 postComplete，执行传播任务的核心流程在 postComplete 中。 [【JUC源码解析】CompletableFuture](https://www.cnblogs.com/aniao/p/aniao_cf.html) 一文中有执行过程的图解。
 
 从当前的 CompletableFuture 开始，依次执行依赖栈中所有的 Completion，执行完一个之后，把它从链表（栈）中删除，直到执行完所有的 Completion 任务。
 
@@ -768,7 +766,7 @@ supplyAsync 方法是并行执行，在 getUser 所在语句的时候，才需�
 
 上面的案例展现了 CompletableFuture 并行执行任务的能力，当然并行执行任务还有很多其它的工具，如 Executor、CountDownLatch、Lock 等。
 
-在实际使用的时候，CompletableFuture 更多地用于监听和回调。
+在实际使用的时候，CompletableFuture 更多地用于回调，如 Dubbo 的异步调用和过滤器链回调就使用了 CompletableFuture。
 
 ### 参考
 

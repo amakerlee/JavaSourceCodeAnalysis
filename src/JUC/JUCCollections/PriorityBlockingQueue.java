@@ -244,7 +244,6 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
 
     /**
      * 扩容。
-     * 由单线程完成。
      *
      * @param array the heap array
      * @param oldCap the length of the array
@@ -254,7 +253,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
         // 调用时已经获取了锁，进行扩容操作前释放
         lock.unlock();
         Object[] newArray = null;
-        // 只有一条线程能进入扩容
+        // 只有一条线程能进入
         if (allocationSpinLock == 0 &&
                 UNSAFE.compareAndSwapInt(this, allocationSpinLockOffset,
                         0, 1)) {
@@ -274,7 +273,7 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
                     // 或者容量直接变成最大容量
                     newCap = MAX_ARRAY_SIZE;
                 }
-                // 创建新的数组
+                // 如果数组还没有被更改，创建新的数组
                 if (newCap > oldCap && queue == array)
                     newArray = new Object[newCap];
             } finally {
@@ -282,13 +281,13 @@ public class PriorityBlockingQueue<E> extends AbstractQueue<E>
                 allocationSpinLock = 0;
             }
         }
-        // 如果其他线程正在扩容（newArray 还没赋值，即还没扩容完），不允许
-        // 当前线程获取下面的锁，只能让出时间片
+        // newArray 是局部变量，线程独有
+        // newArray 为 null 说明竞争 allocationSpinLock 失败，让出时间片
         if (newArray == null)
             Thread.yield();
         // 竞争锁
         lock.lock();
-        // 上锁，将旧数组中的元素全部复制到新数组里
+        // 上锁，如果数组还没有被更改，将旧数组中的元素全部复制到新数组里
         if (newArray != null && queue == array) {
             queue = newArray;
             System.arraycopy(array, 0, newArray, 0, oldCap);
