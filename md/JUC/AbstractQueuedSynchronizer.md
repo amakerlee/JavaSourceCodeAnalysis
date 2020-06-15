@@ -155,7 +155,7 @@ Condition 类仍然使用 Node 节点作为基础数据结构，每一个 Condit
 
 将线程添加到 Condition 队列，分为响应中断，不响应中断和有时间限制的等待方法，分别在函数 await，awaitUninterruptibly，awaitNanos 等方法中实现。
 
-在 await 方法（此方法响应中断）中，使用私有方法 addConditionWaiter 将线程包装成新的 Node 节点添加到 Condition 队列尾部，然后释放线程持有的锁。如果被唤醒了，继续执行后面的流程，即通过 acquireQueued 方法重新获取同步状态。
+在 await 方法（此方法响应中断）中，使用私有方法 addConditionWaiter 将线程包装成新的 Node 节点添加到 Condition 队列尾部，然后释放线程持有的锁。如果被唤醒了，继续执行后面的流程，即通过 acquireQueued 方法重新获取同步状态。注意这时候是尝试获取同步状态，也就是加锁，但并不保证马上能获取到。
 
 await 方法完整源码如下所示：
 

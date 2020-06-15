@@ -466,7 +466,7 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             }
             try {
                 if (c != null && !c.claim())
-                    // 不会进入这个 if
+                    // 如果指定了线程池，将会进入 claim 执行 Completion类型任务，执行成功最后返回 false
                     return false;
                 @SuppressWarnings("unchecked") S s = (S) r;
                 // 执行任务并设置结果
@@ -534,7 +534,9 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
             }
             try {
                 if (c != null && !c.claim())
-                    // 不会进入
+                    // 如果指定了线程池，将会进入 claim 执行 Completion类型任务
+                    // c 的作用是判断是否指定了线程池，如果没有指定线程池或者已经是在指定线程池的线程中运行了，c 为 null
+                    // claim 的作用是把任务从当前线程（ForkJoinPool）派发到指定线程池
                     return false;
                 @SuppressWarnings("unchecked") S s = (S) r;
                 // 执行当前任务，不设置结果
@@ -654,9 +656,8 @@ public class CompletableFuture<T> implements Future<T>, CompletionStage<T> {
         if (result == null) {
             // 如果当前任务还没有完成
             try {
-                // 判断任务能否被执行
-                // 所有的 c 都为 null，所以不用考虑这个条件
                 if (c != null && !c.claim())
+                    // 如果指定了线程池，将会进入 claim 执行 Completion 类型任务，执行成功最后返回 false
                     return false;
                 // 执行结果是否异常
                 if (r instanceof AltResult) {
